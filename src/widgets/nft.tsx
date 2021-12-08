@@ -10,48 +10,29 @@ import {
   Box,
   IconButton,
 } from "@chakra-ui/react";
-import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
+import { useWeb3, ThirdwebWeb3Provider } from "@3rdweb/hooks";
 import { PoweredBy } from "../shared/powered-by";
 import { ConnectWallet } from "@3rdweb/react";
 import { ThirdwebSDK, NFTMetadata, ModuleMetadata } from "@3rdweb/sdk";
 import { ChevronRightIcon, ChevronLeftIcon } from "@chakra-ui/icons";
+//@ts-ignore
+const CONTRACT_ADDRESS = __CONTRACT_ADDRESS__ as string;
+//@ts-ignore
+const CHAIN_ID = __CHAIN_ID__ as number;
 
 const connectors = {
   injected: {},
 };
 
-const Providers: React.FC = () => {
-  return (
-    <ThirdwebWeb3Provider supportedChainIds={[137]} connectors={connectors}>
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    </ThirdwebWeb3Provider>
-  );
-};
-
-const App: React.FC = () => {
-  return <Layout title="Foo Bar" />;
-};
-
-export default function runNFT() {
-  ReactDOM.render(<Providers />, document.getElementById("root"));
-}
-
-interface LayoutProps {
-  title: string;
-}
-
-const Layout: React.FC<LayoutProps> = ({ title }) => {
+const Layout: React.FC = () => {
   const { address, provider } = useWeb3();
 
   const collection = useMemo(() => {
     if (!provider) {
       return null;
     }
-    return new ThirdwebSDK(provider).getNFTModule(
-      "0x294261Ce5C5A5F8a709E1cA94D15b954bB42C2C8"
-    );
+
+    return new ThirdwebSDK(provider).getNFTModule(CONTRACT_ADDRESS);
   }, [provider]);
 
   const [owned, setOwned] = useState<NFTMetadata[]>([]);
@@ -67,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ title }) => {
         setMetadata(_metadata);
       }
     };
-    if (address) {
+    if (address && collection) {
       getAsyncData();
     }
     return () => {
@@ -178,3 +159,18 @@ const Layout: React.FC<LayoutProps> = ({ title }) => {
     </Flex>
   );
 };
+
+const Providers: React.FC = () => {
+  return (
+    <ChakraProvider>
+      <ThirdwebWeb3Provider
+        supportedChainIds={[CHAIN_ID]}
+        connectors={connectors}
+      >
+        <Layout />
+      </ThirdwebWeb3Provider>
+    </ChakraProvider>
+  );
+};
+
+ReactDOM.render(<Providers />, document.getElementById("root"));
