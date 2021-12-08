@@ -15,10 +15,11 @@ import { PoweredBy } from "../shared/powered-by";
 import { ConnectWallet } from "@3rdweb/react";
 import { ThirdwebSDK, NFTMetadata, ModuleMetadata } from "@3rdweb/sdk";
 import { ChevronRightIcon, ChevronLeftIcon } from "@chakra-ui/icons";
-//@ts-ignore
-const CONTRACT_ADDRESS = __CONTRACT_ADDRESS__ as string;
-//@ts-ignore
-const CHAIN_ID = __CHAIN_ID__ as number;
+
+const params = new URL(window.location.toString()).searchParams;
+
+const CONTRACT_ADDRESS = params.get("contract");
+const CHAIN = params.get("chain");
 
 const connectors = {
   injected: {},
@@ -164,7 +165,7 @@ const Providers: React.FC = () => {
   return (
     <ChakraProvider>
       <ThirdwebWeb3Provider
-        supportedChainIds={[CHAIN_ID]}
+        supportedChainIds={[Number(CHAIN)]}
         connectors={connectors}
       >
         <Layout />

@@ -38,7 +38,7 @@
     framer-motion "^5.3.0"
     react-icons "^4.3.1"
 
-"@3rdweb/sdk@^1.21.0":
+"@3rdweb/sdk@1.21.0":
   version "1.21.0"
   resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.21.0.tgz#5876b3b49b64a86e95da96e3a7cf06f9d91c97ce"
   integrity sha512-sypdqDZhk+64Q3YeDYraurY+zi+iWD7DZMCkK5mrl86mEZ50+bhZKbHHPOcwK72f435y7gO8TbUInhE5UQ0vew==

@@ -38,13 +38,19 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Signer } from "@ethersproject/abstract-signer";
 import { NftCarousel } from "../shared/nft-carousel";
 
-let params = new URL(window.location.toString()).searchParams;
+const params = new URL(window.location.toString()).searchParams;
 
 const CONTRACT_ADDRESS = params.get("contract");
 const CHAIN = params.get("chain");
 
 const connectors = {
   injected: {},
+  walletlink: {
+    appName: "thirdweb - Drop Wiget",
+    appLogoUrl: "https://thirdweb.com/favicon.ico",
+    darkMode: false,
+    url: "https://polygon-rpc.com",
+  },
 };
 
 interface RotatingDropImageProps extends ImageProps {
