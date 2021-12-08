@@ -45,12 +45,6 @@ const CHAIN = params.get("chain");
 
 const connectors = {
   injected: {},
-  walletlink: {
-    appName: "thirdweb - Drop Wiget",
-    appLogoUrl: "https://thirdweb.com/favicon.ico",
-    darkMode: false,
-    url: "https://polygon-rpc.com",
-  },
 };
 
 interface RotatingDropImageProps extends ImageProps {
