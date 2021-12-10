@@ -1,321 +1,451 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import ReactDOM from "react-dom";
+import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
+import { ConnectWallet } from "@3rdweb/react";
+import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
+  AspectRatio,
+  Button,
+  ButtonProps,
+  Center,
   ChakraProvider,
   Flex,
   Heading,
   Image,
-  Stack,
-  AspectRatio,
-  Box,
-  Center,
   Spinner,
-  Badge,
-  ImageProps,
-  Button,
-  Icon,
+  Stack,
+  Tab,
+  Text,
 } from "@chakra-ui/react";
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from "@chakra-ui/react";
-import { useWeb3, ThirdwebWeb3Provider } from "@3rdweb/hooks";
-import { PoweredBy } from "../shared/powered-by";
-import { ConnectWallet } from "@3rdweb/react";
-import {
-  ThirdwebSDK,
-  ModuleMetadata,
-  NFTMetadataOwner,
-  PublicClaimCondition,
-  DropModuleMetadata,
-} from "@3rdweb/sdk";
-import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
-import { IoDiamondOutline } from "react-icons/io5";
-
-import { BigNumber } from "@ethersproject/bignumber";
+import { css, Global } from "@emotion/react";
 import { Signer } from "@ethersproject/abstract-signer";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import ReactDOM from "react-dom";
+import { IoDiamondOutline } from "react-icons/io5";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useMutation,
+  useQuery,
+} from "react-query";
+import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
 import { NftCarousel } from "../shared/nft-carousel";
-
-const params = new URL(window.location.toString()).searchParams;
-
-const CONTRACT_ADDRESS = params.get("contract");
-const CHAIN = params.get("chain");
+import { PoweredBy } from "../shared/powered-by";
+import chakraTheme from "../shared/theme";
+import { fontsizeCss } from "../shared/theme/typography";
 
 const connectors = {
   injected: {},
 };
 
-interface RotatingDropImageProps extends ImageProps {
-  metadatWithOwner: NFTMetadataOwner[];
+interface DropWidgetProps {
+  startingTab?: "claim" | "inventory";
+  colorScheme?: "light" | "dark";
+  rpcUrl?: string;
+  contractAddress: string;
+  chainId: number;
 }
 
-const RotatingDropImage: React.FC<RotatingDropImageProps> = ({
-  metadatWithOwner,
-  ...restImageProps
-}) => {
-  const filteredImageMap = useMemo(() => {
-    return metadatWithOwner.filter((m) => !!m.metadata.image).slice(0, 100);
-  }, [metadatWithOwner]);
-  const length = filteredImageMap.length;
-  const [currentIndex, setCurrentIndex] = useState(0);
-  useEffect(() => {
-    let interval = setInterval(() => {
-      setCurrentIndex((idx) => (idx + 1) % length);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [length]);
+type Tab = "claim" | "inventory";
+
+interface ModuleInProps {
+  module?: DropModule;
+}
+
+interface HeaderProps extends ModuleInProps {
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
+  const { address } = useWeb3();
+  const activeButtonProps: ButtonProps = {
+    borderBottom: "4px solid",
+    borderBottomColor: "blue.500",
+  };
+
+  const inactiveButtonProps: ButtonProps = {
+    color: "gray.500",
+  };
+
+  const available = useQuery(
+    ["numbers", "available"],
+    () => module?.totalUnclaimedSupply(),
+    { enabled: !!module },
+  );
+
+  const owned = useQuery(
+    ["numbers", "owned", { address }],
+    () => module?.balanceOf(address || ""),
+    {
+      enabled: !!module && !!address,
+    },
+  );
 
   return (
-    <Image
-      {...restImageProps}
-      objectFit="contain"
-      src={filteredImageMap[currentIndex].metadata.image}
-      alt={filteredImageMap[currentIndex].metadata.name}
-    />
+    <Stack
+      px="28px"
+      direction="row"
+      spacing="20px"
+      w="100%"
+      flexGrow={0}
+      borderBottom="1px solid rgba(0,0,0,.1)"
+    >
+      <Button
+        h="48px"
+        fontSize="subtitle.md"
+        fontWeight="700"
+        borderY="4px solid transparent"
+        {...(activeTab === "claim" ? activeButtonProps : inactiveButtonProps)}
+        variant="unstyled"
+        borderRadius={0}
+        onClick={() => setActiveTab("claim")}
+      >
+        Claim{available.data ? ` (${available.data})` : ""}
+      </Button>
+      <Button
+        h="48px"
+        fontSize="subtitle.md"
+        fontWeight="700"
+        borderY="4px solid transparent"
+        {...(activeTab === "inventory"
+          ? activeButtonProps
+          : inactiveButtonProps)}
+        variant="unstyled"
+        borderRadius={0}
+        onClick={() => setActiveTab("inventory")}
+      >
+        Inventory{owned.data ? ` (${owned.data})` : ""}
+      </Button>
+    </Stack>
   );
 };
 
-interface ErrorWithData extends Error {
-  data?: Error;
+interface ClaimPageProps {
+  module?: DropModule;
 }
 
-const Layout: React.FC = () => {
+const ConnectWalletButton: React.FC = () => (
+  <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />
+);
+
+const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
+  const { address } = useWeb3();
+
+  const [claimSuccess, setClaimSuccess] = useState(false);
+
+  const available = useQuery(
+    ["numbers", "available"],
+    () => module?.totalUnclaimedSupply(),
+    { enabled: !!module },
+  );
+
+  const totalAvailable = useQuery(
+    ["numbers", "total"],
+    () => module?.totalSupply(),
+    { enabled: !!module },
+  );
+
+  const isSoldOut = totalAvailable.data?.gte(available.data || 0);
+
+  useEffect(() => {
+    let t = setTimeout(() => setClaimSuccess(false), 3000);
+    return () => clearTimeout(t);
+  }, [claimSuccess]);
+
+  const claimMutation = useMutation(
+    () => {
+      if (!address || !module) {
+        throw new Error("No address or module");
+      }
+      return module.claim(1);
+    },
+    { onSuccess: () => queryClient.invalidateQueries("numbers") },
+  );
+
+  const isLoading = totalAvailable.isLoading || available.isLoading;
+
+  const canClaim = !isSoldOut && address;
+
+  return (
+    <Stack spacing={4} mt="1.5rem" align="center" w="100%">
+      {address ? (
+        <Button
+          isLoading={isLoading || claimMutation.isLoading}
+          isDisabled={!canClaim}
+          leftIcon={<IoDiamondOutline />}
+          onClick={() => claimMutation.mutate()}
+          isFullWidth
+          colorScheme="blue"
+        >
+          {isSoldOut
+            ? "Sold out"
+            : canClaim
+            ? "Claim Drop"
+            : "Claiming Unavailable"}
+        </Button>
+      ) : (
+        <ConnectWalletButton />
+      )}
+      <Text size="label.md" color="green.800">
+        {available.data?.eq(0)
+          ? "All drops claimed"
+          : `${available.data?.toString()} / ${totalAvailable.data?.toString()} available`}
+      </Text>
+    </Stack>
+  );
+};
+
+const ClaimPage: React.FC<ClaimPageProps> = ({ module }) => {
+  const { data, isLoading, error } = useQuery(
+    "module_metadata",
+    () => module?.getMetadata(),
+    { enabled: !!module },
+  );
+
+  if (isLoading) {
+    return (
+      <Center w="100%" h="100%">
+        <Stack direction="row" align="center">
+          <Spinner />
+          <Heading size="label.sm">Loading...</Heading>
+        </Stack>
+      </Center>
+    );
+  }
+
+  return (
+    <Center w="100%" h="100%">
+      <Flex direction="column" align="center" gap={4} w="100%">
+        <Image
+          w="178px"
+          h="178px"
+          src={data?.metadata?.image}
+          bg="#F2F0FF"
+          alt={data?.metadata?.name}
+          border="1px solid rgba(0,0,0,.1)"
+          borderRadius="20px"
+        />
+        <Heading size="display.md" fontWeight="title" as="h1">
+          {data?.metadata?.name}
+        </Heading>
+        {data?.metadata?.description && (
+          <Heading noOfLines={2} as="h2" size="subtitle.md">
+            {data.metadata.description}
+          </Heading>
+        )}
+        <ClaimButton module={module} />
+      </Flex>
+    </Center>
+  );
+};
+
+const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
+  const { address } = useWeb3();
+  const ownedDrops = useQuery(
+    "inventory",
+    () => module?.getOwned(address || ""),
+    { enabled: !!module && !!address },
+  );
+
+  if (ownedDrops.isLoading) {
+    return (
+      <Center w="100%" h="100%">
+        <Stack direction="row" align="center">
+          <Spinner />
+          <Heading size="label.sm">Loading...</Heading>
+        </Stack>
+      </Center>
+    );
+  }
+
+  const ownedDropsMetadata = ownedDrops.data?.map((d) => d.metadata);
+
+  if (!address) {
+    return (
+      <Center w="100%" h="100%">
+        <Stack spacing={4} direction="column" align="center">
+          <Heading size="label.sm">
+            Connect your wallet to see your owned drops
+          </Heading>
+          <ConnectWalletButton />
+        </Stack>
+      </Center>
+    );
+  }
+
+  if (!ownedDropsMetadata) {
+    return (
+      <Center w="100%" h="100%">
+        <Stack direction="row" align="center">
+          <Heading size="label.sm">No drops owned yet</Heading>
+        </Stack>
+      </Center>
+    );
+  }
+
+  return <NftCarousel metadata={ownedDropsMetadata} />;
+};
+
+const Body: React.FC = ({ children }) => {
+  return (
+    <Flex px="28px" w="100%" flexGrow={1}>
+      {children}
+    </Flex>
+  );
+};
+
+const Footer: React.FC = () => {
+  return (
+    <Flex
+      justifyContent="flex-end"
+      align="center"
+      h="48px"
+      px="28px"
+      w="100%"
+      flexGrow={0}
+    >
+      <PoweredBy />
+    </Flex>
+  );
+};
+
+interface DropWidgetProps {
+  startingTab?: Tab;
+  colorScheme?: "light" | "dark";
+  rpcUrl?: string;
+  contractAddress: string;
+  chainId: number;
+}
+
+const DropWidget: React.FC<DropWidgetProps> = ({
+  startingTab = "claim",
+  rpcUrl,
+  contractAddress,
+  chainId,
+}) => {
+  const [activeTab, setActiveTab] = useState(startingTab);
   const { address, provider } = useWeb3();
 
+  const rpc = useMemo(() => {
+    return rpcUrl || ChainIDToRPCMap[chainId] || null;
+  }, [rpcUrl, chainId]);
+
   const sdk = useMemo(() => {
-    if (!provider) {
+    if (!rpc) {
       return null;
     }
-    return new ThirdwebSDK(provider);
-  }, [provider]);
+    return new ThirdwebSDK(rpc);
+  }, []);
 
   const signer: Signer | undefined = useMemo(() => {
     if (!provider) {
-      return null;
+      return undefined;
     }
     const s = provider.getSigner();
     return Signer.isSigner(s) ? s : undefined;
   }, [provider]);
 
   useEffect(() => {
-    if (!sdk) {
+    if (!sdk || !Signer.isSigner(signer)) {
       return;
     }
-    sdk.setProviderOrSigner(Signer.isSigner(signer) ? signer : undefined);
+    sdk.setProviderOrSigner(signer);
   }, [sdk, signer]);
 
-  const drop = useMemo(() => {
-    if (!sdk) {
-      return null;
+  const dropModule = useMemo(() => {
+    if (!sdk || !contractAddress) {
+      return undefined;
     }
-    return sdk.getDropModule(CONTRACT_ADDRESS);
+    return sdk.getDropModule(contractAddress);
   }, [sdk]);
 
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [claimError, setClaimError] = useState<ErrorWithData | null>(null);
-
-  const [availableToClaim, setAvailableToClaim] = useState<NFTMetadataOwner[]>(
-    []
+  const available = useQuery(
+    ["numbers", "available"],
+    () => dropModule?.totalUnclaimedSupply(),
+    { enabled: !!dropModule },
   );
-  const [ownedDrops, setOwnedDrops] = useState<NFTMetadataOwner[]>([]);
-  const [metadata, setMetadata] = useState<ModuleMetadata>(undefined);
-  const [numberOwned, setNumberOwned] = useState(BigNumber.from(0));
-  const [totalAvailable, setTotalAvailable] = useState(BigNumber.from(0));
-  const [activeClaimCondition, setActiveClaimCondition] =
-    useState<PublicClaimCondition>();
 
-  const [loaded, setLoaded] = useState(false);
+  const totalAvailable = useQuery(
+    ["numbers", "total"],
+    () => dropModule?.totalSupply(),
+    { enabled: !!dropModule },
+  );
 
-  const reLoad = useCallback(async () => {
-    if (!address || !drop) {
-      return;
-    }
-    return Promise.all([
-      await drop.getAll(),
-      await drop.getMetadata(),
-      await drop.balanceOf(address),
-      await drop.totalUnclaimedSupply(),
-      await drop.getOwned(address),
-      await drop.getActiveMintCondition().catch((err) => {
-        console.error("failed to get claim condition", err);
-        return undefined;
-      }),
-    ]).then(
-      ([
-        _availableToClaim,
-        _metadata,
-        _numberOwned,
-        _totalAvailable,
-        _ownedDrops,
-        _activeClaimCondition,
-      ]) => {
-        setAvailableToClaim(_availableToClaim);
-        setMetadata(_metadata);
-        setNumberOwned(_numberOwned);
-        setActiveClaimCondition(_activeClaimCondition);
-        setTotalAvailable(_totalAvailable);
-        setOwnedDrops(_ownedDrops);
-        setLoaded(true);
-      }
-    );
-  }, [address, drop]);
+  const owned = useQuery(
+    ["numbers", "owned", { address }],
+    () => dropModule?.balanceOf(address || ""),
+    {
+      enabled: !!dropModule && !!address,
+    },
+  );
 
-  const onClaim = useCallback(async () => {
-    setClaimError(null);
-    if (!drop) {
-      return;
-    }
-    setIsClaiming(true);
-    try {
-      await drop.claim(1);
-      await reLoad();
-    } catch (err) {
-      console.error("failed to claim", err);
-      setClaimError(err);
-    } finally {
-      setIsClaiming(false);
-    }
-  }, [drop, reLoad]);
+  const isSoldOut = totalAvailable.data?.gte(available.data || 0);
+
+  const onlyOnce = useRef(true);
 
   useEffect(() => {
-    if (address && drop) {
-      reLoad();
+    if (owned.data?.gt(0) && isSoldOut && onlyOnce.current) {
+      onlyOnce.current = false;
+      setActiveTab("inventory");
     }
-  }, [drop, address]);
-
-  const dropModuleMetadata = metadata?.metadata as unknown as
-    | DropModuleMetadata
-    | undefined;
-
-  const totalAvailableNumber = totalAvailable.toNumber();
-  const ownedNumber = numberOwned.toNumber();
+  }, [owned.data, isSoldOut]);
 
   return (
-    <Flex flexDir="column" w="100vw" h="100vh" px={10} pb={10}>
+    <AspectRatio ratio={1} w="600px">
       <Flex
-        as="header"
-        flexShrink={0}
-        py={4}
-        justify="space-between"
-        align="center"
-      >
-        <Stack direction="row" spacing={4} align="baseline">
-          <Heading as="h1">{dropModuleMetadata?.name || ""}</Heading>
-          {dropModuleMetadata?.symbol && (
-            <Heading size="sm" fontWeight={500} as="h2">
-              ${dropModuleMetadata.symbol}
-            </Heading>
-          )}
-        </Stack>
-        <ConnectWallet />
-      </Flex>
-      <Flex
-        py={4}
-        borderTop="1px solid rgba(0,0,0,.1)"
-        as="main"
-        flexGrow={1}
-        justify="center"
-        position="relative"
+        flexDir="column"
+        borderRadius="1rem"
         overflow="hidden"
+        shadow="0px 1px 1px rgba(0,0,0,0.1)"
+        border="1px solid"
+        borderColor="blackAlpha.10"
       >
-        {!loaded ? (
-          <Center>
-            <Stack spacing={4} align="center" direction="row">
-              <Spinner />{" "}
-              <Heading size="xs" as="h4">
-                Loading ...
-              </Heading>
-            </Stack>
-          </Center>
-        ) : (
-          <Tabs variant="soft-rounded" w="100%">
-            <TabList>
-              <Tab align="center">
-                Claim <Badge ml="3">{totalAvailableNumber}</Badge>
-              </Tab>
-              {ownedNumber > 0 && (
-                <Tab align="center">
-                  Your Inventory <Badge ml="3">{ownedNumber}</Badge>
-                </Tab>
-              )}
-            </TabList>
-
-            <TabPanels>
-              <TabPanel>
-                <Stack spacing={16} w="100%" align="center">
-                  <AspectRatio ratio={1} w="50%">
-                    <Box>
-                      <RotatingDropImage
-                        w="100%"
-                        h="100%"
-                        borderRadius="full"
-                        metadatWithOwner={availableToClaim}
-                      />
-                    </Box>
-                  </AspectRatio>
-                  <Stack spacing={6}>
-                    <Button
-                      isLoading={isClaiming}
-                      colorScheme="blue"
-                      size="lg"
-                      leftIcon={<Icon as={IoDiamondOutline} />}
-                      rightIcon={
-                        totalAvailableNumber ? (
-                          <Badge colorScheme="blue">
-                            {totalAvailableNumber} more available
-                          </Badge>
-                        ) : null
-                      }
-                      isDisabled={!drop || totalAvailableNumber === 0}
-                      onClick={onClaim}
-                    >
-                      {totalAvailableNumber === 0 ? "All claimed" : "Claim"}
-                    </Button>
-                    {claimError && (
-                      <Alert status="error">
-                        <AlertIcon />
-                        <Stack spacing={0}>
-                          <AlertTitle mr={2}>Failed to claim!</AlertTitle>
-                          <AlertDescription>
-                            {claimError?.data?.message ||
-                              claimError?.message ||
-                              "Something went wrong"}
-                          </AlertDescription>
-                        </Stack>
-                      </Alert>
-                    )}
-                  </Stack>
-                </Stack>
-              </TabPanel>
-              {ownedNumber > 0 && (
-                <TabPanel>
-                  <NftCarousel metadata={ownedDrops.map((d) => d.metadata)} />
-                </TabPanel>
-              )}
-            </TabPanels>
-          </Tabs>
-        )}
+        <Header
+          activeTab={activeTab}
+          setActiveTab={(tab) => setActiveTab(tab)}
+          module={dropModule}
+        />
+        <Body>
+          {activeTab === "claim" ? (
+            <ClaimPage module={dropModule} />
+          ) : (
+            <InventoryPage module={dropModule} />
+          )}
+        </Body>
+        <Footer />
       </Flex>
-      <Flex as="footer" flexShrink={0} py={4} justify="flex-end">
-        <PoweredBy />
-      </Flex>
-    </Flex>
+    </AspectRatio>
   );
 };
 
-const Providers: React.FC = () => {
+const queryClient = new QueryClient();
+const urlParams = new URL(window.location.toString()).searchParams;
+
+const App: React.FC = () => {
+  const chainId = Number(urlParams.get("chainId"));
+  const contractAddress = urlParams.get("contract") || "";
+
   return (
-    <ChakraProvider>
-      <ThirdwebWeb3Provider
-        supportedChainIds={[Number(CHAIN)]}
-        connectors={connectors}
-      >
-        <Layout />
-      </ThirdwebWeb3Provider>
-    </ChakraProvider>
+    <>
+      <Global
+        styles={css`
+          :host,
+          :root {
+            ${fontsizeCss};
+          }
+        `}
+      />
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={chakraTheme}>
+          <ThirdwebWeb3Provider
+            supportedChainIds={[chainId]}
+            connectors={connectors}
+          >
+            <DropWidget contractAddress={contractAddress} chainId={chainId} />
+          </ThirdwebWeb3Provider>
+        </ChakraProvider>
+      </QueryClientProvider>
+    </>
   );
 };
 
-ReactDOM.render(<Providers />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById("root"));

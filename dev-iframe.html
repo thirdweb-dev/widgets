@@ -1,12 +1,51 @@
 <!DOCTYPE html>
 <html>
   <head> </head>
-  <body>
-    <iframe
-      src="http://localhost:1234/"
-      width="1100px"
-      height="1100px"
-      frameborder="0"
-    ></iframe>
+  <body style="font-family: sans-serif">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        height: 100%;
+        margin: 20px;
+        align-items: center;
+      "
+    >
+      <div style="gap: 5px; width: 600px;">
+        <h2>Preview 600x600</h2>
+        <iframe
+          src="http://localhost:1234/?contract=0xe525ea4532903916782c7644c4a3D7d3020bf308&chainId=137"
+          width="600px"
+          height="600px"
+          frameborder="0"
+        ></iframe>
+      </div>
+      <div style="gap: 5px; width: 600px;">
+        <h2>Properties</h2>
+        <div>
+          <div>
+            <label style="gap: 5px;">
+              <span>Contract:</span>
+              <input
+                type="text"
+                value="0xe525ea4532903916782c7644c4a3D7d3020bf308"
+                style="width: 100%"
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              <span>Chain ID:</span>
+              <input
+                type="text"
+                value="137"
+                style="width: 100%"
+              />
+            </label>
+          </div>
+      </div>
+    </div>
   </body>
 </html>
