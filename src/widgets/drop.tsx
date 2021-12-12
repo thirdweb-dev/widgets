@@ -144,7 +144,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
     { enabled: !!module },
   );
 
-  const isSoldOut = totalAvailable.data?.gt(available.data || 0);
+  const isNotSoldOut = available?.data?.gt(0);
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -163,7 +163,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
 
   const isLoading = totalAvailable.isLoading || available.isLoading;
 
-  const canClaim = !isSoldOut && address;
+  const canClaim = isNotSoldOut && address;
 
   return (
     <Stack spacing={4} mt="1.5rem" align="center" w="100%">
@@ -176,7 +176,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
           isFullWidth
           colorScheme="blue"
         >
-          {isSoldOut
+          {!isNotSoldOut
             ? "Sold out"
             : canClaim
             ? "Claim Drop"
