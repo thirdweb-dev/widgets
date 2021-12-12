@@ -144,7 +144,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
     { enabled: !!module },
   );
 
-  const isSoldOut = totalAvailable.data?.gte(available.data || 0);
+  const isSoldOut = totalAvailable.data?.gt(available.data || 0);
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
