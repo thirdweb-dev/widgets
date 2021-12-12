@@ -8,15 +8,19 @@ import {
   Center,
   ChakraProvider,
   Flex,
+  Grid,
   Heading,
+  Icon,
   Image,
   Spinner,
   Stack,
   Tab,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { Signer } from "@ethersproject/abstract-signer";
+import { BigNumber } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
@@ -29,8 +33,10 @@ import {
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
 import { NftCarousel } from "../shared/nft-carousel";
 import { PoweredBy } from "../shared/powered-by";
+import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
+import { useFormatedValue } from "../shared/tokenHooks";
 
 const connectors = {
   injected: {},
@@ -121,20 +127,22 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
 
 interface ClaimPageProps {
   module?: DropModule;
+  sdk?: ThirdwebSDK;
+  chainId?: number;
 }
 
 const ConnectWalletButton: React.FC = () => (
   <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />
 );
 
-const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
   const { address } = useWeb3();
 
   const [claimSuccess, setClaimSuccess] = useState(false);
 
-  const available = useQuery(
-    ["numbers", "available"],
-    () => module?.totalUnclaimedSupply(),
+  const claimed = useQuery(
+    ["numbers", "claimed"],
+    () => module?.totalClaimedSupply(),
     { enabled: !!module },
   );
 
@@ -144,12 +152,32 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
     { enabled: !!module },
   );
 
-  const isNotSoldOut = available?.data?.gt(0);
+  const claimCondition = useQuery(
+    ["claimcondition"],
+    () => module?.getActiveClaimCondition(),
+    { enabled: !!module },
+  );
+
+  const priceToMint = BigNumber.from(claimCondition?.data?.price || 0);
+  const currency = claimCondition?.data?.currency;
+
+  const tokenModule = useMemo(() => {
+    if (!currency || !sdk) {
+      return undefined;
+    }
+    return sdk.getCurrencyModule(currency);
+  }, [currency, sdk]);
+
+  const formatedPrice = useFormatedValue(priceToMint, tokenModule, chainId);
+
+  const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
   }, [claimSuccess]);
+
+  const toast = useToast();
 
   const claimMutation = useMutation(
     () => {
@@ -158,15 +186,32 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
       }
       return module.claim(1);
     },
-    { onSuccess: () => queryClient.invalidateQueries("numbers") },
+    {
+      onSuccess: () => queryClient.invalidateQueries("numbers"),
+      onError: (err) => {
+        const anyErr = err as any;
+        let message = "";
+
+        if (anyErr.code === "INSUFFICIENT_FUNDS") {
+          message = "Insufficient funds to mint";
+        }
+        toast({
+          title: "Minting failed",
+          description: message,
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      },
+    },
   );
 
-  const isLoading = totalAvailable.isLoading || available.isLoading;
+  const isLoading = totalAvailable.isLoading || claimed.isLoading;
 
   const canClaim = isNotSoldOut && address;
 
   return (
-    <Stack spacing={4} mt="1.5rem" align="center" w="100%">
+    <Stack spacing={4} align="center" w="100%">
       {address ? (
         <Button
           isLoading={isLoading || claimMutation.isLoading}
@@ -179,22 +224,26 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module }) => {
           {!isNotSoldOut
             ? "Sold out"
             : canClaim
-            ? "Claim Drop"
-            : "Claiming Unavailable"}
+            ? `Mint${
+                priceToMint.eq(0)
+                  ? " (Free)"
+                  : formatedPrice
+                  ? ` (${formatedPrice})`
+                  : ""
+              }`
+            : "Minting Unavailable"}
         </Button>
       ) : (
         <ConnectWalletButton />
       )}
       <Text size="label.md" color="green.800">
-        {available.data?.eq(0)
-          ? "All drops claimed"
-          : `${available.data?.toString()} / ${totalAvailable.data?.toString()} available`}
+        {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
       </Text>
     </Stack>
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ module }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
   const { data, isLoading, error } = useQuery(
     "module_metadata",
     () => module?.getMetadata(),
@@ -215,15 +264,25 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ module }) => {
   return (
     <Center w="100%" h="100%">
       <Flex direction="column" align="center" gap={4} w="100%">
-        <Image
-          w="178px"
-          h="178px"
-          src={data?.metadata?.image}
+        <Grid
           bg="#F2F0FF"
-          alt={data?.metadata?.name}
           border="1px solid rgba(0,0,0,.1)"
           borderRadius="20px"
-        />
+          w="178px"
+          h="178px"
+          placeContent="center"
+        >
+          {data?.metadata?.image ? (
+            <Image
+              w="100%"
+              h="100%"
+              src={data?.metadata?.image}
+              alt={data?.metadata?.name}
+            />
+          ) : (
+            <Icon maxW="100%" maxH="100%" as={DropSvg} />
+          )}
+        </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
           {data?.metadata?.name}
         </Heading>
@@ -232,7 +291,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ module }) => {
             {data.metadata.description}
           </Heading>
         )}
-        <ClaimButton module={module} />
+        <ClaimButton module={module} chainId={chainId} sdk={sdk} />
       </Flex>
     </Center>
   );
@@ -331,7 +390,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
 
   const sdk = useMemo(() => {
     if (!rpc) {
-      return null;
+      return undefined;
     }
     return new ThirdwebSDK(rpc);
   }, []);
@@ -407,7 +466,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
         />
         <Body>
           {activeTab === "claim" ? (
-            <ClaimPage module={dropModule} />
+            <ClaimPage module={dropModule} sdk={sdk} chainId={chainId} />
           ) : (
             <InventoryPage module={dropModule} />
           )}
