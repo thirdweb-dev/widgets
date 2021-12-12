@@ -424,6 +424,7 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
+  const rpcUrl = urlParams.get("rpc") || "";
 
   return (
     <>
@@ -441,7 +442,11 @@ const App: React.FC = () => {
             supportedChainIds={[chainId]}
             connectors={connectors}
           >
-            <DropWidget contractAddress={contractAddress} chainId={chainId} />
+            <DropWidget
+              rpcUrl={rpcUrl}
+              contractAddress={contractAddress}
+              chainId={chainId}
+            />
           </ThirdwebWeb3Provider>
         </ChakraProvider>
       </QueryClientProvider>
