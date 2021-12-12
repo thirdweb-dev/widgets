@@ -105,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
         borderRadius={0}
         onClick={() => setActiveTab("claim")}
       >
-        Claim{available.data ? ` (${available.data})` : ""}
+        Mint{available.data ? ` (${available.data})` : ""}
       </Button>
       <Button
         h="48px"
@@ -195,6 +195,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to mint";
         }
+        if (anyErr.code === "UNPREDICTABLE_GAS_LIMIT") {
+          if (anyErr.message.includes("exceed max mint supply")) {
+            message = "You are not eligible to mint right now";
+          }
+        }
+
         toast({
           title: "Minting failed",
           description: message,
