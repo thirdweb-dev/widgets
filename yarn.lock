@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@3rdweb/chain-icons/-/chain-icons-1.0.1.tgz#00ade9274dc87488c59248350981f300d4a9d912"
   integrity sha512-573b0CmKwi9Vf8ETRjNX8VzSqc9s1cwMu5pw7yUI2YTuBimgd15Hu/prnfyZ5efrIZUPDCJVaqNAc6v3fuGmzA==
 
-"@3rdweb/contracts@1.15.0-4":
-  version "1.15.0-4"
-  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.15.0-4.tgz#6163f6673a37211172463bc999046635eb017f8a"
-  integrity sha512-y00ZzY80CNTi39TAvNC4rnVcRDJ1cNzC1voyJfYBjBbIzpOla+vMi1uTfchABvZpPe7vI+HO139/VWeeUebftQ==
+"@3rdweb/contracts@1.15.0-5":
+  version "1.15.0-5"
+  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.15.0-5.tgz#712646f9befbbc6ef88960c866662154f6a474d2"
+  integrity sha512-YyOh1Zlvh/VVIWj/0lwqn5iOU3HTGCD3N58x6xfKVIM6xvbh/pgl8HJCOfdN1f4jRZhusNB5o4U2SMvMohKVtw==
   dependencies:
     "@chainlink/contracts" "^0.2.2"
     "@openzeppelin/contracts" "^4.3.3"
@@ -45,12 +45,12 @@
     framer-motion "^5.3.0"
     react-icons "^4.3.1"
 
-"@3rdweb/sdk@1.24.2-3":
-  version "1.24.2-3"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.24.2-3.tgz#6e89fd1eab28b58e3616a7099a10c6852d273bfc"
-  integrity sha512-AnGDoCS7ZYeyf3gyWFG+CtC+baeO0kjVaUK+6bMc9XMAxvzWtT+n0ABX2GY3tXeWUFe2Y/2uii4KqoUeMweA6w==
+"@3rdweb/sdk@^1.25.1":
+  version "1.25.1"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.25.1.tgz#26c5f7ccc28a12541cc8e6f3019d48de845a5065"
+  integrity sha512-mnnKk8yMiiNdRIkkNsbzyqryFDceJ2eMvCnNeni6zNt/cZop0hma2bGb7bG4P7nMPX+YnrtYDPtD/K88HvGZEw==
   dependencies:
-    "@3rdweb/contracts" "1.15.0-4"
+    "@3rdweb/contracts" "1.15.0-5"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
@@ -61,8 +61,11 @@
     browser-or-node "^2.0.0"
     crypto-js "^4.1.1"
     eth-permit "^0.2.1"
+    ethers "^5.5.2"
+    events "^3.3.0"
     form-data "^4.0.0"
     json2typescript "^1.5.0-rc.0"
+    keccak256 "^1.0.6"
     merkletreejs "^0.2.24"
     node-fetch "^2.6.5"
     ts-enum-util "^4.0.2"
@@ -2266,9 +2269,9 @@
   integrity sha512-0d5Wd09ItQWH1qFbEyQ7oTQ3GZrMfth5JkbN3EvTKLXcHLRDSXeLnlvlOn0wvxVIwK5o2M8JzP/OWz7T3NRsbw==
 
 "@types/node@*":
-  version "16.11.12"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
-  integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
+  version "16.11.13"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.13.tgz#6b71641b81a98c6a538d89892440c06f147edddc"
+  integrity sha512-eUXZzHLHoZqj1frtUetNkUetYoJ6X55UmrVnFD4DMhVeAmwLjniZhtBmsRiemQh4uq4G3vUra/Ws/hs9vEvL3Q==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -3187,6 +3190,14 @@ buffer@^5.4.3, buffer@^5.5.0:
     base64-js "^1.3.1"
     ieee754 "^1.1.13"
 
+buffer@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-6.0.3.tgz#2ace578459cc8fbe2a70aaa8f52ee63b6a74c6c6"
+  integrity sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
+  dependencies:
+    base64-js "^1.3.1"
+    ieee754 "^1.2.1"
+
 builtin-status-codes@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz#85982878e21b98e1c66425e03d0174788f569ee8"
@@ -4049,9 +4060,9 @@ ejs@^3.1.6:
     jake "^10.6.1"
 
 electron-to-chromium@^1.4.17:
-  version "1.4.17"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.17.tgz#16ec40f61005582d5d41fac08400a254dccfb85f"
-  integrity sha512-zhk1MravPtq/KBhmGB7TLBILmXTgRG9TFSI3qS3DbgyfHzIl72iiTE37r/BHIbPCJJlWIo5rySyxiH4vWhu2ZA==
+  version "1.4.18"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.18.tgz#2fb282213937986a20a653315963070e8321b3f3"
+  integrity sha512-i7nKjGGBE1+YUIbfLObA1EZPmN7J1ITEllbhusDk+KIk6V6gUxN9PFe36v+Sd+8Cg0k3cgUv9lQhQZalr8rggw==
 
 elliptic@6.5.4, elliptic@^6.5.2, elliptic@^6.5.3:
   version "6.5.4"
@@ -4707,7 +4718,7 @@ eventemitter3@4.0.7, eventemitter3@^4.0.0, eventemitter3@^4.0.4:
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
-events@^3.0.0, events@^3.1.0:
+events@^3.0.0, events@^3.1.0, events@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
   integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
@@ -4948,9 +4959,9 @@ framer-motion@^4:
     "@emotion/is-prop-valid" "^0.8.2"
 
 framer-motion@^5.3.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-5.5.0.tgz#4e83490d74ef9f2975c2781beaa5788f80087491"
-  integrity sha512-q5+0AKDjBD1l/eteGbzqGmy3aUlo+Q1ND2TlxtueTFJTD49iKP6Rdb9raatGft4KuQwXc8ZrnpBDZMgS79ZZTw==
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-5.5.1.tgz#2f6debbb20ca30c4ce8665b4a2653dc6bd9a6fe3"
+  integrity sha512-kPfQpMO4BH+ouIORDMGNt3o+vEgNnIKHyKIgFG4zalTFJaNx9YF2hM2cSdlNdZ6OpiBEkSyKg5DkpFkhmZpRDQ==
   dependencies:
     framesync "6.0.1"
     hey-listen "^1.0.8"
@@ -5337,7 +5348,7 @@ icss-utils@^4.0.0, icss-utils@^4.1.1:
   dependencies:
     postcss "^7.0.14"
 
-ieee754@^1.1.13:
+ieee754@^1.1.13, ieee754@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
   integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
@@ -5866,7 +5877,16 @@ jsprim@^1.2.2:
     json-schema "0.4.0"
     verror "1.10.0"
 
-keccak@^3.0.0, keccak@^3.0.1:
+keccak256@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/keccak256/-/keccak256-1.0.6.tgz#dd32fb771558fed51ce4e45a035ae7515573da58"
+  integrity sha512-8GLiM01PkdJVGUhR1e6M/AvWnSqYS0HaERI+K/QtStGDGlSTx2B1zTqZk4Zlqu5TxHJNTxWAdP9Y+WI50OApUw==
+  dependencies:
+    bn.js "^5.2.0"
+    buffer "^6.0.3"
+    keccak "^3.0.2"
+
+keccak@^3.0.0, keccak@^3.0.1, keccak@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/keccak/-/keccak-3.0.2.tgz#4c2c6e8c54e04f2670ee49fa734eb9da152206e0"
   integrity sha512-PyKKjkH53wDMLGrvmRGSNWgmSxZOUqbnXwKL9tmgbFYA1iAYqW21kfR7mZXV0MlESiefxQQE9X9fTa3X+2MPDQ==
