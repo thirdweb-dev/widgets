@@ -1,6 +1,6 @@
 import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { ConnectWallet } from "@3rdweb/react";
-import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
+import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   AspectRatio,
   Button,
@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { Signer } from "@ethersproject/abstract-signer";
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
@@ -42,26 +42,44 @@ const connectors = {
   injected: {},
 };
 
+function parseHugeNumber(totalAvailable: BigNumberish = 0) {
+  const bn = BigNumber.from(totalAvailable);
+  if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
+    return "Unlimited";
+  }
+  const number = bn.toNumber();
+  return new Intl.NumberFormat(undefined, {
+    notation: bn.gte(1_00_000) ? "compact" : undefined,
+  }).format(number);
+}
+
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
   chainId: number;
+  tokenId: string;
 }
 
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropModule;
+  module?: BundleDropModule;
 }
 
 interface HeaderProps extends ModuleInProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
+  tokenId: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
+const Header: React.FC<HeaderProps> = ({
+  activeTab,
+  setActiveTab,
+  module,
+  tokenId,
+}) => {
   const { address } = useWeb3();
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -72,19 +90,25 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
     color: "gray.500",
   };
 
-  const available = useQuery(
-    ["numbers", "available"],
-    () => module?.totalUnclaimedSupply(),
-    { enabled: !!module },
+  const activeClaimCondition = useQuery(
+    ["claim-condition"],
+    async () => {
+      return module?.getActiveClaimCondition(tokenId);
+    },
+    { enabled: !!module && tokenId.length > 0 },
   );
 
   const owned = useQuery(
-    ["numbers", "owned", { address }],
-    () => module?.balanceOf(address || ""),
+    ["balance", { address }],
+    async () => {
+      return module?.balanceOf(address || "", tokenId);
+    },
     {
-      enabled: !!module && !!address,
+      enabled: !!module && tokenId.length > 0 && !!address,
     },
   );
+
+  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
   return (
     <Stack
@@ -105,7 +129,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
         borderRadius={0}
         onClick={() => setActiveTab("claim")}
       >
-        Mint{available.data ? ` (${available.data})` : ""}
+        Mint{available ? ` (${available})` : ""}
       </Button>
       <Button
         h="48px"
@@ -126,40 +150,38 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
 };
 
 interface ClaimPageProps {
-  module?: DropModule;
+  module?: BundleDropModule;
   sdk?: ThirdwebSDK;
   chainId?: number;
+  tokenId: string;
 }
 
 const ConnectWalletButton: React.FC = () => (
   <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />
 );
 
-const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({
+  module,
+  sdk,
+  chainId,
+  tokenId,
+}) => {
   const { address } = useWeb3();
 
   const [claimSuccess, setClaimSuccess] = useState(false);
 
-  const claimed = useQuery(
-    ["numbers", "claimed"],
-    () => module?.totalClaimedSupply(),
-    { enabled: !!module },
+  const activeClaimCondition = useQuery(
+    ["claim-condition"],
+    async () => {
+      return module?.getActiveClaimCondition(tokenId);
+    },
+    { enabled: !!module && tokenId.length > 0 },
   );
 
-  const totalAvailable = useQuery(
-    ["numbers", "total"],
-    () => module?.totalSupply(),
-    { enabled: !!module },
-  );
-
-  const claimCondition = useQuery(
-    ["claimcondition"],
-    () => module?.getActiveClaimCondition(),
-    { enabled: !!module },
-  );
-
-  const priceToMint = BigNumber.from(claimCondition?.data?.price || 0);
-  const currency = claimCondition?.data?.currency;
+  const priceToMint = BigNumber.from(activeClaimCondition?.data?.price || 0);
+  const currency = activeClaimCondition?.data?.currency;
+  const claimed = activeClaimCondition.data?.currentMintSupply || "0";
+  const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
 
   const tokenModule = useMemo(() => {
     if (!currency || !sdk) {
@@ -170,7 +192,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
 
   const formatedPrice = useFormatedValue(priceToMint, tokenModule, chainId);
 
-  const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
+  const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -184,7 +206,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
       if (!address || !module) {
         throw new Error("No address or module");
       }
-      return module.claim(1);
+      return module.claim(tokenId, 1);
     },
     {
       onSuccess: () => queryClient.invalidateQueries("numbers"),
@@ -212,7 +234,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
     },
   );
 
-  const isLoading = totalAvailable.isLoading || claimed.isLoading;
+  const isLoading = activeClaimCondition.isLoading;
 
   const canClaim = isNotSoldOut && address;
 
@@ -243,13 +265,20 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
         <ConnectWalletButton />
       )}
       <Text size="label.md" color="green.800">
-        {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
+        {`${parseHugeNumber(claimed)} / ${parseHugeNumber(
+          totalAvailable,
+        )} claimed`}
       </Text>
     </Stack>
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({
+  module,
+  sdk,
+  chainId,
+  tokenId,
+}) => {
   const { data, isLoading, error } = useQuery(
     "module_metadata",
     () => module?.getMetadata(),
@@ -299,7 +328,12 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
             {data.metadata.description}
           </Heading>
         )}
-        <ClaimButton module={module} chainId={chainId} sdk={sdk} />
+        <ClaimButton
+          module={module}
+          tokenId={tokenId}
+          chainId={chainId}
+          sdk={sdk}
+        />
       </Flex>
     </Center>
   );
@@ -388,6 +422,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   rpcUrl,
   contractAddress,
   chainId,
+  tokenId,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const { address, provider } = useWeb3();
@@ -422,39 +457,38 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!sdk || !contractAddress) {
       return undefined;
     }
-    return sdk.getDropModule(contractAddress);
+    return sdk.getBundleDropModule(contractAddress);
   }, [sdk]);
 
-  const available = useQuery(
-    ["numbers", "available"],
-    () => dropModule?.totalUnclaimedSupply(),
-    { enabled: !!dropModule },
+  const activeClaimCondition = useQuery(
+    ["claim-condition"],
+    async () => {
+      return dropModule?.getActiveClaimCondition(tokenId);
+    },
+    { enabled: !!dropModule && tokenId.length > 0 },
   );
 
-  const totalAvailable = useQuery(
-    ["numbers", "total"],
-    () => dropModule?.totalSupply(),
-    { enabled: !!dropModule },
-  );
+  const claimed = activeClaimCondition.data?.currentMintSupply || "0";
+  const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
-    () => dropModule?.balanceOf(address || ""),
+    () => dropModule?.balanceOf(address || "", tokenId),
     {
       enabled: !!dropModule && !!address,
     },
   );
 
-  const isSoldOut = totalAvailable.data?.gte(available.data || 0);
+  const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
 
   const onlyOnce = useRef(true);
 
   useEffect(() => {
-    if (owned.data?.gt(0) && isSoldOut && onlyOnce.current) {
+    if (owned.data?.gt(0) && !isNotSoldOut && onlyOnce.current) {
       onlyOnce.current = false;
       setActiveTab("inventory");
     }
-  }, [owned.data, isSoldOut]);
+  }, [owned.data, isNotSoldOut]);
 
   return (
     <AspectRatio ratio={1} w="600px">
@@ -471,10 +505,16 @@ const DropWidget: React.FC<DropWidgetProps> = ({
           activeTab={activeTab}
           setActiveTab={(tab) => setActiveTab(tab)}
           module={dropModule}
+          tokenId={tokenId}
         />
         <Body>
           {activeTab === "claim" ? (
-            <ClaimPage module={dropModule} sdk={sdk} chainId={chainId} />
+            <ClaimPage
+              module={dropModule}
+              tokenId={tokenId}
+              sdk={sdk}
+              chainId={chainId}
+            />
           ) : (
             <InventoryPage module={dropModule} />
           )}
@@ -492,6 +532,7 @@ const App: React.FC = () => {
   const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpc") || "";
+  const tokenId = urlParams.get("tokenId") || "";
 
   return (
     <>
@@ -513,6 +554,7 @@ const App: React.FC = () => {
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
               chainId={chainId}
+              tokenId={tokenId}
             />
           </ThirdwebWeb3Provider>
         </ChakraProvider>

@@ -1,13 +1,14 @@
 import fs from "fs";
 import { uploadToIPFS } from "@3rdweb/sdk";
 
-const file = fs.readFileSync("./dist/drop.html");
+//load all the files in ./dist/
+const files = fs.readdirSync("./dist");
 
-uploadToIPFS(file)
-  .then((hash) => {
-    console.log("*** hash", hash);
-  })
-  .catch((err) => {
-    console.error("*** err", err);
-    process.exit(1);
-  });
+//loop over each file and upload to IPFS
+for(const file of files){
+  const filePath = `./dist/${file}`;
+  const fileBuffer = fs.readFileSync(filePath);
+  const fileHash = await uploadToIPFS(fileBuffer);
+  console.log(`${file} ipfs hash: ${fileHash}`);
+}
+
