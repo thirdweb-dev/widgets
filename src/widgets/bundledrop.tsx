@@ -279,13 +279,15 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   chainId,
   tokenId,
 }) => {
-  const { data, isLoading, error } = useQuery(
-    "module_metadata",
-    () => module?.getMetadata(),
-    { enabled: !!module },
+  const tokenMetadata = useQuery(
+    ["token-metadata", { tokenId }],
+    async () => {
+      return module?.get(tokenId);
+    },
+    { enabled: !!module && tokenId.length > 0 },
   );
 
-  if (isLoading) {
+  if (tokenMetadata.isLoading) {
     return (
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
@@ -295,6 +297,8 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
       </Center>
     );
   }
+
+  const metaData = tokenMetadata.data?.metadata;
 
   return (
     <Center w="100%" h="100%">
@@ -308,24 +312,24 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {data?.metadata?.image ? (
+          {metaData?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={data?.metadata?.image}
-              alt={data?.metadata?.name}
+              src={metaData?.image}
+              alt={metaData?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {data?.metadata?.name}
+          {metaData?.name}
         </Heading>
-        {data?.metadata?.description && (
+        {metaData?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {data.metadata.description}
+            {metaData.description}
           </Heading>
         )}
         <ClaimButton
