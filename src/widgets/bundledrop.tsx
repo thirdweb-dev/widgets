@@ -544,7 +544,7 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpc") || "";
   const tokenId = urlParams.get("tokenId") || "";
-  const relayUrl = urlParams.get("relay_url") || "";
+  const relayUrl = urlParams.get("relayUrl") || "";
 
   return (
     <>
