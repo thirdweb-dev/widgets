@@ -12,6 +12,11 @@ import {
   Heading,
   Icon,
   Image,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Spinner,
   Stack,
   Tab,
@@ -138,6 +143,8 @@ const ConnectWalletButton: React.FC = () => (
 const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
   const { address } = useWeb3();
 
+  const [quantity, setQuantity] = useState(1);
+
   const [claimSuccess, setClaimSuccess] = useState(false);
 
   const claimed = useQuery(
@@ -152,20 +159,39 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
     { enabled: !!module },
   );
 
+  const unclaimed = useQuery(
+    ["numbers", "available"],
+    () => module?.totalUnclaimedSupply(),
+    { enabled: !!module },
+  );
+
   const claimCondition = useQuery(
     ["claimcondition"],
     () => module?.getActiveClaimCondition(),
     { enabled: !!module },
   );
 
-  const priceToMint = BigNumber.from(claimCondition?.data?.price || 0);
+  const priceToMint = BigNumber.from(
+    claimCondition?.data?.pricePerToken || 0,
+  ).mul(quantity);
   const currency = claimCondition?.data?.currency;
+  const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
+
+  const quantityLimitBigNumber = useMemo(() => {
+    const bn = BigNumber.from(quantityLimit);
+    const unclaimedBn = BigNumber.from(unclaimed.data || 0);
+
+    if (unclaimedBn.lt(bn)) {
+      return unclaimedBn;
+    }
+    return bn;
+  }, [quantityLimit]);
 
   const tokenModule = useMemo(() => {
     if (!currency || !sdk) {
       return undefined;
     }
-    return sdk.getCurrencyModule(currency);
+    return sdk.getTokenModule(currency);
   }, [currency, sdk]);
 
   const formatedPrice = useFormatedValue(priceToMint, tokenModule, chainId);
@@ -184,10 +210,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
       if (!address || !module) {
         throw new Error("No address or module");
       }
-      return module.claim(1);
+      return module.claim(quantity);
     },
     {
-      onSuccess: () => queryClient.invalidateQueries("numbers"),
+      onSuccess: () => queryClient.invalidateQueries(),
       onError: (err) => {
         const anyErr = err as any;
         let message = "";
@@ -214,31 +240,60 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
 
   const isLoading = totalAvailable.isLoading || claimed.isLoading;
 
-  const canClaim = isNotSoldOut && address;
+  const canClaim = !!isNotSoldOut && !!address;
+
+  const showQuantityInput =
+    canClaim &&
+    quantityLimitBigNumber.gt(1) &&
+    quantityLimitBigNumber.lte(1000);
 
   return (
     <Stack spacing={4} align="center" w="100%">
       {address ? (
-        <Button
-          isLoading={isLoading || claimMutation.isLoading}
-          isDisabled={!canClaim}
-          leftIcon={<IoDiamondOutline />}
-          onClick={() => claimMutation.mutate()}
-          isFullWidth
-          colorScheme="blue"
-        >
-          {!isNotSoldOut
-            ? "Sold out"
-            : canClaim
-            ? `Mint${
-                priceToMint.eq(0)
-                  ? " (Free)"
-                  : formatedPrice
-                  ? ` (${formatedPrice})`
-                  : ""
-              }`
-            : "Minting Unavailable"}
-        </Button>
+        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+          {showQuantityInput && (
+            <NumberInput
+              inputMode="numeric"
+              value={quantity}
+              onChange={(stringValue, value) => {
+                if (stringValue === "") {
+                  setQuantity(0);
+                } else {
+                  setQuantity(value);
+                }
+              }}
+              min={1}
+              max={quantityLimitBigNumber.toNumber()}
+              maxW={{ base: "100%", md: "100px" }}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+          )}
+          <Button
+            isLoading={isLoading || claimMutation.isLoading}
+            isDisabled={!canClaim}
+            leftIcon={<IoDiamondOutline />}
+            onClick={() => claimMutation.mutate()}
+            isFullWidth
+            colorScheme="blue"
+          >
+            {!isNotSoldOut
+              ? "Sold out"
+              : canClaim
+              ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
+                  priceToMint.eq(0)
+                    ? " (Free)"
+                    : formatedPrice
+                    ? ` (${formatedPrice})`
+                    : ""
+                }`
+              : "Minting Unavailable"}
+          </Button>
+        </Flex>
       ) : (
         <ConnectWalletButton />
       )}
@@ -250,7 +305,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
 };
 
 const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
-  const { data, isLoading, error } = useQuery(
+  const { data, isLoading } = useQuery(
     "module_metadata",
     () => module?.getMetadata(),
     { enabled: !!module },
@@ -339,7 +394,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
     );
   }
 
-  if (!ownedDropsMetadata) {
+  if (!ownedDropsMetadata?.length) {
     return (
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
@@ -457,7 +512,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   }, [owned.data, isSoldOut]);
 
   return (
-    <AspectRatio ratio={1} w="600px">
+    <AspectRatio ratio={{ base: 1 / 1.5, sm: 1 }} w="100%">
       <Flex
         flexDir="column"
         borderRadius="1rem"

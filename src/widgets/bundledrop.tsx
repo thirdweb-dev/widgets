@@ -377,7 +377,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
     );
   }
 
-  if (!ownedDropsMetadata) {
+  if (!ownedDropsMetadata?.length) {
     return (
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
@@ -495,7 +495,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   }, [owned.data, isNotSoldOut]);
 
   return (
-    <AspectRatio ratio={1} w="600px">
+    <AspectRatio ratio={{ base: 1 / 1.5, sm: 1 }} w="100%">
       <Flex
         flexDir="column"
         borderRadius="1rem"

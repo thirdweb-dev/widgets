@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html>
-  <head> </head>
-  <body style="font-family: sans-serif">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body style="font-family: sans-serif; background: #333;">
     <div
       style="
         display: flex;
         flex-direction: column;
         gap: 20px;
         width: 100%;
-        height: 100%;
-        margin: 20px;
+        height: 100%;        
         align-items: center;
       "
     >
-      <div style="gap: 5px; width: 600px;">
+      <div style="gap: 5px; width: 600px; max-width: 100%;">
         <h2>Preview 600x600</h2>
         <iframe
-          src="http://localhost:1234/?contract=0xe525ea4532903916782c7644c4a3D7d3020bf308&chainId=137"
+          src="http://localhost:1234/?contract=0xF1205F654d52492909175E4564D80d4d83176d88&chainId=137"
           width="600px"
           height="600px"
+          style="max-width: 100%;"
           frameborder="0"
         ></iframe>
       </div>
-      <div style="gap: 5px; width: 600px;">
+      <div style="gap: 5px; width: 600px; max-width: 100%;">
         <h2>Properties</h2>
         <div>
           <div>
@@ -30,7 +32,7 @@
               <span>Contract:</span>
               <input
                 type="text"
-                value="0xe525ea4532903916782c7644c4a3D7d3020bf308"
+                value="0xF1205F654d52492909175E4564D80d4d83176d88"
                 style="width: 100%"
               />
             </label>

@@ -35,7 +35,7 @@ const chakraTheme: Theme = extendTheme(
       Text,
       Button: {
         baseStyle: {
-          borderRadius: "full",
+          borderRadius: "md",
         },
       },
       Input: {
@@ -67,7 +67,7 @@ const chakraTheme: Theme = extendTheme(
         page: "1170px",
       },
     },
-  }
+  },
   // withDefaultColorScheme({ colorScheme: "primary" }),
 ) as Theme;
 

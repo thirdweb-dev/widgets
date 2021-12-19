@@ -28,9 +28,9 @@ export const DropSvg: React.FC = () => {
           y2="172.5"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#E312A7" />
-          <stop offset="0.424395" stop-color="#410AB6" />
-          <stop offset="1" stop-color="#0A97B6" />
+          <stop stopColor="#E312A7" />
+          <stop offset="0.424395" stopColor="#410AB6" />
+          <stop offset="1" stopColor="#0A97B6" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_655_1218"
@@ -40,10 +40,10 @@ export const DropSvg: React.FC = () => {
           y2="9.1327"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#00C2FF" />
-          <stop offset="0.0001" stop-color="#00C2FF" />
-          <stop offset="1" stop-color="#00C2FF" stop-opacity="0" />
-          <stop offset="1" stop-color="#00C2FF" stop-opacity="0.7" />
+          <stop stopColor="#00C2FF" />
+          <stop offset="0.0001" stopColor="#00C2FF" />
+          <stop offset="1" stopColor="#00C2FF" stopOpacity="0" />
+          <stop offset="1" stopColor="#00C2FF" stopOpacity="0.7" />
         </linearGradient>
       </defs>
     </svg>
