@@ -419,6 +419,7 @@ interface DropWidgetProps {
   rpcUrl?: string;
   contractAddress: string;
   chainId: number;
+  relayUrl: string | undefined;
 }
 
 const DropWidget: React.FC<DropWidgetProps> = ({
@@ -427,6 +428,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   contractAddress,
   chainId,
   tokenId,
+  relayUrl,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const { address, provider } = useWeb3();
@@ -439,6 +441,11 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!rpc) {
       return undefined;
     }
+    if (relayUrl) {
+      console.log("relayUrl", relayUrl);
+      return new ThirdwebSDK(rpc, { transactionRelayerUrl: relayUrl });
+    }
+
     return new ThirdwebSDK(rpc);
   }, []);
 
@@ -537,6 +544,7 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpc") || "";
   const tokenId = urlParams.get("tokenId") || "";
+  const relayUrl = urlParams.get("relay_url") || "";
 
   return (
     <>
@@ -559,6 +567,7 @@ const App: React.FC = () => {
               contractAddress={contractAddress}
               chainId={chainId}
               tokenId={tokenId}
+              relayUrl={relayUrl}
             />
           </ThirdwebWeb3Provider>
         </ChakraProvider>
