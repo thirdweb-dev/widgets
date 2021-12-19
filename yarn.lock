@@ -42,10 +42,10 @@
     framer-motion "^5.3.0"
     react-icons "^4.3.1"
 
-"@3rdweb/sdk@^1.27.0":
-  version "1.27.1"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.27.1.tgz#052552bea25cad8872cb28971002cf5ece3fc660"
-  integrity sha512-uez/HJh7CzYQ3cxiFdRu2M1IQW3O/QJcH790L+Lnax7RFJUHA7cso0Q2Z2UOpc3JDBskO2/cj/9RqKINjBwk4w==
+"@3rdweb/sdk@^1.27.2":
+  version "1.27.2"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.27.2.tgz#081dab2e50fc0ac2ab34a55085d7ec0f8de560cb"
+  integrity sha512-zm7KYlSprXThkUZ2F/uBf4ab2mlq9Fo6/AvNn6uH8JNVz/DA1tvg49pkIp87H9ACpef67Ci5flsSCUkCFy91/A==
   dependencies:
     "@3rdweb/contracts" "^1.17.0"
     "@ethersproject/bignumber" "^5.5.0"
