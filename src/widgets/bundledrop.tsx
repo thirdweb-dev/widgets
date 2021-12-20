@@ -23,7 +23,7 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber, BigNumberish } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { IoDiamondOutline } from "react-icons/io5";
+import { IoDiamondOutline, IoSwapHorizontalSharp } from "react-icons/io5";
 import {
   QueryClient,
   QueryClientProvider,
@@ -161,20 +161,20 @@ const ConnectWalletButton: React.FC = () => {
   const { switchNetwork } = useSwitchNetwork();
   const chainId = Number(urlParams.get("chainId"));
 
-  console.log({ error });
   if (error && error.name === "UnsupportedChainIdError" && chainId) {
     return (
       <Button
         isFullWidth
         colorScheme="orange"
-        borderRadius="full"
+        borderRadius="md"
+        leftIcon={<IoSwapHorizontalSharp />}
         onClick={() => switchNetwork(chainId)}
       >
         Switch Network
       </Button>
     );
   }
-  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />;
+  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="md" />;
 };
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
@@ -458,7 +458,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!rpc) {
       return undefined;
     }
-    console.log({ rpc, relayUrl });
+
     return new ThirdwebSDK(rpc, {
       transactionRelayerUrl: relayUrl,
       readOnlyRpcUrl: rpc,
