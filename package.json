@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "node scripts/build.js",
+    "build": "rm -rf dist/ && node scripts/build.js",
     "dev": "parcel serve parcel-build.html",
     "gen:theme-typings": "chakra-cli tokens src/shared/theme/index.ts",
     "postinstall": "yarn gen:theme-typings",

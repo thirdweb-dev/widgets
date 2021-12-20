@@ -1,4 +1,5 @@
 import { extendTheme, Theme } from "@chakra-ui/react";
+import { createBreakpoints } from "@chakra-ui/theme-tools";
 import { colors } from "./colors";
 import { Heading } from "./components/heading";
 import { Text } from "./components/text";
@@ -8,6 +9,15 @@ import {
   letterSpacings,
   lineHeights,
 } from "./typography";
+
+// This is the default breakpoint
+const breakpoints = createBreakpoints({
+  sm: "250px",
+  md: "500px",
+  lg: "62em",
+  xl: "80em",
+  "2xl": "96em",
+});
 
 const chakraTheme: Theme = extendTheme(
   {
@@ -67,6 +77,7 @@ const chakraTheme: Theme = extendTheme(
         page: "1170px",
       },
     },
+    breakpoints,
   },
   // withDefaultColorScheme({ colorScheme: "primary" }),
 ) as Theme;

@@ -418,7 +418,7 @@ const Body: React.FC = ({ children }) => {
 const Footer: React.FC = () => {
   return (
     <Flex
-      justifyContent="flex-end"
+      justify={{ base: "center", sm: "flex-end" }}
       align="center"
       h="48px"
       px="28px"
@@ -518,7 +518,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   }, [owned.data, isNotSoldOut]);
 
   return (
-    <AspectRatio ratio={{ base: 1 / 1.5, sm: 1 }} w="100%">
+    <AspectRatio ratio={{ base: 1 / 2, sm: 1 / 1.5, md: 1 }} w="100%">
       <Flex
         flexDir="column"
         borderRadius="1rem"
