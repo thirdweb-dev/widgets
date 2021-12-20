@@ -1,5 +1,4 @@
-import { ThirdwebWeb3Provider, useSwitchNetwork, useWeb3 } from "@3rdweb/hooks";
-import { ConnectWallet } from "@3rdweb/react";
+import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   AspectRatio,
@@ -23,13 +22,14 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber, BigNumberish } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { IoDiamondOutline, IoSwapHorizontalSharp } from "react-icons/io5";
+import { IoDiamondOutline } from "react-icons/io5";
 import {
   QueryClient,
   QueryClientProvider,
   useMutation,
   useQuery,
 } from "react-query";
+import { ConnectWalletButton } from "src/shared/connect-wallet-button";
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
 import { NftCarousel } from "../shared/nft-carousel";
 import { PoweredBy } from "../shared/powered-by";
@@ -58,7 +58,7 @@ interface DropWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  chainId: number;
+  expextedChainId: number;
   tokenId: string;
 }
 
@@ -66,6 +66,7 @@ type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
   module?: BundleDropModule;
+  expextedChainId: number;
 }
 
 interface HeaderProps extends ModuleInProps {
@@ -152,35 +153,14 @@ const Header: React.FC<HeaderProps> = ({
 interface ClaimPageProps {
   module?: BundleDropModule;
   sdk?: ThirdwebSDK;
-  chainId?: number;
+  expextedChainId: number;
   tokenId: string;
 }
-
-const ConnectWalletButton: React.FC = () => {
-  const { error } = useWeb3();
-  const { switchNetwork } = useSwitchNetwork();
-  const chainId = Number(urlParams.get("chainId"));
-
-  if (error && error.name === "UnsupportedChainIdError" && chainId) {
-    return (
-      <Button
-        isFullWidth
-        colorScheme="orange"
-        borderRadius="md"
-        leftIcon={<IoSwapHorizontalSharp />}
-        onClick={() => switchNetwork(chainId)}
-      >
-        Switch Network
-      </Button>
-    );
-  }
-  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="md" />;
-};
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   module,
   sdk,
-  chainId,
+  expextedChainId,
   tokenId,
 }) => {
   const { address } = useWeb3();
@@ -207,7 +187,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     return sdk.getCurrencyModule(currency);
   }, [currency, sdk]);
 
-  const formatedPrice = useFormatedValue(priceToMint, tokenModule, chainId);
+  const formatedPrice = useFormatedValue(
+    priceToMint,
+    tokenModule,
+    expextedChainId,
+  );
 
   const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
 
@@ -279,7 +263,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             : "Minting Unavailable"}
         </Button>
       ) : (
-        <ConnectWalletButton />
+        <ConnectWalletButton expextedChainId={expextedChainId} />
       )}
       <Text size="label.md" color="green.800">
         {`${parseHugeNumber(claimed)} / ${parseHugeNumber(
@@ -293,7 +277,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 const ClaimPage: React.FC<ClaimPageProps> = ({
   module,
   sdk,
-  chainId,
+  expextedChainId,
   tokenId,
 }) => {
   const tokenMetadata = useQuery(
@@ -352,7 +336,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
         <ClaimButton
           module={module}
           tokenId={tokenId}
-          chainId={chainId}
+          expextedChainId={expextedChainId}
           sdk={sdk}
         />
       </Flex>
@@ -360,7 +344,10 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   );
 };
 
-const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
+const InventoryPage: React.FC<ModuleInProps> = ({
+  module,
+  expextedChainId,
+}) => {
   const { address } = useWeb3();
   const ownedDrops = useQuery(
     "inventory",
@@ -388,7 +375,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
           <Heading size="label.sm">
             Connect your wallet to see your owned drops
           </Heading>
-          <ConnectWalletButton />
+          <ConnectWalletButton expextedChainId={expextedChainId} />
         </Stack>
       </Center>
     );
@@ -435,7 +422,7 @@ interface DropWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  chainId: number;
+  expextedChainId: number;
   relayUrl: string | undefined;
 }
 
@@ -443,7 +430,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   startingTab = "claim",
   rpcUrl,
   contractAddress,
-  chainId,
+  expextedChainId,
   tokenId,
   relayUrl,
 }) => {
@@ -451,8 +438,8 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   const { address, provider } = useWeb3();
 
   const rpc = useMemo(() => {
-    return rpcUrl || ChainIDToRPCMap[chainId] || null;
-  }, [rpcUrl, chainId]);
+    return rpcUrl || ChainIDToRPCMap[expextedChainId] || null;
+  }, [rpcUrl, expextedChainId]);
 
   const sdk = useMemo(() => {
     if (!rpc) {
@@ -533,6 +520,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
           setActiveTab={(tab) => setActiveTab(tab)}
           module={dropModule}
           tokenId={tokenId}
+          expextedChainId={expextedChainId}
         />
         <Body>
           {activeTab === "claim" ? (
@@ -540,10 +528,13 @@ const DropWidget: React.FC<DropWidgetProps> = ({
               module={dropModule}
               tokenId={tokenId}
               sdk={sdk}
-              chainId={chainId}
+              expextedChainId={expextedChainId}
             />
           ) : (
-            <InventoryPage module={dropModule} />
+            <InventoryPage
+              module={dropModule}
+              expextedChainId={expextedChainId}
+            />
           )}
         </Body>
         <Footer />
@@ -556,9 +547,9 @@ const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chainId = Number(urlParams.get("chainId"));
+  const expextedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to chainId default
+  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expextedChainId default
   const tokenId = urlParams.get("tokenId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
@@ -575,13 +566,13 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <ThirdwebWeb3Provider
-            supportedChainIds={[chainId]}
+            supportedChainIds={[expextedChainId]}
             connectors={connectors}
           >
             <DropWidget
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
-              chainId={chainId}
+              expextedChainId={expextedChainId}
               tokenId={tokenId}
               relayUrl={relayUrl}
             />

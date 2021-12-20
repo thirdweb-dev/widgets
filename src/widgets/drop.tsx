@@ -1,5 +1,4 @@
-import { ThirdwebWeb3Provider, useSwitchNetwork, useWeb3 } from "@3rdweb/hooks";
-import { ConnectWallet } from "@3rdweb/react";
+import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   AspectRatio,
@@ -28,13 +27,14 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { IoDiamondOutline, IoSwapHorizontalSharp } from "react-icons/io5";
+import { IoDiamondOutline } from "react-icons/io5";
 import {
   QueryClient,
   QueryClientProvider,
   useMutation,
   useQuery,
 } from "react-query";
+import { ConnectWalletButton } from "src/shared/connect-wallet-button";
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
 import { NftCarousel } from "../shared/nft-carousel";
 import { PoweredBy } from "../shared/powered-by";
@@ -52,7 +52,7 @@ interface DropWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  chainId: number;
+  expextedChainId: number;
 }
 
 type Tab = "claim" | "inventory";
@@ -133,31 +133,14 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
 interface ClaimPageProps {
   module?: DropModule;
   sdk?: ThirdwebSDK;
-  chainId?: number;
+  expextedChainId: number;
 }
 
-const ConnectWalletButton: React.FC = () => {
-  const { error } = useWeb3();
-  const { switchNetwork } = useSwitchNetwork();
-  const chainId = Number(urlParams.get("chainId"));
-
-  if (error && error.name === "UnsupportedChainIdError" && chainId) {
-    return (
-      <Button
-        isFullWidth
-        leftIcon={<IoSwapHorizontalSharp />}
-        colorScheme="orange"
-        borderRadius="md"
-        onClick={() => switchNetwork(chainId)}
-      >
-        Switch Network
-      </Button>
-    );
-  }
-  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="md" />;
-};
-
-const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({
+  module,
+  sdk,
+  expextedChainId,
+}) => {
   const { address } = useWeb3();
 
   const [quantity, setQuantity] = useState(1);
@@ -211,7 +194,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
     return sdk.getTokenModule(currency);
   }, [currency, sdk]);
 
-  const formatedPrice = useFormatedValue(priceToMint, tokenModule, chainId);
+  const formatedPrice = useFormatedValue(
+    priceToMint,
+    tokenModule,
+    expextedChainId,
+  );
 
   const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
 
@@ -312,7 +299,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
           </Button>
         </Flex>
       ) : (
-        <ConnectWalletButton />
+        <ConnectWalletButton expextedChainId={expextedChainId} />
       )}
       <Text size="label.md" color="green.800">
         {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
@@ -321,7 +308,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({
+  module,
+  sdk,
+  expextedChainId,
+}) => {
   const { data, isLoading } = useQuery(
     "module_metadata",
     () => module?.getMetadata(),
@@ -371,7 +362,11 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
             {data.metadata.description}
           </Heading>
         )}
-        <ClaimButton module={module} chainId={chainId} sdk={sdk} />
+        <ClaimButton
+          module={module}
+          expextedChainId={expextedChainId}
+          sdk={sdk}
+        />
       </Flex>
     </Center>
   );
@@ -384,7 +379,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
     () => module?.getOwned(address || ""),
     { enabled: !!module && !!address },
   );
-  const chainId = Number(urlParams.get("chainId"));
+  const expextedChainId = Number(urlParams.get("expextedChainId"));
 
   if (ownedDrops.isLoading) {
     return (
@@ -406,7 +401,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
           <Heading size="label.sm">
             Connect your wallet to see your owned drops
           </Heading>
-          <ConnectWalletButton />
+          <ConnectWalletButton expextedChainId={expextedChainId} />
         </Stack>
       </Center>
     );
@@ -454,7 +449,7 @@ interface DropWidgetProps {
   rpcUrl?: string;
   relayUrl?: string;
   contractAddress: string;
-  chainId: number;
+  expextedChainId: number;
 }
 
 const DropWidget: React.FC<DropWidgetProps> = ({
@@ -462,14 +457,14 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   rpcUrl,
   relayUrl,
   contractAddress,
-  chainId,
+  expextedChainId,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const { address, provider } = useWeb3();
 
   const rpc = useMemo(() => {
-    return rpcUrl || ChainIDToRPCMap[chainId] || null;
-  }, [rpcUrl, chainId]);
+    return rpcUrl || ChainIDToRPCMap[expextedChainId] || null;
+  }, [rpcUrl, expextedChainId]);
 
   const sdk = useMemo(() => {
     if (!rpc) {
@@ -552,7 +547,11 @@ const DropWidget: React.FC<DropWidgetProps> = ({
         />
         <Body>
           {activeTab === "claim" ? (
-            <ClaimPage module={dropModule} sdk={sdk} chainId={chainId} />
+            <ClaimPage
+              module={dropModule}
+              sdk={sdk}
+              expextedChainId={expextedChainId}
+            />
           ) : (
             <InventoryPage module={dropModule} />
           )}
@@ -567,7 +566,7 @@ const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chainId = Number(urlParams.get("chainId"));
+  const expextedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
@@ -585,14 +584,14 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <ThirdwebWeb3Provider
-            supportedChainIds={[chainId]}
+            supportedChainIds={[expextedChainId]}
             connectors={connectors}
           >
             <DropWidget
               rpcUrl={rpcUrl}
               relayUrl={relayUrl}
               contractAddress={contractAddress}
-              chainId={chainId}
+              expextedChainId={expextedChainId}
             />
           </ThirdwebWeb3Provider>
         </ChakraProvider>
