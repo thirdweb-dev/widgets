@@ -1,4 +1,4 @@
-import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
+import { ThirdwebWeb3Provider, useSwitchNetwork, useWeb3 } from "@3rdweb/hooks";
 import { ConnectWallet } from "@3rdweb/react";
 import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
@@ -28,7 +28,7 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { IoDiamondOutline } from "react-icons/io5";
+import { IoDiamondOutline, IoSwapHorizontalSharp } from "react-icons/io5";
 import {
   QueryClient,
   QueryClientProvider,
@@ -136,9 +136,26 @@ interface ClaimPageProps {
   chainId?: number;
 }
 
-const ConnectWalletButton: React.FC = () => (
-  <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />
-);
+const ConnectWalletButton: React.FC = () => {
+  const { error } = useWeb3();
+  const { switchNetwork } = useSwitchNetwork();
+  const chainId = Number(urlParams.get("chainId"));
+
+  if (error && error.name === "UnsupportedChainIdError" && chainId) {
+    return (
+      <Button
+        isFullWidth
+        leftIcon={<IoSwapHorizontalSharp />}
+        colorScheme="orange"
+        borderRadius="md"
+        onClick={() => switchNetwork(chainId)}
+      >
+        Switch Network
+      </Button>
+    );
+  }
+  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="md" />;
+};
 
 const ClaimButton: React.FC<ClaimPageProps> = ({ module, sdk, chainId }) => {
   const { address } = useWeb3();
@@ -367,6 +384,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
     () => module?.getOwned(address || ""),
     { enabled: !!module && !!address },
   );
+  const chainId = Number(urlParams.get("chainId"));
 
   if (ownedDrops.isLoading) {
     return (
@@ -434,6 +452,7 @@ interface DropWidgetProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
+  relayUrl?: string;
   contractAddress: string;
   chainId: number;
 }
@@ -441,6 +460,7 @@ interface DropWidgetProps {
 const DropWidget: React.FC<DropWidgetProps> = ({
   startingTab = "claim",
   rpcUrl,
+  relayUrl,
   contractAddress,
   chainId,
 }) => {
@@ -455,8 +475,11 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!rpc) {
       return undefined;
     }
-    return new ThirdwebSDK(rpc);
-  }, []);
+    return new ThirdwebSDK(rpc, {
+      transactionRelayerUrl: relayUrl,
+      readOnlyRpcUrl: rpcUrl,
+    });
+  }, [relayUrl]);
 
   const signer: Signer | undefined = useMemo(() => {
     if (!provider) {
@@ -546,7 +569,8 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpc") || "";
+  const rpcUrl = urlParams.get("rpcUrl") || "";
+  const relayUrl = urlParams.get("relayUrl") || "";
 
   return (
     <>
@@ -566,6 +590,7 @@ const App: React.FC = () => {
           >
             <DropWidget
               rpcUrl={rpcUrl}
+              relayUrl={relayUrl}
               contractAddress={contractAddress}
               chainId={chainId}
             />
