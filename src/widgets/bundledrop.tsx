@@ -1,4 +1,4 @@
-import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
+import { ThirdwebWeb3Provider, useSwitchNetwork, useWeb3 } from "@3rdweb/hooks";
 import { ConnectWallet } from "@3rdweb/react";
 import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
@@ -156,9 +156,26 @@ interface ClaimPageProps {
   tokenId: string;
 }
 
-const ConnectWalletButton: React.FC = () => (
-  <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />
-);
+const ConnectWalletButton: React.FC = () => {
+  const { error } = useWeb3();
+  const { switchNetwork } = useSwitchNetwork();
+  const chainId = Number(urlParams.get("chainId"));
+
+  console.log({ error });
+  if (error && error.name === "UnsupportedChainIdError" && chainId) {
+    return (
+      <Button
+        isFullWidth
+        colorScheme="orange"
+        borderRadius="full"
+        onClick={() => switchNetwork(chainId)}
+      >
+        Switch Network
+      </Button>
+    );
+  }
+  return <ConnectWallet isFullWidth colorScheme="blue" borderRadius="full" />;
+};
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   module,
@@ -441,12 +458,11 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!rpc) {
       return undefined;
     }
-    if (relayUrl) {
-      console.log("relayUrl", relayUrl);
-      return new ThirdwebSDK(rpc, { transactionRelayerUrl: relayUrl });
-    }
-
-    return new ThirdwebSDK(rpc);
+    console.log({ rpc, relayUrl });
+    return new ThirdwebSDK(rpc, {
+      transactionRelayerUrl: relayUrl,
+      readOnlyRpcUrl: rpc,
+    });
   }, []);
 
   const signer: Signer | undefined = useMemo(() => {
@@ -542,7 +558,7 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpc") || "";
+  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to chainId default
   const tokenId = urlParams.get("tokenId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
