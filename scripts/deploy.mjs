@@ -6,7 +6,7 @@ import followRedirects from 'follow-redirects';
 //load all the files in ./dist/
 const files = fs.readdirSync("./dist");
 
-const CF_IPFS_URL = "https://cf-ipfs.com/ipfs/";
+const EMBED_GATEWAY = "https://cloudflare-ipfs.com/ipfs/";
 
 
  
@@ -26,7 +26,7 @@ for(const file of files){
   console.log(fileHash);
   console.log("");
   console.log(`warming up ipfs storage...`);
-  followRedirects.https.get(fileHash.replace("ipfs://", CF_IPFS_URL), (res) => {
+  followRedirects.https.get(fileHash.replace("ipfs://", EMBED_GATEWAY), (res) => {
     console.log(`warmed up ipfs storage`);
     console.log("|------------------------------------- "+file+" -------------------------------------|");
     console.log("");
