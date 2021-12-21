@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
       justify={{ base: "center", sm: "flex-end" }}
       align="center"
       h={{ base: "36px", sm: "48px" }}
-      px="28px"
+      px={{ base: "8px", sm: "28px" }}
       w="100%"
       flexGrow={0}
       flexShrink={0}

@@ -1,7 +1,6 @@
 import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
-  AspectRatio,
   Button,
   ButtonProps,
   Center,
@@ -11,6 +10,11 @@ import {
   Heading,
   Icon,
   Image,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Spinner,
   Stack,
   Tab,
@@ -29,9 +33,9 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectWalletButton } from "src/shared/connect-wallet-button";
-import { Footer } from "src/shared/footer";
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
+import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -180,12 +184,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const currency = activeClaimCondition?.data?.currency;
   const claimed = activeClaimCondition.data?.currentMintSupply || "0";
   const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
+  const [quantity, setQuantity] = useState(1);
 
   const tokenModule = useMemo(() => {
     if (!currency || !sdk) {
       return undefined;
     }
-    return sdk.getCurrencyModule(currency);
+    return sdk.getTokenModule(currency);
   }, [currency, sdk]);
 
   const formatedPrice = useFormatedValue(
@@ -240,29 +245,74 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const canClaim = isNotSoldOut && address;
 
+  const quantityLimit =
+    activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
+
+  const quantityLimitBigNumber = useMemo(() => {
+    const bn = BigNumber.from(quantityLimit);
+    const unclaimedBn = BigNumber.from(
+      activeClaimCondition.data?.availableSupply || 0,
+    );
+
+    if (unclaimedBn.lt(bn)) {
+      return unclaimedBn;
+    }
+    return bn;
+  }, [quantityLimit]);
+
+  const showQuantityInput =
+    canClaim &&
+    quantityLimitBigNumber.gt(1) &&
+    quantityLimitBigNumber.lte(1000);
+
   return (
     <Stack spacing={4} align="center" w="100%">
       {address ? (
-        <Button
-          isLoading={isLoading || claimMutation.isLoading}
-          isDisabled={!canClaim}
-          leftIcon={<IoDiamondOutline />}
-          onClick={() => claimMutation.mutate()}
-          isFullWidth
-          colorScheme="blue"
-        >
-          {!isNotSoldOut
-            ? "Sold out"
-            : canClaim
-            ? `Mint${
-                priceToMint.eq(0)
-                  ? " (Free)"
-                  : formatedPrice
-                  ? ` (${formatedPrice})`
-                  : ""
-              }`
-            : "Minting Unavailable"}
-        </Button>
+        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+          {showQuantityInput && (
+            <NumberInput
+              inputMode="numeric"
+              value={quantity}
+              onChange={(stringValue, value) => {
+                if (stringValue === "") {
+                  setQuantity(0);
+                } else {
+                  setQuantity(value);
+                }
+              }}
+              min={1}
+              max={quantityLimitBigNumber.toNumber()}
+              maxW={{ base: "100%", md: "100px" }}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+          )}
+          <Button
+            isLoading={isLoading || claimMutation.isLoading}
+            isDisabled={!canClaim}
+            leftIcon={<IoDiamondOutline />}
+            onClick={() => claimMutation.mutate()}
+            isFullWidth
+            colorScheme="blue"
+            fontSize={{ base: "label.md", md: "label.lg" }}
+          >
+            {!isNotSoldOut
+              ? "Sold out"
+              : canClaim
+              ? `Mint${
+                  priceToMint.eq(0)
+                    ? " (Free)"
+                    : formatedPrice
+                    ? ` (${formatedPrice})`
+                    : ""
+                }`
+              : "Minting Unavailable"}
+          </Button>
+        </Flex>
       ) : (
         <ConnectWalletButton expextedChainId={expextedChainId} />
       )}
@@ -491,41 +541,44 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   }, [owned.data, isNotSoldOut]);
 
   return (
-    <AspectRatio ratio={{ base: 1 / 2, sm: 1 / 1.5, md: 1 }} w="100%">
-      <Flex
-        flexDir="column"
-        borderRadius="1rem"
-        overflow="hidden"
-        shadow="0px 1px 1px rgba(0,0,0,0.1)"
-        border="1px solid"
-        borderColor="blackAlpha.10"
-        bg="whiteAlpha.100"
-      >
-        <Header
-          activeTab={activeTab}
-          setActiveTab={(tab) => setActiveTab(tab)}
-          module={dropModule}
-          tokenId={tokenId}
-          expextedChainId={expextedChainId}
-        />
-        <Body>
-          {activeTab === "claim" ? (
-            <ClaimPage
-              module={dropModule}
-              tokenId={tokenId}
-              sdk={sdk}
-              expextedChainId={expextedChainId}
-            />
-          ) : (
-            <InventoryPage
-              module={dropModule}
-              expextedChainId={expextedChainId}
-            />
-          )}
-        </Body>
-        <Footer />
-      </Flex>
-    </AspectRatio>
+    <Flex
+      position="fixed"
+      top={0}
+      left={0}
+      bottom={0}
+      right={0}
+      flexDir="column"
+      borderRadius="1rem"
+      overflow="hidden"
+      shadow="0px 1px 1px rgba(0,0,0,0.1)"
+      border="1px solid"
+      borderColor="blackAlpha.10"
+      bg="whiteAlpha.100"
+    >
+      <Header
+        activeTab={activeTab}
+        setActiveTab={(tab) => setActiveTab(tab)}
+        module={dropModule}
+        tokenId={tokenId}
+        expextedChainId={expextedChainId}
+      />
+      <Body>
+        {activeTab === "claim" ? (
+          <ClaimPage
+            module={dropModule}
+            tokenId={tokenId}
+            sdk={sdk}
+            expextedChainId={expextedChainId}
+          />
+        ) : (
+          <InventoryPage
+            module={dropModule}
+            expextedChainId={expextedChainId}
+          />
+        )}
+      </Body>
+      <Footer />
+    </Flex>
   );
 };
 

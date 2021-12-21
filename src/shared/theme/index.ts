@@ -10,7 +10,6 @@ import {
   lineHeights,
 } from "./typography";
 
-// This is the default breakpoint
 const breakpoints = createBreakpoints({
   sm: "300px",
   md: "500px",

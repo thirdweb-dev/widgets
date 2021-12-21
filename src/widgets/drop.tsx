@@ -1,7 +1,6 @@
 import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
-  AspectRatio,
   Button,
   ButtonProps,
   Center,
@@ -34,9 +33,9 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectWalletButton } from "src/shared/connect-wallet-button";
-import { Footer } from "src/shared/footer";
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
+import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -279,6 +278,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             </NumberInput>
           )}
           <Button
+            fontSize={{ base: "label.md", md: "label.lg" }}
             isLoading={isLoading || claimMutation.isLoading}
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
@@ -516,35 +516,38 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   }, [owned.data, isSoldOut]);
 
   return (
-    <AspectRatio ratio={{ base: 1 / 2, sm: 1 / 1.5, md: 1 }} w="100%">
-      <Flex
-        flexDir="column"
-        borderRadius="1rem"
-        overflow="hidden"
-        shadow="0px 1px 1px rgba(0,0,0,0.1)"
-        border="1px solid"
-        borderColor="blackAlpha.10"
-        bg="whiteAlpha.100"
-      >
-        <Header
-          activeTab={activeTab}
-          setActiveTab={(tab) => setActiveTab(tab)}
-          module={dropModule}
-        />
-        <Body>
-          {activeTab === "claim" ? (
-            <ClaimPage
-              module={dropModule}
-              sdk={sdk}
-              expextedChainId={expextedChainId}
-            />
-          ) : (
-            <InventoryPage module={dropModule} />
-          )}
-        </Body>
-        <Footer />
-      </Flex>
-    </AspectRatio>
+    <Flex
+      position="fixed"
+      top={0}
+      left={0}
+      bottom={0}
+      right={0}
+      flexDir="column"
+      borderRadius="1rem"
+      overflow="hidden"
+      shadow="0px 1px 1px rgba(0,0,0,0.1)"
+      border="1px solid"
+      borderColor="blackAlpha.10"
+      bg="whiteAlpha.100"
+    >
+      <Header
+        activeTab={activeTab}
+        setActiveTab={(tab) => setActiveTab(tab)}
+        module={dropModule}
+      />
+      <Body>
+        {activeTab === "claim" ? (
+          <ClaimPage
+            module={dropModule}
+            sdk={sdk}
+            expextedChainId={expextedChainId}
+          />
+        ) : (
+          <InventoryPage module={dropModule} />
+        )}
+      </Body>
+      <Footer />
+    </Flex>
   );
 };
 
