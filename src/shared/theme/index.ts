@@ -12,7 +12,7 @@ import {
 
 // This is the default breakpoint
 const breakpoints = createBreakpoints({
-  sm: "250px",
+  sm: "300px",
   md: "500px",
   lg: "62em",
   xl: "80em",

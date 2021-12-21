@@ -47,6 +47,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
           onClick={prev}
           borderRadius="full"
           variant="outline"
+          size="sm"
         />
         <AspectRatio ratio={1} w="69vw" maxW="400px">
           <Flex py={4} position="relative" overflow="hidden">
@@ -86,6 +87,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
           onClick={next}
           borderRadius="full"
           variant="outline"
+          size="sm"
         />
       </Stack>
     </Center>

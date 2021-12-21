@@ -35,9 +35,9 @@ import {
   useQuery,
 } from "react-query";
 import { ConnectWalletButton } from "src/shared/connect-wallet-button";
+import { Footer } from "src/shared/footer";
 import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
 import { NftCarousel } from "../shared/nft-carousel";
-import { PoweredBy } from "../shared/powered-by";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
@@ -93,6 +93,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
 
   return (
     <Stack
+      as="header"
       px="28px"
       direction="row"
       spacing="20px"
@@ -422,23 +423,8 @@ const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
 
 const Body: React.FC = ({ children }) => {
   return (
-    <Flex px="28px" w="100%" flexGrow={1}>
+    <Flex as="main" px="28px" w="100%" flexGrow={1}>
       {children}
-    </Flex>
-  );
-};
-
-const Footer: React.FC = () => {
-  return (
-    <Flex
-      justify={{ base: "center", sm: "flex-end" }}
-      align="center"
-      h="48px"
-      px="28px"
-      w="100%"
-      flexGrow={0}
-    >
-      <PoweredBy />
     </Flex>
   );
 };
