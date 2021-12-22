@@ -1,15 +1,21 @@
-import { CurrencyModule } from "@3rdweb/sdk";
+import { TokenModule } from "@3rdweb/sdk";
 import { AddressZero } from "@ethersproject/constants";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import { ChainIDToNativeSymbol } from "./commonRPCUrls";
 
+export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
 export function isAddressZero(address: string): boolean {
-  return isAddress(address) && address === AddressZero;
+  const lowerCaseAddress = (address || "").toLowerCase();
+  return (
+    isAddress(lowerCaseAddress) &&
+    (lowerCaseAddress === AddressZero || lowerCaseAddress === OtherAddressZero)
+  );
 }
 
-export function useTokenUnitConversion(tokenModule?: CurrencyModule) {
+export function useTokenUnitConversion(tokenModule?: TokenModule) {
   const format = useCallback(
     async (value: BigNumberish, chainId?: number) => {
       value = BigNumber.from(value);
@@ -46,7 +52,7 @@ export function useTokenUnitConversion(tokenModule?: CurrencyModule) {
 
 export function useFormatedValue(
   value?: BigNumberish,
-  tokenModule?: CurrencyModule,
+  tokenModule?: TokenModule,
   chainId?: number,
 ) {
   const [formatted, setFormatted] = useState<string | undefined>();
