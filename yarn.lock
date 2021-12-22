@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@3rdweb/chain-icons/-/chain-icons-1.0.1.tgz#00ade9274dc87488c59248350981f300d4a9d912"
   integrity sha512-573b0CmKwi9Vf8ETRjNX8VzSqc9s1cwMu5pw7yUI2YTuBimgd15Hu/prnfyZ5efrIZUPDCJVaqNAc6v3fuGmzA==
 
-"@3rdweb/contracts@^1.17.1-1":
-  version "1.17.1-1"
-  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.17.1-1.tgz#79c86d5344cd2c65d8004e336b51a4c7dd224b50"
-  integrity sha512-IFw7VB+6Rr+e3iuxgXui6QIAYfJOJNCHnztj2nFuQezuHo8KWYFB4xKAtMG2QxKETrSyTHIGwrbp8WXSXCCJvA==
+"@3rdweb/contracts@^1.17.1":
+  version "1.17.1"
+  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.17.1.tgz#8a72071e91a947a8835b35a4f4d67aa3ce6ea716"
+  integrity sha512-fxM+CFztaO0nAoSJymLphUooqhX58gYYS9YQwh0M8w+LXTIMSYCVmQyAWyQ6osQTUq0twL/t6Mvw0i7JsMdcpw==
 
 "@3rdweb/hooks@^1", "@3rdweb/hooks@^1.3.3", "@3rdweb/hooks@^1.4.0":
   version "1.6.0"
@@ -42,12 +42,12 @@
     framer-motion "^5.3.0"
     react-icons "^4.3.1"
 
-"@3rdweb/sdk@1.28.1-4":
-  version "1.28.1-4"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.28.1-4.tgz#b6d748c735e73b1b825ccba3801cff25c1ad387b"
-  integrity sha512-Sr7ES4L2XWgfz77CJNWZwYzLchuCshjPGdw3F0K3XrYAhfWaHK+MnBKSJcc759QXuG5J3Na6b5HG8QCWbrGpfw==
+"@3rdweb/sdk@^1.29.0":
+  version "1.29.0"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.29.0.tgz#0425afbaec95782f016530da4a6b856f0f93bdf8"
+  integrity sha512-6TIICLBb09VaBMbCpY/jyT3DBFta1lF7TPuhrjkafPvyImCYRsrPK9Ye0vrUkgYJkqPoA2QL5/j9SoRxL6zv+w==
   dependencies:
-    "@3rdweb/contracts" "^1.17.1-1"
+    "@3rdweb/contracts" "^1.17.1"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
