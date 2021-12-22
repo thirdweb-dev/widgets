@@ -9,9 +9,11 @@ export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export function isAddressZero(address: string): boolean {
   const lowerCaseAddress = (address || "").toLowerCase();
+
   return (
     isAddress(lowerCaseAddress) &&
-    (lowerCaseAddress === AddressZero || lowerCaseAddress === OtherAddressZero)
+    (lowerCaseAddress === AddressZero.toLowerCase() ||
+      lowerCaseAddress === OtherAddressZero.toLowerCase())
   );
 }
 
@@ -24,11 +26,9 @@ export function useTokenUnitConversion(tokenModule?: TokenModule) {
         : "";
 
       // invalid token address
-      if (
-        !isAddress(tokenModule?.address || "") ||
-        isAddressZero(tokenModule?.address || "")
-      ) {
+      if (isAddressZero(tokenModule?.address || "")) {
         // default to 18 decimals
+
         return formatUnits(value.toString(), 18) + nativeCurrency;
       }
 
@@ -64,5 +64,6 @@ export function useFormatedValue(
 
     format(value, chainId).then(setFormatted);
   }, [format, value, chainId]);
+
   return formatted;
 }
