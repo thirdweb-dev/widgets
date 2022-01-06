@@ -31,9 +31,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { useAddress } from "src/shared/useAddress";
-import { useConnectors } from "src/shared/useConnectors";
-import { useSDKWithSigner } from "src/shared/useSdkWithSigner";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
@@ -42,6 +39,9 @@ import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useFormatedValue } from "../shared/tokenHooks";
+import { useAddress } from "../shared/useAddress";
+import { useConnectors } from "../shared/useConnectors";
+import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
