@@ -1,4 +1,3 @@
-import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
@@ -22,7 +21,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber, BigNumberish } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -33,7 +31,10 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
+import { useAddress } from "src/shared/useAddress";
+import { useConnectors } from "src/shared/useConnectors";
+import { useSDKWithSigner } from "src/shared/useSdkWithSigner";
+import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
@@ -85,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
   module,
   tokenId,
 }) => {
-  const { address } = useWeb3();
+  const address = useAddress();
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
     borderBottomColor: "blue.500",
@@ -168,7 +169,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   expextedChainId,
   tokenId,
 }) => {
-  const { address } = useWeb3();
+  const address = useAddress();
+  const [{ data: network }] = useNetwork();
+  const chainId = useMemo(() => network?.chain?.id, [network]);
 
   const [claimSuccess, setClaimSuccess] = useState(false);
 
@@ -267,7 +270,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address ? (
+      {address && chainId === expextedChainId ? (
         <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
@@ -399,7 +402,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({
   module,
   expextedChainId,
 }) => {
-  const { address } = useWeb3();
+  const address = useAddress();
   const ownedDrops = useQuery(
     "inventory",
     () => module?.getOwned(address || ""),
@@ -471,37 +474,9 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   relayUrl,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
-  const { address, provider } = useWeb3();
 
-  const rpc = useMemo(() => {
-    return rpcUrl || ChainIDToRPCMap[expextedChainId] || null;
-  }, [rpcUrl, expextedChainId]);
-
-  const sdk = useMemo(() => {
-    if (!rpc) {
-      return undefined;
-    }
-
-    return new ThirdwebSDK(rpc, {
-      transactionRelayerUrl: relayUrl,
-      readOnlyRpcUrl: rpc,
-    });
-  }, []);
-
-  const signer: Signer | undefined = useMemo(() => {
-    if (!provider) {
-      return undefined;
-    }
-    const s = provider.getSigner();
-    return Signer.isSigner(s) ? s : undefined;
-  }, [provider]);
-
-  useEffect(() => {
-    if (!sdk || !Signer.isSigner(signer)) {
-      return;
-    }
-    sdk.setProviderOrSigner(signer);
-  }, [sdk, signer]);
+  const sdk = useSDKWithSigner({ expextedChainId, rpcUrl, relayUrl });
+  const address = useAddress();
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -592,6 +567,8 @@ const App: React.FC = () => {
   const tokenId = urlParams.get("tokenId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
+  const connectors = useConnectors(expextedChainId, rpcUrl);
+
   return (
     <>
       <Global
@@ -604,10 +581,7 @@ const App: React.FC = () => {
       />
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
-          <ThirdwebWeb3Provider
-            supportedChainIds={[expextedChainId]}
-            connectors={connectors}
-          >
+          <Provider autoConnect connectors={connectors}>
             <DropWidget
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
@@ -615,7 +589,7 @@ const App: React.FC = () => {
               tokenId={tokenId}
               relayUrl={relayUrl}
             />
-          </ThirdwebWeb3Provider>
+          </Provider>
         </ChakraProvider>
       </QueryClientProvider>
     </>

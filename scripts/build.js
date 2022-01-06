@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const buffer = require("buffer");
 
 const WIDGETS_SRC_PATH = path.resolve(process.cwd(), "src/widgets");
 const DIST_PATH = path.resolve(process.cwd(), "dist/");
@@ -18,6 +19,13 @@ require("esbuild")
     outdir: "./esout",
     splitting: false,
     write: false,
+    define: {
+      global: "window",
+      process: JSON.stringify({
+        env: "production"
+      })
+    },
+    inject:  ['./buffer-shim.js']
   })
   .then((result) => {
     for (const file of result.outputFiles) {
