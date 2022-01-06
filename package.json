@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@3rdweb/sdk": "^1.29.0",
+    "@chakra-ui/icons": "^1.1.1",
     "@chakra-ui/react": "^1.7.2",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
