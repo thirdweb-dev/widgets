@@ -1,4 +1,3 @@
-import { ThirdwebWeb3Provider, useWeb3 } from "@3rdweb/hooks";
 import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
@@ -22,7 +21,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -33,7 +31,10 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ChainIDToRPCMap } from "../shared/commonRPCUrls";
+import { useAddress } from "src/shared/useAddress";
+import { useConnectors } from "src/shared/useConnectors";
+import { useSDKWithSigner } from "src/shared/useSdkWithSigner";
+import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
@@ -41,10 +42,6 @@ import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useFormatedValue } from "../shared/tokenHooks";
-
-const connectors = {
-  injected: {},
-};
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
@@ -66,7 +63,7 @@ interface HeaderProps extends ModuleInProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, module }) => {
-  const { address } = useWeb3();
+  const address = useAddress();
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
     borderBottomColor: "blue.500",
@@ -141,7 +138,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   sdk,
   expextedChainId,
 }) => {
-  const { address } = useWeb3();
+  const [{ data: network }] = useNetwork();
+  const address = useAddress();
+  const chainId = useMemo(() => network?.chain?.id, [network]);
 
   const [quantity, setQuantity] = useState(1);
 
@@ -253,7 +252,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address ? (
+      {address && chainId === expextedChainId ? (
         <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
@@ -374,7 +373,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
 };
 
 const InventoryPage: React.FC<ModuleInProps> = ({ module }) => {
-  const { address } = useWeb3();
+  const address = useAddress();
   const ownedDrops = useQuery(
     "inventory",
     () => module?.getOwned(address || ""),
@@ -446,36 +445,9 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   expextedChainId,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
-  const { address, provider } = useWeb3();
+  const address = useAddress();
 
-  const rpc = useMemo(() => {
-    return rpcUrl || ChainIDToRPCMap[expextedChainId] || null;
-  }, [rpcUrl, expextedChainId]);
-
-  const sdk = useMemo(() => {
-    if (!rpc) {
-      return undefined;
-    }
-    return new ThirdwebSDK(rpc, {
-      transactionRelayerUrl: relayUrl,
-      readOnlyRpcUrl: rpcUrl,
-    });
-  }, [relayUrl]);
-
-  const signer: Signer | undefined = useMemo(() => {
-    if (!provider) {
-      return undefined;
-    }
-    const s = provider.getSigner();
-    return Signer.isSigner(s) ? s : undefined;
-  }, [provider]);
-
-  useEffect(() => {
-    if (!sdk || !Signer.isSigner(signer)) {
-      return;
-    }
-    sdk.setProviderOrSigner(signer);
-  }, [sdk, signer]);
+  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expextedChainId });
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -560,6 +532,8 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
+  const connectors = useConnectors(expextedChainId, rpcUrl);
+
   return (
     <>
       <Global
@@ -572,17 +546,14 @@ const App: React.FC = () => {
       />
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
-          <ThirdwebWeb3Provider
-            supportedChainIds={[expextedChainId]}
-            connectors={connectors}
-          >
+          <Provider autoConnect connectors={connectors}>
             <DropWidget
               rpcUrl={rpcUrl}
               relayUrl={relayUrl}
               contractAddress={contractAddress}
               expextedChainId={expextedChainId}
             />
-          </ThirdwebWeb3Provider>
+          </Provider>
         </ChakraProvider>
       </QueryClientProvider>
     </>
