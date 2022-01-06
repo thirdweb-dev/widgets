@@ -31,9 +31,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { useAddress } from "src/shared/useAddress";
-import { useConnectors } from "src/shared/useConnectors";
-import { useSDKWithSigner } from "src/shared/useSdkWithSigner";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
@@ -42,10 +39,9 @@ import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useFormatedValue } from "../shared/tokenHooks";
-
-const connectors = {
-  injected: {},
-};
+import { useAddress } from "../shared/useAddress";
+import { useConnectors } from "../shared/useConnectors";
+import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -183,11 +179,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { enabled: !!module && tokenId.length > 0 },
   );
 
-  const priceToMint = BigNumber.from(activeClaimCondition?.data?.price || 0);
+  const [quantity, setQuantity] = useState(1);
+  const priceToMint = BigNumber.from(
+    activeClaimCondition?.data?.pricePerToken || 0,
+  ).mul(quantity);
   const currency = activeClaimCondition?.data?.currency;
   const claimed = activeClaimCondition.data?.currentMintSupply || "0";
   const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
-  const [quantity, setQuantity] = useState(1);
 
   const tokenModule = useMemo(() => {
     if (!currency || !sdk) {
@@ -216,7 +214,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       if (!address || !module) {
         throw new Error("No address or module");
       }
-      return module.claim(tokenId, 1);
+      return module.claim(tokenId, quantity);
     },
     {
       onSuccess: () => queryClient.invalidateQueries("numbers"),
