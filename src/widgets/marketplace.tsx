@@ -1,5 +1,4 @@
-import { AuctionListing, DirectListing, ListingType, MarketplaceModule, ThirdwebSDK } from "@3rdweb/sdk";
-import { invariant } from "@3rdweb/sdk/dist/common/invariant";
+import { AuctionListing, DirectListing, ListingType, MarketplaceModule, ThirdwebSDK, TokenModule } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -48,20 +47,20 @@ interface MarketplaceWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  expextedChainId: number;
+  expectedChainId: number;
 }
 
 interface BuyPageProps {
   module?: MarketplaceModule;
   sdk?: ThirdwebSDK;
-  expextedChainId: number;
+  expectedChainId: number;
   listing: DirectListing | AuctionListing;
 }
 
-const DirectListing: React.FC<BuyPageProps> = ({
+const AuctionListing: React.FC<BuyPageProps> = ({
   module,
-  sdk,
-  expextedChainId,
+  sdk, 
+  expectedChainId,
   listing,
 }) => {
   const [{ data: network }] = useNetwork();
@@ -78,18 +77,6 @@ const DirectListing: React.FC<BuyPageProps> = ({
     return sdk.getTokenModule(listing.assetContractAddress);
   }, [listing.assetContractAddress])
 
-  const { data: currency, isLoading: isCurrencyLoading } = useQuery(
-    ["currency"],
-    async () => {
-      invariant(sdk, "sdk must exist");
-      invariant(tokenModule, "token module must exist");
-
-      const currency = await tokenModule.get();
-      return currency;
-    },
-    { enabled: !!sdk && !!listing.assetContractAddress && !!tokenModule },
-  );
-
   const pricePerToken = ethers.utils.parseUnits(
     listing.buyoutCurrencyValuePerToken.value, 
     listing.buyoutCurrencyValuePerToken.decimals
@@ -99,11 +86,15 @@ const DirectListing: React.FC<BuyPageProps> = ({
     return BigNumber.from(listing.quantity || 1);
   }, [listing.quantity]);
 
+  const totalPrice = ethers.utils.parseUnits(
+    listing.buyoutCurrencyValuePerToken.value, 
+    listing.buyoutCurrencyValuePerToken.decimals
+  );
 
   const formatedPrice = useFormatedValue(
-    listing.buyoutCurrencyValuePerToken.value,
+    totalPrice.mul(BigNumber.from(quantity)),
     tokenModule,
-    expextedChainId,
+    expectedChainId,
   );
 
   const toast = useToast();
@@ -113,7 +104,6 @@ const DirectListing: React.FC<BuyPageProps> = ({
     let t = setTimeout(() => setBuySuccess(false), 3000);
     return () => clearTimeout(t);
   }, [buySuccess]);
-
 
   const buyMutation = useMutation(
     () => {
@@ -156,7 +146,145 @@ const DirectListing: React.FC<BuyPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address && chainId === expextedChainId ? (
+      {address && chainId === expectedChainId ? (
+        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+          {showQuantityInput && (
+            <NumberInput
+              inputMode="numeric"
+              value={quantity}
+              onChange={(stringValue, value) => {
+                if (stringValue === "") {
+                  setQuantity(0);
+                } else {
+                  setQuantity(value);
+                }
+              }}
+              min={1}
+              max={quantityLimit.toNumber()}
+              maxW={{ base: "100%", md: "100px" }}
+            >
+              <NumberInputField />
+            </NumberInput>
+          )}
+          <Button
+            fontSize={{ base: "label.md", md: "label.lg" }}
+            isLoading={buyMutation.isLoading}
+            isDisabled={!canClaim}
+            leftIcon={<IoDiamondOutline />}
+            onClick={() => buyMutation.mutate()}
+            isFullWidth
+            colorScheme="blue"
+          >
+            {isSoldOut
+              ? "Sold Out"
+              : !!canClaim
+              ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
+                  pricePerToken.eq(0)
+                    ? " (Free)"
+                    : formatedPrice
+                    ? ` (${formatedPrice})`
+                    : ""
+                }`
+              : "Purchase Unavailable"}
+          </Button>
+        </Flex>
+      ) : (
+        <ConnectWalletButton expectedChainId={expectedChainId} />
+      )}
+    </Stack>
+  );
+}
+
+const DirectListing: React.FC<BuyPageProps> = ({
+  module,
+  sdk,
+  expectedChainId,
+  listing,
+}) => {
+  const [{ data: network }] = useNetwork();
+  const address = useAddress();
+  const chainId = useMemo(() => network?.chain?.id, [network]);
+  const [quantity, setQuantity] = useState(1);
+  const [buySuccess, setBuySuccess] = useState(false);
+
+  const tokenModule = useMemo(() => {
+    if (!listing.assetContractAddress || !sdk) {
+      return undefined;
+    }
+
+    return sdk.getTokenModule(listing.assetContractAddress);
+  }, [listing.assetContractAddress])
+
+  const pricePerToken = ethers.utils.parseUnits(
+    listing.buyoutCurrencyValuePerToken.value, 
+    listing.buyoutCurrencyValuePerToken.decimals
+  );
+
+  const quantityLimit = useMemo(() => {
+    return BigNumber.from(listing.quantity || 1);
+  }, [listing.quantity]);
+
+  const totalPrice = ethers.utils.parseUnits(
+    listing.buyoutCurrencyValuePerToken.value, 
+    listing.buyoutCurrencyValuePerToken.decimals
+  );
+
+  const formatedPrice = useFormatedValue(
+    totalPrice.mul(BigNumber.from(quantity)),
+    tokenModule,
+    expectedChainId,
+  );
+
+  const toast = useToast();
+  const isSoldOut = BigNumber.from(listing.quantity).eq(0);
+
+  useEffect(() => {
+    let t = setTimeout(() => setBuySuccess(false), 3000);
+    return () => clearTimeout(t);
+  }, [buySuccess]);
+
+  const buyMutation = useMutation(
+    () => {
+      if (!address || !module) {
+        throw new Error("No address or module");
+      };
+
+      return module.buyoutDirectListing({ 
+        listingId: listing.id, 
+        quantityDesired: quantity 
+      });
+    },
+    {
+      onSuccess: () => queryClient.invalidateQueries(),
+      onError: (err) => {
+        const anyErr = err as any;
+        let message = "";
+
+        if (anyErr.code === "INSUFFICIENT_FUNDS") {
+          message = "Insufficient funds to purchase.";
+        }
+
+        toast({
+          title: "Minting failed",
+          description: message,
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      },
+    },
+  );
+
+  const canClaim = !isSoldOut && !!address;
+
+  const showQuantityInput =
+    canClaim &&
+    quantityLimit.gt(1) &&
+    quantityLimit.lte(1000);
+
+  return (
+    <Stack spacing={4} align="center" w="100%">
+      {address && chainId === expectedChainId ? (
         <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
@@ -182,7 +310,7 @@ const DirectListing: React.FC<BuyPageProps> = ({
           )}
           <Button
             fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={isCurrencyLoading}
+            isLoading={buyMutation.isLoading}
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
             onClick={() => buyMutation.mutate()}
@@ -203,7 +331,7 @@ const DirectListing: React.FC<BuyPageProps> = ({
           </Button>
         </Flex>
       ) : (
-        <ConnectWalletButton expextedChainId={expextedChainId} />
+        <ConnectWalletButton expectedChainId={expectedChainId} />
       )}
     </Stack>
   );
@@ -212,22 +340,10 @@ const DirectListing: React.FC<BuyPageProps> = ({
 const BuyPage: React.FC<BuyPageProps> = ({
   module,
   sdk,
-  expextedChainId,
+  expectedChainId,
   listing,
 }) => {
-  const { data: metadata, isLoading } = useQuery(
-    "module_metadata",
-    async () => {
-      const { assetContractAddress, tokenId } = listing;
-      // This is not always NFT module but they should all have the get function
-      const assetContract = sdk?.getNFTModule(assetContractAddress);
-      const metadata = await assetContract?.get(tokenId.toString());
-      return metadata;
-    },
-    { enabled: !!listing },
-  );
-
-  if (isLoading) {
+  if (!listing) {
     return (
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
@@ -250,30 +366,37 @@ const BuyPage: React.FC<BuyPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {metadata?.image ? (
+          {listing?.asset?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={metadata?.image}
-              alt={metadata?.name}
+              src={listing?.asset?.image}
+              alt={listing?.asset?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {metadata?.name}
+          {listing?.asset?.name}
         </Heading>
-        {metadata?.description && (
+        {listing?.asset?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metadata.description}
+            {listing?.asset?.description}
           </Heading>
         )}
-        {listing.type === ListingType.Direct && (
+        {listing?.type === ListingType.Direct ? (
           <DirectListing
             module={module}
-            expextedChainId={expextedChainId}
+            expectedChainId={expectedChainId}
+            sdk={sdk}
+            listing={listing}
+          />
+        ) : (
+          <AuctionListing 
+            module={module}
+            expectedChainId={expectedChainId}
             sdk={sdk}
             listing={listing}
           />
@@ -296,7 +419,7 @@ interface MarketplaceWidgetProps {
   rpcUrl?: string;
   relayUrl?: string;
   contractAddress: string;
-  expextedChainId: number;
+  expectedChainId: number;
   listingId: string;
 }
 
@@ -304,10 +427,10 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
   rpcUrl,
   relayUrl,
   contractAddress,
-  expextedChainId,
+  expectedChainId,
   listingId,
 }) => {
-  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expextedChainId });
+  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expectedChainId });
 
   const marketplaceModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -321,6 +444,25 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
     () => marketplaceModule?.getListing(listingId),
     { enabled: !!marketplaceModule && !!listingId },
   );
+
+  const exampleListing = {
+    id: "0",
+    tokenId: "0",
+    assetContractAddress: "0xcfC826dabA315db0Afc726e02BF9b90a42854060",
+    asset: {
+      name: "Beeple"
+    },
+    quantity: "10",
+    currencyContractAddress: "0x0000000000000000000000000000000000000000",
+    buyoutCurrencyValuePerToken: {
+      symbol: "MATIC",
+      decimals: 18,
+      value: "1"
+    },
+    buyoutPrice: "1000000000000000000",
+    sellerAddress: "0x0000000000000000000000000000000000000000",
+    type: ListingType.Direct,
+  }
 
   return (
     <Flex
@@ -341,8 +483,8 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
         <BuyPage
           module={marketplaceModule}
           sdk={sdk}
-          expextedChainId={expextedChainId}
-          listing={listing as DirectListing | AuctionListing}
+          expectedChainId={expectedChainId}
+          listing={(exampleListing || listing) as DirectListing | AuctionListing}
         />
       </Body>
       <Footer />
@@ -354,13 +496,13 @@ const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const expextedChainId = Number(urlParams.get("chainId"));
+  const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expextedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
-  const connectors = useConnectors(expextedChainId, rpcUrl);
+  const connectors = useConnectors(expectedChainId, rpcUrl);
 
   return (
     <>
@@ -378,7 +520,7 @@ const App: React.FC = () => {
             <MarketplaceWidget
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
-              expextedChainId={expextedChainId}
+              expectedChainId={expectedChainId}
               listingId={listingId}
               relayUrl={relayUrl}
             />

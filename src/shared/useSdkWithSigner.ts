@@ -7,20 +7,20 @@ import { ChainIDToRPCMap } from "./commonRPCUrls";
 interface useSdkOptions {
   rpcUrl?: string;
   relayUrl?: string;
-  expextedChainId: number;
+  expectedChainId: number;
 }
 
 export function useSDKWithSigner({
   rpcUrl,
   relayUrl,
-  expextedChainId,
+  expectedChainId,
 }: useSdkOptions) {
   const [{ data }] = useAccount();
   const connector = useMemo(() => data?.connector, [data]);
 
   const rpc = useMemo(() => {
-    return rpcUrl || ChainIDToRPCMap[expextedChainId] || null;
-  }, [rpcUrl, expextedChainId]);
+    return rpcUrl || ChainIDToRPCMap[expectedChainId] || null;
+  }, [rpcUrl, expectedChainId]);
 
   const sdk = useMemo(() => {
     if (!rpc) {

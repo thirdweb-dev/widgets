@@ -17,7 +17,7 @@ import { useConnect, useNetwork } from "wagmi";
 import { supportedChains } from "./commonRPCUrls";
 
 interface ConnectWalletButtonProps {
-  expextedChainId: number;
+  expectedChainId: number;
 }
 
 const connectorIdToImageUrl: Record<string, string> = {
@@ -27,13 +27,13 @@ const connectorIdToImageUrl: Record<string, string> = {
 };
 
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
-  expextedChainId,
+  expectedChainId,
 }) => {
   const [{ data: networkData, error: networkError }, switchNetwork] =
     useNetwork();
   const [{ data, error: connectErrror, loading }, connect] = useConnect();
 
-  if (networkData.chain && expextedChainId !== networkData?.chain?.id) {
+  if (networkData.chain && expectedChainId !== networkData?.chain?.id) {
     if (switchNetwork) {
       return (
         <Button
@@ -41,7 +41,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
           colorScheme="orange"
           borderRadius="md"
           leftIcon={<IoSwapHorizontalSharp />}
-          onClick={() => switchNetwork(expextedChainId)}
+          onClick={() => switchNetwork(expectedChainId)}
         >
           Switch Network
         </Button>
@@ -53,11 +53,11 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
 
         <AlertDescription>
           <Text>You wallet is connected to the wrong network.</Text>
-          {expextedChainId && (
+          {expectedChainId && (
             <Text>
               Please switch your wallet to{" "}
               <strong>
-                {supportedChains.find((c) => c.id === expextedChainId)?.name}
+                {supportedChains.find((c) => c.id === expectedChainId)?.name}
               </strong>
               .
             </Text>

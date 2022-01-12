@@ -59,7 +59,7 @@ interface DropWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  expextedChainId: number;
+  expectedChainId: number;
   tokenId: string;
 }
 
@@ -67,7 +67,7 @@ type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
   module?: BundleDropModule;
-  expextedChainId: number;
+  expectedChainId: number;
 }
 
 interface HeaderProps extends ModuleInProps {
@@ -155,14 +155,14 @@ const Header: React.FC<HeaderProps> = ({
 interface ClaimPageProps {
   module?: BundleDropModule;
   sdk?: ThirdwebSDK;
-  expextedChainId: number;
+  expectedChainId: number;
   tokenId: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   module,
   sdk,
-  expextedChainId,
+  expectedChainId,
   tokenId,
 }) => {
   const address = useAddress();
@@ -197,7 +197,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const formatedPrice = useFormatedValue(
     priceToMint,
     tokenModule,
-    expextedChainId,
+    expectedChainId,
   );
 
   const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
@@ -268,7 +268,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address && chainId === expextedChainId ? (
+      {address && chainId === expectedChainId ? (
         <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
@@ -315,7 +315,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           </Button>
         </Flex>
       ) : (
-        <ConnectWalletButton expextedChainId={expextedChainId} />
+        <ConnectWalletButton expectedChainId={expectedChainId} />
       )}
       <Text size="label.md" color="green.800">
         {`${parseHugeNumber(claimed)} / ${parseHugeNumber(
@@ -329,7 +329,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 const ClaimPage: React.FC<ClaimPageProps> = ({
   module,
   sdk,
-  expextedChainId,
+  expectedChainId,
   tokenId,
 }) => {
   const tokenMetadata = useQuery(
@@ -388,7 +388,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
         <ClaimButton
           module={module}
           tokenId={tokenId}
-          expextedChainId={expextedChainId}
+          expectedChainId={expectedChainId}
           sdk={sdk}
         />
       </Flex>
@@ -398,7 +398,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
 
 const InventoryPage: React.FC<ModuleInProps> = ({
   module,
-  expextedChainId,
+  expectedChainId,
 }) => {
   const address = useAddress();
   const ownedDrops = useQuery(
@@ -427,7 +427,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({
           <Heading size="label.sm">
             Connect your wallet to see your owned drops
           </Heading>
-          <ConnectWalletButton expextedChainId={expextedChainId} />
+          <ConnectWalletButton expectedChainId={expectedChainId} />
         </Stack>
       </Center>
     );
@@ -459,7 +459,7 @@ interface DropWidgetProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
-  expextedChainId: number;
+  expectedChainId: number;
   relayUrl: string | undefined;
 }
 
@@ -467,13 +467,13 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   startingTab = "claim",
   rpcUrl,
   contractAddress,
-  expextedChainId,
+  expectedChainId,
   tokenId,
   relayUrl,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
 
-  const sdk = useSDKWithSigner({ expextedChainId, rpcUrl, relayUrl });
+  const sdk = useSDKWithSigner({ expectedChainId, rpcUrl, relayUrl });
   const address = useAddress();
 
   const dropModule = useMemo(() => {
@@ -533,7 +533,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
         setActiveTab={(tab) => setActiveTab(tab)}
         module={dropModule}
         tokenId={tokenId}
-        expextedChainId={expextedChainId}
+        expectedChainId={expectedChainId}
       />
       <Body>
         {activeTab === "claim" ? (
@@ -541,12 +541,12 @@ const DropWidget: React.FC<DropWidgetProps> = ({
             module={dropModule}
             tokenId={tokenId}
             sdk={sdk}
-            expextedChainId={expextedChainId}
+            expectedChainId={expectedChainId}
           />
         ) : (
           <InventoryPage
             module={dropModule}
-            expextedChainId={expextedChainId}
+            expectedChainId={expectedChainId}
           />
         )}
       </Body>
@@ -559,13 +559,13 @@ const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const expextedChainId = Number(urlParams.get("chainId"));
+  const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expextedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const tokenId = urlParams.get("tokenId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
-  const connectors = useConnectors(expextedChainId, rpcUrl);
+  const connectors = useConnectors(expectedChainId, rpcUrl);
 
   return (
     <>
@@ -583,7 +583,7 @@ const App: React.FC = () => {
             <DropWidget
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
-              expextedChainId={expextedChainId}
+              expectedChainId={expectedChainId}
               tokenId={tokenId}
               relayUrl={relayUrl}
             />
