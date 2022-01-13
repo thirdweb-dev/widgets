@@ -78,7 +78,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const [{ data: network }] = useNetwork();
   const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
   const chainId = useMemo(() => network?.chain?.id, [network]);
-  const [bid, setBid] = useState(1);
+  const [bid, setBid] = useState("0");
 
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
@@ -86,24 +86,39 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     { enabled: !!module },
   );
 
-  const minimumBidBN = useMemo(() => {
+  const { data: bidBuffer } = useQuery(
+    ["bidBuffer"],
+    () => module?.getBidBufferBps(),
+    { enabled: !!module },
+  )
+
+  const minimumBidNumber = useMemo(() => {
+    if (!bidBuffer) return "0";
 
     const currentBidBN = ethers.utils.parseUnits(
-      currentBid?.currencyValue.value || "0",
-      currentBid?.currencyValue.decimals,
+      currentBid?.currencyValue.value || "0", 
+      currentBid?.currencyValue.decimals || 18  
+    ).mul(BigNumber.from(10000).add(bidBuffer)).div(BigNumber.from(10000));
+
+    const reservePriceBN = ethers.utils.parseUnits(
+      listing.reservePriceCurrencyValuePerToken.value,
+      listing.reservePriceCurrencyValuePerToken.decimals || 18,
+    ).mul(listing.quantity);
+
+    const currentBidNumber = ethers.utils.formatUnits(
+      BigNumber.from(currentBid?.currencyValue.value || "0")
+        .mul(BigNumber.from(10000).add(bidBuffer))
+        .div(BigNumber.from(10000)), 
+      currentBid?.currencyValue.decimals || 18
     );
 
-    const reservePriceBN = listing.reservePriceCurrencyValuePerToken 
-      ? ethers.utils.parseUnits(
-          listing.reservePriceCurrencyValuePerToken.value,
-          listing.reservePriceCurrencyValuePerToken.decimals,
-        )
-      : BigNumber.from(0);
+    const reservePriceNumber = ethers.utils.formatUnits(
+      BigNumber.from(listing.reservePriceCurrencyValuePerToken.value).mul(listing.quantity).toString(),
+      listing.reservePriceCurrencyValuePerToken.decimals || 18,
+    );
 
-    return currentBidBN.gt(reservePriceBN) 
-      ? currentBidBN 
-      : BigNumber.from(reservePriceBN);
-  }, [currentBid, listing.reservePriceCurrencyValuePerToken]);
+    return currentBidBN.gt(reservePriceBN) ? currentBidNumber : reservePriceNumber;
+  }, [currentBid, listing.reservePriceCurrencyValuePerToken, bidBuffer]);
 
   const currentBidFormatted = useFormatedValue(
     currentBid?.currencyValue.value,
@@ -118,8 +133,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 
   useEffect(() => {
-    setBid(minimumBidBN.toNumber());
-  }, [minimumBidBN]);
+    setBid(minimumBidNumber);
+  }, [minimumBidNumber]);
 
   const bidMutation = useMutation(
     () => {
@@ -127,10 +142,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         throw new Error("No module");
       }
 
-      const pricePerToken = ethers.utils.formatUnits(
-        BigNumber.from(bid).div(listing.quantity),
-        listing.buyoutCurrencyValuePerToken.decimals,
-      );
+      const pricePerToken = ethers.utils.parseUnits(
+        bid.toString(), 
+        currentBid?.currencyValue.decimals
+      ).div(listing.quantity);
 
       return module.makeAuctionListingBid({
         listingId: listing.id,
@@ -204,50 +219,66 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       },
     }
   )
-  
+
   return (
     <Stack spacing={4} align="center" w="100%">
       {address && chainId === expectedChainId ? (
         <Stack w="100%" spacing={0}>
-          <Text mb="4px">
-            <strong>Current Bid: </strong>
-            {currentBidFormatted || "N/A"}
-          </Text>
-          <Stack w="100%">
-            <Flex w="100%">
-              <Input
-                borderRightRadius="0"
-                type="number"
-                value={bid}
-                onChange={(e: any) => {
-                  setBid(parseFloat(e.target.value) || 0);
-                }}
-                onFocus={(e) => e.target.select()}
-                min={minimumBidBN.toNumber()}
-              />
-              <Button
-                minW="120px"
-                borderLeftRadius="0"
-                fontSize={{ base: "label.md", md: "label.lg" }}
-                isLoading={bidMutation.isLoading}
-                leftIcon={<RiAuctionLine />}
-                colorScheme="blue"
-                onClick={() => bidMutation.mutate()}
-              >
-                Bid
-              </Button>
-            </Flex>
+          {BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - (Date.now() / 1000) > 0 ? (
+            <>
+              <Text mb="4px">
+                <strong>Current Bid: </strong>
+                {currentBidFormatted || "N/A"}
+              </Text>
+              <Stack w="100%">
+                <Flex w="100%">
+                  <NumberInput
+                    type="numeric"
+                    width="100%"
+                    borderRightRadius="0"
+                    value={bid}
+                    onChange={(valueString, value) => {
+                      setBid(valueString || minimumBidNumber);
+                    }}
+                    min={parseFloat(minimumBidNumber)}
+                  >
+                    <NumberInputField width="100%" borderRightRadius={0} />
+                  </NumberInput>
+                  <Button
+                    minW="120px"
+                    borderLeftRadius="0"
+                    fontSize={{ base: "label.md", md: "label.lg" }}
+                    isLoading={bidMutation.isLoading}
+                    leftIcon={<RiAuctionLine />}
+                    colorScheme="blue"
+                    onClick={() => bidMutation.mutate()}
+                  >
+                    Bid
+                  </Button>
+                </Flex>
+                <Button
+                  minW="160px"
+                  fontSize={{ base: "label.md", md: "label.lg" }}
+                  isLoading={buyMutation.isLoading}
+                  leftIcon={<IoDiamondOutline />}
+                  colorScheme="blue"
+                  onClick={() => buyMutation.mutate()}
+                >
+                  Buyout Auction ({buyoutPrice})
+                </Button>
+              </Stack>
+            </>
+          ) : (
             <Button
-              minW="160px"
+              width="100%"
               fontSize={{ base: "label.md", md: "label.lg" }}
-              isLoading={buyMutation.isLoading}
               leftIcon={<IoDiamondOutline />}
               colorScheme="blue"
-              onClick={() => buyMutation.mutate()}
+              isDisabled
             >
-              Buyout Auction ({buyoutPrice})
+              Sold Out
             </Button>
-          </Stack>
+          )}
         </Stack>
       ) : (
         <ConnectWalletButton expectedChainId={expectedChainId} />
@@ -349,6 +380,12 @@ const DirectListing: React.FC<DirectListingProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
+      {!isSoldOut && (        
+        <Text>
+          <strong>Available: </strong>
+          {BigNumber.from(listing.quantity).toString()}
+        </Text>
+      )}
       {address && chainId === expectedChainId ? (
         <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
           {showQuantityInput && (
@@ -436,7 +473,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
               objectFit="contain"
               w="100%"
               h="100%"
-              src={listing?.asset?.image}
+              src={listing?.asset?.image.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/")}
               alt={listing?.asset?.name}
             />
           ) : (
