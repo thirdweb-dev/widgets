@@ -463,7 +463,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
             module={module}
             expectedChainId={expectedChainId}
             sdk={sdk}
-            listing={listing as AuctionListing}
+            listing={listing}
           />
         )}
       </Flex>
@@ -510,25 +510,6 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
     { enabled: !!marketplaceModule && !!listingId },
   );
 
-  const exampleListing = {
-    id: "0",
-    tokenId: "0",
-    assetContractAddress: "0xcfC826dabA315db0Afc726e02BF9b90a42854060",
-    asset: {
-      name: "Beeple"
-    },
-    quantity: "10",
-    currencyContractAddress: "0x0000000000000000000000000000000000000000",
-    buyoutCurrencyValuePerToken: {
-      symbol: "MATIC",
-      decimals: 18,
-      value: "1000000000000000000"
-    },
-    buyoutPrice: "1000000000000000000",
-    sellerAddress: "0x0000000000000000000000000000000000000000",
-    type: ListingType.Direct,
-  }
-
   return (
     <Flex
       position="fixed"
@@ -549,7 +530,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
           module={marketplaceModule}
           sdk={sdk}
           expectedChainId={expectedChainId}
-          listing={(exampleListing || listing) as DirectListing | AuctionListing}
+          listing={listing as DirectListing | AuctionListing}
         />
       </Body>
       <Footer />
