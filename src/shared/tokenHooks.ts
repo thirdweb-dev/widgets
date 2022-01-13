@@ -1,8 +1,8 @@
-import { TokenModule } from "@3rdweb/sdk";
+import { AuctionListing, ThirdwebSDK, TokenModule } from "@3rdweb/sdk";
 import { AddressZero } from "@ethersproject/constants";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChainIDToNativeSymbol } from "./commonRPCUrls";
 
 export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -15,6 +15,18 @@ export function isAddressZero(address: string): boolean {
     (lowerCaseAddress === AddressZero.toLowerCase() ||
       lowerCaseAddress === OtherAddressZero.toLowerCase())
   );
+}
+
+export function useTokenModule(sdk?: ThirdwebSDK, assetContractAddress?: string) {
+  const tokenModule = useMemo(() => {
+    if (!assetContractAddress || !sdk) {
+      return undefined;
+    };
+
+    return sdk.getTokenModule(assetContractAddress);
+  }, [assetContractAddress]);
+
+  return tokenModule;
 }
 
 export function useTokenUnitConversion(tokenModule?: TokenModule) {
