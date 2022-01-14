@@ -132,6 +132,15 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     expectedChainId,
   );
 
+  const remainingTime = useMemo(() => {
+    const difference = BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - Math.floor(Date.now() / 1000);
+    const days = Math.floor(difference / (60 * 60 * 24));
+    const hours = Math.floor((difference % (60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((difference % (60 * 60)) / 60);
+
+    return `${days ? `${days}d ` : hours ? `${hours}h ` : minutes ? `${minutes}m` : `Ending Now`}`;
+  }, [listing.endTimeInEpochSeconds]);
+
   useEffect(() => {
     setBid(minimumBidNumber);
   }, [minimumBidNumber]);
@@ -226,11 +235,35 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         <Stack w="100%" spacing={0}>
           {BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - (Date.now() / 1000) > 0 ? (
             <>
-              <Text mb="4px">
-                <strong>Current Bid: </strong>
-                {currentBidFormatted || "N/A"}
-              </Text>
-              <Stack w="100%">
+              <Stack>
+                <Stack spacing="0px">
+                  <Text>
+                    <strong>Remaining Time: </strong>
+                    <Text color="gray.600" display="inline">
+                      {remainingTime}
+                    </Text>
+                  </Text>
+                  <Text>
+                    <strong>Current Bid: </strong>
+                    {currentBidFormatted ? currentBidFormatted : (
+                      <Text color="gray.600" display="inline">
+                        no bids yet.
+                      </Text>
+                    )}
+                  </Text>
+                  {currentBid?.buyerAddress && (
+                    <Text>
+                      <strong>Highest Bidder: </strong>
+                      {currentBid?.buyerAddress === address ? "You" : currentBid?.buyerAddress}
+                    </Text>
+                  )}
+                  {BigNumber.from(listing.quantity).gt(1) && (
+                    <Text>
+                      <strong>Quantity: </strong>
+                      {listing.quantity.toString()}
+                    </Text>
+                  )}
+                </Stack>
                 <Flex w="100%">
                   <NumberInput
                     type="numeric"
@@ -276,7 +309,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
               colorScheme="blue"
               isDisabled
             >
-              Sold Out
+              Auction Ended
             </Button>
           )}
         </Stack>
