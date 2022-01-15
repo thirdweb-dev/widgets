@@ -283,6 +283,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                 >
                   <Button
                     minW="160px"
+                    variant="outline"
                     fontSize={{ base: "label.md", md: "label.lg" }}
                     isLoading={buyMutation.isLoading}
                     leftIcon={<IoDiamondOutline />}
@@ -306,10 +307,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                       {currentBid?.buyerAddress && (
                         <>
                           {currentBid?.buyerAddress === address 
-                          ? `You are currently the highest bidder in this auction ` 
+                          ? `You are currently the highest bidder ` 
                           : (
                             <>
-                              The highest bidder in this auction is currently <strong>{currentBid?.buyerAddress}</strong>
+                              The highest bidder is currently <strong>{currentBid?.buyerAddress}</strong>
                             </>
                           )}
                         </>
@@ -322,8 +323,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     </Text>
                   )}
                   <Text>
-                    The minimum required to make a new bid on this auction is now&nbsp;
-                    <strong>{minimumBidNumber}</strong>.
+                    The minimum required to make a new bid is now&nbsp;
+                    <strong>{minimumBidNumber} {currentBid?.currencyValue.symbol}</strong>.
                   </Text>
                 </Stack>
 
