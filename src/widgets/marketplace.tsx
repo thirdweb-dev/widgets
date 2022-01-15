@@ -19,13 +19,15 @@ import {
   Stack,
   Tab,
   Text,
+  Tooltip,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
+import { AiFillExclamationCircle, AiFillInfoCircle } from "react-icons/ai";
 import { RiAuctionLine } from "react-icons/ri";
 import {
   QueryClient,
@@ -141,12 +143,24 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     return `${days ? `${days}d ` : hours ? `${hours}h ` : minutes ? `${minutes}m` : `Ending Now`}`;
   }, [listing.endTimeInEpochSeconds]);
 
+  const endDateFormatted = useMemo(() => {
+    const endDate = new Date(
+      BigNumber.from(listing.endTimeInEpochSeconds).mul(1000).toNumber(),
+    );
+
+    if (endDate.toLocaleDateString() === new Date().toLocaleDateString()) {
+      return `at ${endDate.toLocaleTimeString()} `;
+    } 
+
+    return `on ${endDate.toLocaleDateString()} at ${endDate.toLocaleTimeString()}`;
+  }, [listing.endTimeInEpochSeconds])
+
   useEffect(() => {
     setBid(minimumBidNumber);
   }, [minimumBidNumber]);
 
   const bidMutation = useMutation(
-    () => {
+    async () => {
       if (!module) {
         throw new Error("No module");
       }
@@ -236,34 +250,6 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           {BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - (Date.now() / 1000) > 0 ? (
             <>
               <Stack>
-                <Stack spacing="0px">
-                  <Text>
-                    <strong>Remaining Time: </strong>
-                    <Text color="gray.600" display="inline">
-                      {remainingTime}
-                    </Text>
-                  </Text>
-                  <Text>
-                    <strong>Current Bid: </strong>
-                    {currentBidFormatted ? currentBidFormatted : (
-                      <Text color="gray.600" display="inline">
-                        no bids yet.
-                      </Text>
-                    )}
-                  </Text>
-                  {currentBid?.buyerAddress && (
-                    <Text>
-                      <strong>Highest Bidder: </strong>
-                      {currentBid?.buyerAddress === address ? "You" : currentBid?.buyerAddress}
-                    </Text>
-                  )}
-                  {BigNumber.from(listing.quantity).gt(1) && (
-                    <Text>
-                      <strong>Quantity: </strong>
-                      {listing.quantity.toString()}
-                    </Text>
-                  )}
-                </Stack>
                 <Flex w="100%">
                   <NumberInput
                     type="numeric"
@@ -289,16 +275,71 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     Bid
                   </Button>
                 </Flex>
-                <Button
-                  minW="160px"
-                  fontSize={{ base: "label.md", md: "label.lg" }}
-                  isLoading={buyMutation.isLoading}
-                  leftIcon={<IoDiamondOutline />}
-                  colorScheme="blue"
-                  onClick={() => buyMutation.mutate()}
+                <Tooltip 
+                  label={`
+                    You can buyout this auction to instantly purchase 
+                    all the listed assets and end the bidding process.
+                  `}
                 >
-                  Buyout Auction ({buyoutPrice})
-                </Button>
+                  <Button
+                    minW="160px"
+                    fontSize={{ base: "label.md", md: "label.lg" }}
+                    isLoading={buyMutation.isLoading}
+                    leftIcon={<IoDiamondOutline />}
+                    colorScheme="blue"
+                    onClick={() => buyMutation.mutate()}
+                  >
+                    Buyout Auction ({buyoutPrice})
+                  </Button>
+                </Tooltip>
+
+                <Stack 
+                  bg="blue.50" 
+                  borderRadius="md" 
+                  padding="12px" 
+                  borderColor="blue.100" 
+                  borderWidth="1px"
+                  spacing={0}
+                >
+                  {currentBidFormatted ? (
+                    <Text>
+                      {currentBid?.buyerAddress && (
+                        <>
+                          {currentBid?.buyerAddress === address 
+                          ? `You are currently the highest bidder in this auction ` 
+                          : (
+                            <>
+                              The highest bidder in this auction is currently <strong>{currentBid?.buyerAddress}</strong>
+                            </>
+                          )}
+                        </>
+                      )}
+                      with a bid of <strong>{currentBidFormatted}</strong>.
+                    </Text>
+                  ) : (
+                    <Text color="gray.600" display="inline">
+                      There are no bids in this auction yet.
+                    </Text>
+                  )}
+                  <Text>
+                    The minimum required to make a new bid on this auction is now&nbsp;
+                    <strong>{minimumBidNumber}</strong>.
+                  </Text>
+                </Stack>
+
+                <Stack 
+                  bg="orange.50" 
+                  borderRadius="md" 
+                  padding="12px" 
+                  borderColor="orange.100" 
+                  borderWidth="1px"
+                  direction="row"
+                >
+                  <Icon color="orange.300" as={AiFillExclamationCircle} boxSize={6} />
+                  <Text>
+                    This auction closes {endDateFormatted} (<strong>{remainingTime}</strong>).
+                  </Text>
+                </Stack>
               </Stack>
             </>
           ) : (

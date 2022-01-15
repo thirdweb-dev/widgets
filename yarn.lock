@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@3rdweb/contracts@^1.21.0":
-  version "1.21.0"
-  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.21.0.tgz#bed7ea1c3a5b6213002612e7bed5ba2da2f0220f"
-  integrity sha512-WxfWZB/io6ox6DZN/eI87psqj1tkEw24HlVqWEu38RBVl6BPoy7cPg6l/Rkda5IsJ53VFrxWiGu0UYCxy/ri1w==
+"@3rdweb/contracts@^1.21.1":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.22.0.tgz#32d97a0b5029a56cc39b03dfd25065ae0d4c7cd5"
+  integrity sha512-92c+hJ/9GVmc24RunuO4Flp9i8EVa6MoY6T5oF8kZTv9m4cwk6L9jO3hs9g9H5zj/wuDEU4XvwHGk2ez3JJ5fg==
 
-"@3rdweb/sdk@^1.29.0":
-  version "1.32.0"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.32.0.tgz#5c1be096e3c14ab3e73ccb514247d12c43d5c3e0"
-  integrity sha512-szQdrBFzB/kAt6DBy0yLZsv6YDZEr4Drwi9IfC6s1XUdDJsNEqN9Zc82sxzKHcsV7VYk09A6Kw5kd/6kPvvH8w==
+"@3rdweb/sdk@^1.34.3":
+  version "1.34.3"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.34.3.tgz#54b2a1b3d9aac908babc29d9367d338a2c69bd21"
+  integrity sha512-y3NmTAJWlrPWFdm6NVSO2eX3bU3fP6BAPrWCuBZVYlZqiqnfOzCv+YXl5ARDcaTyvC3xC2NdgZdh7cN8woqs4A==
   dependencies:
-    "@3rdweb/contracts" "^1.21.0"
+    "@3rdweb/contracts" "^1.21.1"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
@@ -1201,10 +1201,35 @@
   dependencies:
     "@ethersproject/logger" "^5.5.0"
 
-"@ethersproject/providers@5.5.1", "@ethersproject/providers@^5.5.0", "@ethersproject/providers@^5.5.1":
+"@ethersproject/providers@5.5.1", "@ethersproject/providers@^5.5.1":
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.5.1.tgz#ba87e3c93219bbd2e2edf8b369873aee774abf04"
   integrity sha512-2zdD5sltACDWhjUE12Kucg2PcgM6V2q9JMyVvObtVGnzJu+QSmibbP+BHQyLWZUBfLApx2942+7DC5D+n4wBQQ==
+  dependencies:
+    "@ethersproject/abstract-provider" "^5.5.0"
+    "@ethersproject/abstract-signer" "^5.5.0"
+    "@ethersproject/address" "^5.5.0"
+    "@ethersproject/basex" "^5.5.0"
+    "@ethersproject/bignumber" "^5.5.0"
+    "@ethersproject/bytes" "^5.5.0"
+    "@ethersproject/constants" "^5.5.0"
+    "@ethersproject/hash" "^5.5.0"
+    "@ethersproject/logger" "^5.5.0"
+    "@ethersproject/networks" "^5.5.0"
+    "@ethersproject/properties" "^5.5.0"
+    "@ethersproject/random" "^5.5.0"
+    "@ethersproject/rlp" "^5.5.0"
+    "@ethersproject/sha2" "^5.5.0"
+    "@ethersproject/strings" "^5.5.0"
+    "@ethersproject/transactions" "^5.5.0"
+    "@ethersproject/web" "^5.5.0"
+    bech32 "1.1.4"
+    ws "7.4.6"
+
+"@ethersproject/providers@^5.5.0":
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.5.2.tgz#131ccf52dc17afd0ab69ed444b8c0e3a27297d99"
+  integrity sha512-hkbx7x/MKcRjyrO4StKXCzCpWer6s97xnm34xkfPiarhtEUVAN4TBBpamM+z66WcTt7H5B53YwbRj1n7i8pZoQ==
   dependencies:
     "@ethersproject/abstract-provider" "^5.5.0"
     "@ethersproject/abstract-signer" "^5.5.0"
