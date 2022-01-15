@@ -42,7 +42,7 @@ import { NftCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue, useTokenModule } from "../shared/tokenHooks";
+import { useFormatedValue, useTokenModule, useTokenUnitConversion } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
@@ -82,11 +82,27 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [bid, setBid] = useState("0");
 
+  const isAuctionEnded = BigNumber
+    .from(listing.endTimeInEpochSeconds)
+    .toNumber() - (Date.now() / 1000) > 0
+
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
     () => module?.getWinningBid(listing.id),
     { enabled: !!module },
   );
+
+  const { data: auctionWinner } = useQuery(
+    ["auctionWinner", listing.id],
+    () => {
+      if (isAuctionEnded) {
+        return module?.getAuctionWinner(listing.id);
+      }
+
+      return undefined
+    },
+    { enabled: !!module },
+  )
 
   const { data: bidBuffer } = useQuery(
     ["bidBuffer"],
@@ -94,8 +110,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     { enabled: !!module },
   )
 
-  const minimumBidNumber = useMemo(() => {
-    if (!bidBuffer) return "0";
+  const { minimumBidNumber, minimumBidBN } = useMemo(() => {
+    if (!bidBuffer) {
+      return { minimumBidNumber: "0", minimumBidBN: BigNumber.from(0) };
+    };
 
     const currentBidBN = ethers.utils.parseUnits(
       currentBid?.currencyValue.value || "0", 
@@ -119,17 +137,42 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.decimals || 18,
     );
 
-    return currentBidBN.gt(reservePriceBN) ? currentBidNumber : reservePriceNumber;
-  }, [currentBid, listing.reservePriceCurrencyValuePerToken, bidBuffer]);
+    const minimumBidBN = BigNumber
+      .from(currentBid?.currencyValue.value || 0)
+      .mul(BigNumber
+      .from(10000)
+      .add(bidBuffer))
+      .div(BigNumber
+      .from(10000));
+
+    const minimumReservePriceBN = BigNumber
+        .from(listing.reservePriceCurrencyValuePerToken.value || 0)
+        .mul(listing.quantity);
+
+    return currentBidBN.gt(reservePriceBN) 
+      ? { minimumBidNumber: currentBidNumber, minimumBidBN } 
+      : { minimumBidNumber: reservePriceNumber, minimumBidBN: minimumReservePriceBN };
+  }, [
+    currentBid?.currencyValue?.value, 
+    currentBid?.currencyValue?.decimals, 
+    listing.reservePriceCurrencyValuePerToken, 
+    bidBuffer
+  ]);
+
+  const minimumBidFormatted = useFormatedValue(
+    minimumBidBN,
+    tokenModule,
+    expectedChainId,
+  );
 
   const currentBidFormatted = useFormatedValue(
     currentBid?.currencyValue.value,
     tokenModule,
     expectedChainId,
-  )
+  );
 
   const buyoutPrice = useFormatedValue(
-    listing.buyoutPrice,
+    BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(listing.quantity),
     tokenModule,
     expectedChainId,
   );
@@ -140,7 +183,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     const hours = Math.floor((difference % (60 * 60 * 24)) / (60 * 60));
     const minutes = Math.floor((difference % (60 * 60)) / 60);
 
-    return `${days ? `${days}d ` : hours ? `${hours}h ` : minutes ? `${minutes}m` : `Ending Now`}`;
+    return `${days ? `${days}d` : hours ? `${hours}h` : minutes ? `${minutes}m` : `ending now`}`;
   }, [listing.endTimeInEpochSeconds]);
 
   const endDateFormatted = useMemo(() => {
@@ -149,7 +192,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     );
 
     if (endDate.toLocaleDateString() === new Date().toLocaleDateString()) {
-      return `at ${endDate.toLocaleTimeString()} `;
+      return `at ${endDate.toLocaleTimeString()}`;
     } 
 
     return `on ${endDate.toLocaleDateString()} at ${endDate.toLocaleTimeString()}`;
@@ -247,7 +290,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     <Stack spacing={4} align="center" w="100%">
       {address && chainId === expectedChainId ? (
         <Stack w="100%" spacing={0}>
-          {BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - (Date.now() / 1000) > 0 ? (
+          {isAuctionEnded ? (
             <>
               <Stack>
                 <Flex w="100%">
@@ -275,24 +318,27 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     Bid
                   </Button>
                 </Flex>
-                <Tooltip 
-                  label={`
-                    You can buyout this auction to instantly purchase 
-                    all the listed assets and end the bidding process.
-                  `}
-                >
-                  <Button
-                    minW="160px"
-                    variant="outline"
-                    fontSize={{ base: "label.md", md: "label.lg" }}
-                    isLoading={buyMutation.isLoading}
-                    leftIcon={<IoDiamondOutline />}
-                    colorScheme="blue"
-                    onClick={() => buyMutation.mutate()}
+
+                {BigNumber.from(listing.buyoutPrice).gt(0) && (
+                  <Tooltip 
+                    label={`
+                      You can buyout this auction to instantly purchase 
+                      all the listed assets and end the bidding process.
+                    `}
                   >
-                    Buyout Auction ({buyoutPrice})
-                  </Button>
-                </Tooltip>
+                    <Button
+                      minW="160px"
+                      variant="outline"
+                      fontSize={{ base: "label.md", md: "label.lg" }}
+                      isLoading={buyMutation.isLoading}
+                      leftIcon={<IoDiamondOutline />}
+                      colorScheme="blue"
+                      onClick={() => buyMutation.mutate()}
+                    >
+                      Buyout Auction ({buyoutPrice})
+                    </Button>
+                  </Tooltip>
+                )}
 
                 <Stack 
                   bg="blue.50" 
@@ -324,7 +370,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   )}
                   <Text>
                     The minimum required to make a new bid is now&nbsp;
-                    <strong>{minimumBidNumber} {currentBid?.currencyValue.symbol}</strong>.
+                    <strong>{minimumBidFormatted}</strong>.
                   </Text>
                 </Stack>
 
@@ -344,15 +390,38 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
               </Stack>
             </>
           ) : (
-            <Button
-              width="100%"
-              fontSize={{ base: "label.md", md: "label.lg" }}
-              leftIcon={<IoDiamondOutline />}
-              colorScheme="blue"
-              isDisabled
-            >
-              Auction Ended
-            </Button>
+            <>
+              <Button
+                width="100%"
+                fontSize={{ base: "label.md", md: "label.lg" }}
+                leftIcon={<IoDiamondOutline />}
+                colorScheme="blue"
+                isDisabled
+              >
+                Auction Ended
+              </Button>
+              {auctionWinner && (
+                <Stack 
+                  bg="blue.50" 
+                  borderRadius="md" 
+                  padding="12px" 
+                  borderColor="blue.100" 
+                  borderWidth="1px"
+                  spacing={0}
+                >
+                  {auctionWinner === address ? (
+                    <Text>
+                      You won this auction! The auctioned assets have been transfered to your wallet.
+                    </Text>
+                  ) : (
+                    <Text>
+                      This auction was won by <strong>{auctionWinner}</strong>. 
+                      If you made a bid, the bid has refunded to your wallet.
+                    </Text>
+                  )}
+                </Stack>
+              )}
+            </>
           )}
         </Stack>
       ) : (
