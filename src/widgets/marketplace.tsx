@@ -1,7 +1,12 @@
-import { AuctionListing, DirectListing, ListingType, MarketplaceModule, ThirdwebSDK, TokenModule } from "@3rdweb/sdk";
+import {
+  AuctionListing,
+  DirectListing,
+  ListingType,
+  MarketplaceModule,
+  ThirdwebSDK,
+} from "@3rdweb/sdk";
 import {
   Button,
-  ButtonProps,
   Center,
   ChakraProvider,
   Flex,
@@ -9,7 +14,6 @@ import {
   Heading,
   Icon,
   Image,
-  Input,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -17,17 +21,16 @@ import {
   NumberInputStepper,
   Spinner,
   Stack,
-  Tab,
   Text,
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { BigNumber, BigNumberish, ethers } from "ethers";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { BigNumber, ethers } from "ethers";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
+import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
-import { AiFillExclamationCircle, AiFillInfoCircle } from "react-icons/ai";
 import { RiAuctionLine } from "react-icons/ri";
 import {
   QueryClient,
@@ -38,11 +41,10 @@ import {
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
-import { NftCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue, useTokenModule, useTokenUnitConversion } from "../shared/tokenHooks";
+import { useFormatedValue, useTokenModule } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
@@ -71,7 +73,7 @@ interface DirectListingProps extends BuyPageProps {
 
 const AuctionListing: React.FC<AuctionListingProps> = ({
   module,
-  sdk, 
+  sdk,
   expectedChainId,
   listing,
 }) => {
@@ -82,9 +84,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [bid, setBid] = useState("0");
 
-  const isAuctionEnded = BigNumber
-    .from(listing.endTimeInEpochSeconds)
-    .toNumber() - (Date.now() / 1000) > 0
+  const isAuctionEnded =
+    BigNumber.from(listing.endTimeInEpochSeconds).toNumber() -
+      Date.now() / 1000 >
+    0;
 
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
@@ -99,64 +102,70 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         return module?.getAuctionWinner(listing.id);
       }
 
-      return undefined
+      return undefined;
     },
     { enabled: !!module },
-  )
+  );
 
   const { data: bidBuffer } = useQuery(
     ["bidBuffer"],
     () => module?.getBidBufferBps(),
     { enabled: !!module },
-  )
+  );
 
   const { minimumBidNumber, minimumBidBN } = useMemo(() => {
     if (!bidBuffer) {
       return { minimumBidNumber: "0", minimumBidBN: BigNumber.from(0) };
-    };
+    }
 
-    const currentBidBN = ethers.utils.parseUnits(
-      currentBid?.currencyValue.value || "0", 
-      currentBid?.currencyValue.decimals || 18  
-    ).mul(BigNumber.from(10000).add(bidBuffer)).div(BigNumber.from(10000));
+    const currentBidBN = ethers.utils
+      .parseUnits(
+        currentBid?.currencyValue.value || "0",
+        currentBid?.currencyValue.decimals || 18,
+      )
+      .mul(BigNumber.from(10000).add(bidBuffer))
+      .div(BigNumber.from(10000));
 
-    const reservePriceBN = ethers.utils.parseUnits(
-      listing.reservePriceCurrencyValuePerToken.value,
-      listing.reservePriceCurrencyValuePerToken.decimals || 18,
-    ).mul(listing.quantity);
+    const reservePriceBN = ethers.utils
+      .parseUnits(
+        listing.reservePriceCurrencyValuePerToken.value,
+        listing.reservePriceCurrencyValuePerToken.decimals || 18,
+      )
+      .mul(listing.quantity);
 
     const currentBidNumber = ethers.utils.formatUnits(
       BigNumber.from(currentBid?.currencyValue.value || "0")
         .mul(BigNumber.from(10000).add(bidBuffer))
-        .div(BigNumber.from(10000)), 
-      currentBid?.currencyValue.decimals || 18
+        .div(BigNumber.from(10000)),
+      currentBid?.currencyValue.decimals || 18,
     );
 
     const reservePriceNumber = ethers.utils.formatUnits(
-      BigNumber.from(listing.reservePriceCurrencyValuePerToken.value).mul(listing.quantity).toString(),
+      BigNumber.from(listing.reservePriceCurrencyValuePerToken.value)
+        .mul(listing.quantity)
+        .toString(),
       listing.reservePriceCurrencyValuePerToken.decimals || 18,
     );
 
-    const minimumBidBN = BigNumber
-      .from(currentBid?.currencyValue.value || 0)
-      .mul(BigNumber
-      .from(10000)
-      .add(bidBuffer))
-      .div(BigNumber
-      .from(10000));
+    const minimumBidBN = BigNumber.from(currentBid?.currencyValue.value || 0)
+      .mul(BigNumber.from(10000).add(bidBuffer))
+      .div(BigNumber.from(10000));
 
-    const minimumReservePriceBN = BigNumber
-        .from(listing.reservePriceCurrencyValuePerToken.value || 0)
-        .mul(listing.quantity);
+    const minimumReservePriceBN = BigNumber.from(
+      listing.reservePriceCurrencyValuePerToken.value || 0,
+    ).mul(listing.quantity);
 
-    return currentBidBN.gt(reservePriceBN) 
-      ? { minimumBidNumber: currentBidNumber, minimumBidBN } 
-      : { minimumBidNumber: reservePriceNumber, minimumBidBN: minimumReservePriceBN };
+    return currentBidBN.gt(reservePriceBN)
+      ? { minimumBidNumber: currentBidNumber, minimumBidBN }
+      : {
+          minimumBidNumber: reservePriceNumber,
+          minimumBidBN: minimumReservePriceBN,
+        };
   }, [
-    currentBid?.currencyValue?.value, 
-    currentBid?.currencyValue?.decimals, 
-    listing.reservePriceCurrencyValuePerToken, 
-    bidBuffer
+    currentBid?.currencyValue?.value,
+    currentBid?.currencyValue?.decimals,
+    listing.reservePriceCurrencyValuePerToken,
+    bidBuffer,
   ]);
 
   const minimumBidFormatted = useFormatedValue(
@@ -172,18 +181,30 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 
   const buyoutPrice = useFormatedValue(
-    BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(listing.quantity),
+    BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
+      listing.quantity,
+    ),
     tokenModule,
     expectedChainId,
   );
 
   const remainingTime = useMemo(() => {
-    const difference = BigNumber.from(listing.endTimeInEpochSeconds).toNumber() - Math.floor(Date.now() / 1000);
+    const difference =
+      BigNumber.from(listing.endTimeInEpochSeconds).toNumber() -
+      Math.floor(Date.now() / 1000);
     const days = Math.floor(difference / (60 * 60 * 24));
     const hours = Math.floor((difference % (60 * 60 * 24)) / (60 * 60));
     const minutes = Math.floor((difference % (60 * 60)) / 60);
 
-    return `${days ? `${days}d` : hours ? `${hours}h` : minutes ? `${minutes}m` : `ending now`}`;
+    return `${
+      days
+        ? `${days}d`
+        : hours
+        ? `${hours}h`
+        : minutes
+        ? `${minutes}m`
+        : `ending now`
+    }`;
   }, [listing.endTimeInEpochSeconds]);
 
   const endDateFormatted = useMemo(() => {
@@ -193,10 +214,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
     if (endDate.toLocaleDateString() === new Date().toLocaleDateString()) {
       return `at ${endDate.toLocaleTimeString()}`;
-    } 
+    }
 
     return `on ${endDate.toLocaleDateString()} at ${endDate.toLocaleTimeString()}`;
-  }, [listing.endTimeInEpochSeconds])
+  }, [listing.endTimeInEpochSeconds]);
 
   useEffect(() => {
     setBid(minimumBidNumber);
@@ -208,10 +229,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         throw new Error("No module");
       }
 
-      const pricePerToken = ethers.utils.parseUnits(
-        bid.toString(), 
-        currentBid?.currencyValue.decimals
-      ).div(listing.quantity);
+      const pricePerToken = ethers.utils
+        .parseUnits(bid.toString(), currentBid?.currencyValue.decimals)
+        .div(listing.quantity);
 
       return module.makeAuctionListingBid({
         listingId: listing.id,
@@ -227,7 +247,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           duration: 5000,
           isClosable: true,
         });
-        queryClient.invalidateQueries()
+        queryClient.invalidateQueries();
       },
       onError: (err) => {
         const anyErr = err as any;
@@ -245,8 +265,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           isClosable: true,
         });
       },
-    }
-  )
+    },
+  );
 
   const buyMutation = useMutation(
     () => {
@@ -265,7 +285,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           duration: 5000,
           isClosable: true,
         });
-        queryClient.invalidateQueries()
+        queryClient.invalidateQueries();
       },
       onError: (err) => {
         const anyErr = err as any;
@@ -283,8 +303,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           isClosable: true,
         });
       },
-    }
-  )
+    },
+  );
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -320,7 +340,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                 </Flex>
 
                 {BigNumber.from(listing.buyoutPrice).gt(0) && (
-                  <Tooltip 
+                  <Tooltip
                     label={`
                       You can buyout this auction to instantly purchase 
                       all the listed assets and end the bidding process.
@@ -340,11 +360,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   </Tooltip>
                 )}
 
-                <Stack 
-                  bg="blue.50" 
-                  borderRadius="md" 
-                  padding="12px" 
-                  borderColor="blue.100" 
+                <Stack
+                  bg="blue.50"
+                  borderRadius="md"
+                  padding="12px"
+                  borderColor="blue.100"
                   borderWidth="1px"
                   spacing={0}
                 >
@@ -352,11 +372,12 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     <Text>
                       {currentBid?.buyerAddress && (
                         <>
-                          {currentBid?.buyerAddress === address 
-                          ? `You are currently the highest bidder ` 
-                          : (
+                          {currentBid?.buyerAddress === address ? (
+                            `You are currently the highest bidder `
+                          ) : (
                             <>
-                              The highest bidder is currently <strong>{currentBid?.buyerAddress}</strong>
+                              The highest bidder is currently{" "}
+                              <strong>{currentBid?.buyerAddress}</strong>
                             </>
                           )}
                         </>
@@ -374,17 +395,22 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   </Text>
                 </Stack>
 
-                <Stack 
-                  bg="orange.50" 
-                  borderRadius="md" 
-                  padding="12px" 
-                  borderColor="orange.100" 
+                <Stack
+                  bg="orange.50"
+                  borderRadius="md"
+                  padding="12px"
+                  borderColor="orange.100"
                   borderWidth="1px"
                   direction="row"
                 >
-                  <Icon color="orange.300" as={AiFillExclamationCircle} boxSize={6} />
+                  <Icon
+                    color="orange.300"
+                    as={AiFillExclamationCircle}
+                    boxSize={6}
+                  />
                   <Text>
-                    This auction closes {endDateFormatted} (<strong>{remainingTime}</strong>).
+                    This auction closes {endDateFormatted} (
+                    <strong>{remainingTime}</strong>).
                   </Text>
                 </Stack>
               </Stack>
@@ -401,21 +427,22 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                 Auction Ended
               </Button>
               {auctionWinner && (
-                <Stack 
-                  bg="blue.50" 
-                  borderRadius="md" 
-                  padding="12px" 
-                  borderColor="blue.100" 
+                <Stack
+                  bg="blue.50"
+                  borderRadius="md"
+                  padding="12px"
+                  borderColor="blue.100"
                   borderWidth="1px"
                   spacing={0}
                 >
                   {auctionWinner === address ? (
                     <Text>
-                      You won this auction! The auctioned assets have been transfered to your wallet.
+                      You won this auction! The auctioned assets have been
+                      transfered to your wallet.
                     </Text>
                   ) : (
                     <Text>
-                      This auction was won by <strong>{auctionWinner}</strong>. 
+                      This auction was won by <strong>{auctionWinner}</strong>.
                       If you made a bid, the bid has refunded to your wallet.
                     </Text>
                   )}
@@ -429,7 +456,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       )}
     </Stack>
   );
-}
+};
 
 const DirectListing: React.FC<DirectListingProps> = ({
   module,
@@ -449,11 +476,11 @@ const DirectListing: React.FC<DirectListingProps> = ({
     }
 
     return sdk.getTokenModule(listing.assetContractAddress);
-  }, [listing.assetContractAddress])
+  }, [listing.assetContractAddress]);
 
   const pricePerToken = ethers.utils.parseUnits(
-    listing.buyoutCurrencyValuePerToken.value, 
-    listing.buyoutCurrencyValuePerToken.decimals
+    listing.buyoutCurrencyValuePerToken.value,
+    listing.buyoutCurrencyValuePerToken.decimals,
   );
 
   const quantityLimit = useMemo(() => {
@@ -461,7 +488,9 @@ const DirectListing: React.FC<DirectListingProps> = ({
   }, [listing.quantity]);
 
   const formatedPrice = useFormatedValue(
-    BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(BigNumber.from(quantity)),
+    BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
+      BigNumber.from(quantity),
+    ),
     tokenModule,
     expectedChainId,
   );
@@ -478,11 +507,12 @@ const DirectListing: React.FC<DirectListingProps> = ({
     () => {
       if (!address || !module) {
         throw new Error("No address or module");
-      };
+      }
 
-      return module.buyoutDirectListing({ 
-        listingId: listing.id, 
-        quantityDesired: quantity 
+      return module.buyoutDirectListing({
+        listingId: listing.id,
+        // either the quantity or the limit if it is lower
+        quantityDesired: Math.min(quantity, quantityLimit.toNumber()),
       });
     },
     {
@@ -494,7 +524,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
           duration: 5000,
           isClosable: true,
         });
-        queryClient.invalidateQueries()
+        queryClient.invalidateQueries();
       },
       onError: (err) => {
         const anyErr = err as any;
@@ -518,13 +548,11 @@ const DirectListing: React.FC<DirectListingProps> = ({
   const canClaim = !isSoldOut && !!address;
 
   const showQuantityInput =
-    canClaim &&
-    quantityLimit.gt(1) &&
-    quantityLimit.lte(1000);
+    canClaim && quantityLimit.gt(1) && quantityLimit.lte(1000);
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      {!isSoldOut && (        
+      {!isSoldOut && (
         <Text>
           <strong>Available: </strong>
           {BigNumber.from(listing.quantity).toString()}
@@ -617,7 +645,10 @@ const BuyPage: React.FC<BuyPageProps> = ({
               objectFit="contain"
               w="100%"
               h="100%"
-              src={listing?.asset?.image.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/")}
+              src={listing?.asset?.image.replace(
+                "ipfs://",
+                "https://cloudflare-ipfs.com/ipfs/",
+              )}
               alt={listing?.asset?.name}
             />
           ) : (
@@ -640,7 +671,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
             listing={listing}
           />
         ) : (
-          <AuctionListing 
+          <AuctionListing
             module={module}
             expectedChainId={expectedChainId}
             sdk={sdk}
