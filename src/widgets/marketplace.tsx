@@ -23,6 +23,7 @@ import {
   Stack,
   Text,
   Tooltip,
+  useClipboard,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -437,6 +438,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   borderColor="blue.100"
                   borderWidth="1px"
                   direction="row"
+                  align="center"
+                  spacing={3}
                 >
                   <Icon
                     color="blue.300"
@@ -450,7 +453,13 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     </Text>
                   ) : (
                     <Text>
-                      This auction was won by <strong>{auctionWinner}</strong>.
+                      This auction was won by{" "}
+                      <Tooltip label={auctionWinner}>
+                        <Text fontWeight="bold" cursor="pointer" display="inline">
+                          {auctionWinner.slice(0, 16)}...
+                        </Text>
+                      </Tooltip>
+                      <br />
                       If you made a bid, the bid has been refunded to your wallet.
                     </Text>
                   )}
