@@ -382,17 +382,16 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                           ) : (
                             <>
                               The highest bidder is currently{" "}
-                              <Text fontWeight="bold" cursor="pointer" display={{ base: "inline", md: "none" }}>
-                                {currentBid?.buyerAddress.slice(0, 10)}...
-                              </Text>
-                              <Text fontWeight="bold" cursor="pointer" display={{ base: "none", md: "inline" }}>
-                                {currentBid?.buyerAddress}
-                              </Text>
+                              <Tooltip label={currentBid?.buyerAddress}>  
+                                <Text fontWeight="bold" cursor="pointer" display="inline">
+                                  {currentBid?.buyerAddress.slice(0, 10)}...
+                                </Text>
+                              </Tooltip>
                             </>
                           )}
                         </>
                       )}
-                      with a bid of <strong>{currentBidFormatted}</strong>.
+                      {" "}with a bid of <strong>{currentBidFormatted}</strong>.
                     </Text>
                   ) : (
                     <Text color="gray.600" display="inline">
@@ -461,14 +460,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     <Text>
                       This auction was won by{" "}
                       <Tooltip label={auctionWinner}>
-                        <>
-                          <Text fontWeight="bold" cursor="pointer" display={{ base: "inline", md: "none" }}>
-                            {auctionWinner.slice(0, 10)}...
-                          </Text>
-                          <Text fontWeight="bold" cursor="pointer" display={{ base: "none", md: "inline" }}>
-                            {auctionWinner}
-                          </Text>
-                        </>
+                        <Text fontWeight="bold" cursor="pointer" display="inline">
+                          {auctionWinner.slice(0, 10)}...
+                        </Text>
                       </Tooltip>
                       <br />
                       If you made a bid, the bid has been refunded to your wallet.
