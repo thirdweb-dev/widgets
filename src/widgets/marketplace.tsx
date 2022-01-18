@@ -23,6 +23,7 @@ import {
   Stack,
   Text,
   Tooltip,
+  useBreakpointValue,
   useClipboard,
   useToast,
 } from "@chakra-ui/react";
@@ -381,7 +382,12 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                           ) : (
                             <>
                               The highest bidder is currently{" "}
-                              <strong>{currentBid?.buyerAddress}</strong>
+                              <Text fontWeight="bold" cursor="pointer" display={{ base: "inline", md: "none" }}>
+                                {currentBid?.buyerAddress.slice(0, 10)}...
+                              </Text>
+                              <Text fontWeight="bold" cursor="pointer" display={{ base: "none", md: "inline" }}>
+                                {currentBid?.buyerAddress}
+                              </Text>
                             </>
                           )}
                         </>
@@ -455,9 +461,14 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     <Text>
                       This auction was won by{" "}
                       <Tooltip label={auctionWinner}>
-                        <Text fontWeight="bold" cursor="pointer" display="inline">
-                          {auctionWinner.slice(0, 16)}...
-                        </Text>
+                        <>
+                          <Text fontWeight="bold" cursor="pointer" display={{ base: "inline", md: "none" }}>
+                            {auctionWinner.slice(0, 10)}...
+                          </Text>
+                          <Text fontWeight="bold" cursor="pointer" display={{ base: "none", md: "inline" }}>
+                            {auctionWinner}
+                          </Text>
+                        </>
                       </Tooltip>
                       <br />
                       If you made a bid, the bid has been refunded to your wallet.
