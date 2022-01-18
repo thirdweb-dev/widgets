@@ -84,10 +84,12 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [bid, setBid] = useState("0");
 
-  const isAuctionEnded =
-    BigNumber.from(listing.endTimeInEpochSeconds).toNumber() -
-      Date.now() / 1000 >
-    0;
+  const isAuctionEnded = useMemo(() => {
+    const endTime = BigNumber.from(listing.endTimeInEpochSeconds)
+    const currentTime = BigNumber.from(Math.floor(Date.now() / 1000));
+
+    return endTime.sub(currentTime).lte(0);
+  }, [listing.endTimeInEpochSeconds])
 
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
@@ -97,14 +99,15 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
   const { data: auctionWinner } = useQuery(
     ["auctionWinner", listing.id],
-    () => {
+    async () => {
+      if (!module) return;
+
       if (isAuctionEnded) {
-        return module?.getAuctionWinner(listing.id);
+        return module.getAuctionWinner(listing.id);
       }
 
       return undefined;
     },
-    { enabled: !!module },
   );
 
   const { data: bidBuffer } = useQuery(
@@ -310,7 +313,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     <Stack spacing={4} align="center" w="100%">
       {address && chainId === expectedChainId ? (
         <Stack w="100%" spacing={0}>
-          {isAuctionEnded ? (
+          {!isAuctionEnded ? (
             <>
               <Stack>
                 <Flex w="100%">
@@ -416,7 +419,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
               </Stack>
             </>
           ) : (
-            <>
+            <Stack>
               <Button
                 width="100%"
                 fontSize={{ base: "label.md", md: "label.lg" }}
@@ -433,22 +436,27 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   padding="12px"
                   borderColor="blue.100"
                   borderWidth="1px"
-                  spacing={0}
+                  direction="row"
                 >
+                  <Icon
+                    color="blue.300"
+                    as={AiFillExclamationCircle}
+                    boxSize={6}
+                  />
                   {auctionWinner === address ? (
                     <Text>
                       You won this auction! The auctioned assets have been
-                      transfered to your wallet.
+                      transferred to your wallet.
                     </Text>
                   ) : (
                     <Text>
                       This auction was won by <strong>{auctionWinner}</strong>.
-                      If you made a bid, the bid has refunded to your wallet.
+                      If you made a bid, the bid has been refunded to your wallet.
                     </Text>
                   )}
                 </Stack>
               )}
-            </>
+            </Stack>
           )}
         </Stack>
       ) : (
