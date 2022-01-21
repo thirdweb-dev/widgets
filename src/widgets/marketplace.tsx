@@ -402,6 +402,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     The minimum required to make a new bid is now&nbsp;
                     <strong>{minimumBidFormatted}</strong>.
                   </Text>
+                  {BigNumber.from(listing.quantity).gt(1) && (
+                    <Text>
+                      The winner of this auction will receive <strong>{BigNumber.from(listing.quantity).toNumber()}</strong> of the displayed asset.
+                    </Text>
+                  )}
                 </Stack>
 
                 <Stack
