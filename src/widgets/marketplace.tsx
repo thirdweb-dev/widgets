@@ -494,16 +494,9 @@ const DirectListing: React.FC<DirectListingProps> = ({
   const [{ data: network }] = useNetwork();
   const address = useAddress();
   const chainId = useMemo(() => network?.chain?.id, [network]);
+  const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
   const [quantity, setQuantity] = useState(1);
   const [buySuccess, setBuySuccess] = useState(false);
-
-  const tokenModule = useMemo(() => {
-    if (!listing.assetContractAddress || !sdk) {
-      return undefined;
-    }
-
-    return sdk.getTokenModule(listing.assetContractAddress);
-  }, [listing.assetContractAddress]);
 
   const pricePerToken = ethers.utils.parseUnits(
     listing.buyoutCurrencyValuePerToken.value,
