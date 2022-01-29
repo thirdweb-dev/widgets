@@ -74,7 +74,12 @@ interface DirectListingProps extends BuyPageProps {
   listing: DirectListing;
 }
 
-const Header: React.FC = () => {
+interface IHeader {
+  sdk?: ThirdwebSDK;
+  tokenAddress?: string;
+}
+
+const Header: React.FC<IHeader> = (props) => {
   return (
     <Stack
       as="header"
@@ -87,7 +92,7 @@ const Header: React.FC = () => {
       align="center"
       justify="flex-end"
     >
-      <ConnectedWallet />
+      <ConnectedWallet {...props} />
     </Stack>
   )
 }
@@ -776,7 +781,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
       borderColor="blackAlpha.100"
       bg="whiteAlpha.100"
     >
-      <Header />
+      <Header sdk={sdk} tokenAddress={listing?.currencyContractAddress} />
       <Body>
         <BuyPage
           module={marketplaceModule}
