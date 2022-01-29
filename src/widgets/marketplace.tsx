@@ -40,6 +40,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
@@ -71,6 +72,24 @@ interface AuctionListingProps extends BuyPageProps {
 
 interface DirectListingProps extends BuyPageProps {
   listing: DirectListing;
+}
+
+const Header: React.FC = () => {
+  return (
+    <Stack
+      as="header"
+      px="28px"
+      direction="row"
+      height="48px"
+      w="100%"
+      flexGrow={0}
+      borderBottom="1px solid rgba(0,0,0,.1)"
+      align="center"
+      justify="flex-end"
+    >
+      <ConnectedWallet />
+    </Stack>
+  )
 }
 
 const AuctionListing: React.FC<AuctionListingProps> = ({
@@ -757,6 +776,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
       borderColor="blackAlpha.10"
       bg="whiteAlpha.100"
     >
+      <Header />
       <Body>
         <BuyPage
           module={marketplaceModule}
