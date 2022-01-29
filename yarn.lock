@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@3rdweb/contracts@^1.21.1":
-  version "1.22.0"
-  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.22.0.tgz#32d97a0b5029a56cc39b03dfd25065ae0d4c7cd5"
-  integrity sha512-92c+hJ/9GVmc24RunuO4Flp9i8EVa6MoY6T5oF8kZTv9m4cwk6L9jO3hs9g9H5zj/wuDEU4XvwHGk2ez3JJ5fg==
+"@3rdweb/contracts@1.24.0":
+  version "1.24.0"
+  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-1.24.0.tgz#0e1b911b92d1a8737ecff19803474e11426bdaad"
+  integrity sha512-969wvEIuwcpurtzYmGsSfMhe8xU3ae/p06Z4aG4RMQ1C52QVQerEf+nrHCw9sXvIxWcHKHwX17xj1y6SS8WiTA==
 
-"@3rdweb/sdk@^1.35.1":
-  version "1.35.2"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.35.2.tgz#fa50fdeabf6738092e86e8a02f9ceaa1a9f765bf"
-  integrity sha512-TY1rSEVcBrsD7paiT4szeq2VrSacr4xXxM6Wz8+VDA3UsibSq7aubixUaeXE7RZ1qfr6i5JlDeOirgMUvfGDUw==
+"@3rdweb/sdk@^1.38.0":
+  version "1.38.0"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-1.38.0.tgz#fc8360e2743afcd580b36199ffe5a741cf446e6a"
+  integrity sha512-m50ymTbU8PkSGhm8+bzTy9zMnMI/JdcjPBKdBtgcUuK3KDPy/5wVRzcWbkhI1TdI7dbVFR0gCw7lMhUtL6DAzQ==
   dependencies:
-    "@3rdweb/contracts" "^1.21.1"
+    "@3rdweb/contracts" "1.24.0"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
@@ -24,6 +24,7 @@
     crypto-js "^4.1.1"
     eth-permit "^0.2.1"
     ethers "^5.5.2"
+    eventemitter2 "^6.4.5"
     events "^3.3.0"
     form-data "^4.0.0"
     json2typescript "^1.5.0-rc.0"
@@ -4583,6 +4584,11 @@ ethjs-util@0.1.6, ethjs-util@^0.1.3:
   dependencies:
     is-hex-prefixed "1.0.0"
     strip-hex-prefix "1.0.0"
+
+eventemitter2@^6.4.5:
+  version "6.4.5"
+  resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-6.4.5.tgz#97380f758ae24ac15df8353e0cc27f8b95644655"
+  integrity sha512-bXE7Dyc1i6oQElDG0jMRZJrRAn9QR2xyyFGmBdZleNmyQX0FqGYmhZIrIrpPfm/w//LTo4tVQGOGQcGCb5q9uw==
 
 eventemitter3@4.0.7, eventemitter3@^4.0.0, eventemitter3@^4.0.7:
   version "4.0.7"
