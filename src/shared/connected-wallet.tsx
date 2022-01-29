@@ -3,7 +3,7 @@ import { Text, Button, Flex, Icon, Tooltip, useClipboard, useToast } from "@chak
 import { IoWalletOutline } from "react-icons/io5";
 import { useAccount, useBalance } from "wagmi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
-import { useTokenModule } from "./tokenHooks";
+import { isAddressZero, useTokenModule } from "./tokenHooks";
 import { useEffect } from "react";
 import { useQuery } from "react-query";
 
@@ -17,11 +17,20 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
   const [{ data }, disconnect] = useAccount();
   const { onCopy } = useClipboard(data?.address || "");
   const tokenModule = useTokenModule(sdk, tokenAddress);
+  const [, getBalance] = useBalance();
 
   const { data: balance } = useQuery(
     ["balance", data?.address, tokenAddress], 
     async () => {
       if (!tokenAddress || !data?.address) return;
+
+      const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      if (
+        isAddressZero(tokenAddress) || 
+        tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
+      ) {
+        return null;
+      }
 
       return await tokenModule?.balanceOf(data.address);
     }, 
@@ -45,7 +54,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
   }
 
   return (
-    <>
+    <Flex align="center" gap={2}>
       <Tooltip label="Copy address" hasArrow>
         <Button 
           variant="outline"
@@ -57,23 +66,25 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
           {data?.address?.slice(0, 6)}...{data?.address?.slice(-4)}
         </Button>
       </Tooltip>
-      <Flex
-        height="32px"
-        px="10px"
-        borderRadius="md"
-        borderColor="gray.200"
-        borderWidth="1px"
-        align="center"
-        gap={1}
-      >
-        <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
-        <Text fontSize="sm" fontWeight="semibold">
-          {balance?.displayValue} {balance?.symbol}
-        </Text>
-      </Flex>
+      {balance && (
+        <Flex
+          height="32px"
+          px="10px"
+          borderRadius="md"
+          borderColor="gray.200"
+          borderWidth="1px"
+          align="center"
+          gap={1}
+        >
+          <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
+          <Text fontSize="sm" fontWeight="semibold">
+            {balance?.displayValue} {balance?.symbol}
+          </Text>
+        </Flex>
+      )}
       <Button colorScheme="red" size="sm" onClick={disconnect}>
         Disconnect
       </Button>
-    </>
+    </Flex>
   )
 }

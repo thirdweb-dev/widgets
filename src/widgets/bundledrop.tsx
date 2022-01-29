@@ -31,6 +31,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
@@ -71,12 +72,16 @@ interface ModuleInProps {
 }
 
 interface HeaderProps extends ModuleInProps {
+  sdk?: ThirdwebSDK;
+  tokenAddress?: string;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   tokenId: string;
 }
 
 const Header: React.FC<HeaderProps> = ({
+  sdk, 
+  tokenAddress,
   activeTab,
   setActiveTab,
   module,
@@ -121,33 +126,37 @@ const Header: React.FC<HeaderProps> = ({
       w="100%"
       flexGrow={0}
       borderBottom="1px solid rgba(0,0,0,.1)"
+      justify="space-between"
     >
-      <Button
-        h="48px"
-        fontSize="subtitle.md"
-        fontWeight="700"
-        borderY="4px solid transparent"
-        {...(activeTab === "claim" ? activeButtonProps : inactiveButtonProps)}
-        variant="unstyled"
-        borderRadius={0}
-        onClick={() => setActiveTab("claim")}
-      >
-        Mint{available ? ` (${available})` : ""}
-      </Button>
-      <Button
-        h="48px"
-        fontSize="subtitle.md"
-        fontWeight="700"
-        borderY="4px solid transparent"
-        {...(activeTab === "inventory"
-          ? activeButtonProps
-          : inactiveButtonProps)}
-        variant="unstyled"
-        borderRadius={0}
-        onClick={() => setActiveTab("inventory")}
-      >
-        Inventory{owned.data ? ` (${owned.data})` : ""}
-      </Button>
+      <Stack direction="row" spacing={5}>
+        <Button
+          h="48px"
+          fontSize="subtitle.md"
+          fontWeight="700"
+          borderY="4px solid transparent"
+          {...(activeTab === "claim" ? activeButtonProps : inactiveButtonProps)}
+          variant="unstyled"
+          borderRadius={0}
+          onClick={() => setActiveTab("claim")}
+        >
+          Mint{available ? ` (${available})` : ""}
+        </Button>
+        <Button
+          h="48px"
+          fontSize="subtitle.md"
+          fontWeight="700"
+          borderY="4px solid transparent"
+          {...(activeTab === "inventory"
+            ? activeButtonProps
+            : inactiveButtonProps)}
+          variant="unstyled"
+          borderRadius={0}
+          onClick={() => setActiveTab("inventory")}
+        >
+          Inventory{owned.data ? ` (${owned.data})` : ""}
+        </Button>
+      </Stack>
+      <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />
     </Stack>
   );
 };
@@ -529,6 +538,8 @@ const DropWidget: React.FC<DropWidgetProps> = ({
       bg="whiteAlpha.100"
     >
       <Header
+        sdk={sdk}
+        tokenAddress={activeClaimCondition.data?.currency}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
         module={dropModule}
