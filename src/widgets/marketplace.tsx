@@ -576,6 +576,8 @@ const DirectListing: React.FC<DirectListingProps> = ({
 
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to purchase.";
+        } else if (anyErr.message.includes("User denied transaction signature")) {
+          message = "You denied the transaction";
         }
 
         toast({

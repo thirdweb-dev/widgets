@@ -233,11 +233,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to mint";
-        }
-        if (anyErr.code === "UNPREDICTABLE_GAS_LIMIT") {
+        } else if (anyErr.code === "UNPREDICTABLE_GAS_LIMIT") {
           if (anyErr.message.includes("exceed max mint supply")) {
             message = "You are not eligible to mint right now";
           }
+        } else if (anyErr.message.includes("User denied transaction signature")) {
+          message = "You denied the transaction";
+        } else {
+          message = "You may be ineligible to claim this drop"
         }
 
         toast({
