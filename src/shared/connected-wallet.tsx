@@ -1,7 +1,8 @@
+import React from "react";
 import { ThirdwebSDK } from "@3rdweb/sdk";
 import { Text, Button, Flex, Icon, Tooltip, useClipboard, useToast } from "@chakra-ui/react";
 import { IoWalletOutline } from "react-icons/io5";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount } from "wagmi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { isAddressZero, useTokenModule } from "./tokenHooks";
 import { useEffect } from "react";
@@ -10,14 +11,14 @@ import { useQuery } from "react-query";
 interface IConnectedWallet {
   sdk? : ThirdwebSDK;
   tokenAddress?: string;
+  showBalance?: boolean;
 }
 
-export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress }) => {
+export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress, showBalance }) => {
   const toast = useToast();
   const [{ data }, disconnect] = useAccount();
   const { onCopy } = useClipboard(data?.address || "");
   const tokenModule = useTokenModule(sdk, tokenAddress);
-  const [, getBalance] = useBalance();
 
   const { data: balance } = useQuery(
     ["balance", data?.address, tokenAddress], 
@@ -66,7 +67,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
           {data?.address?.slice(0, 6)}...{data?.address?.slice(-4)}
         </Button>
       </Tooltip>
-      {balance && (
+      {balance && showBalance && (
         <Flex
           height="32px"
           px="10px"

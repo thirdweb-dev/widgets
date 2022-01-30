@@ -92,7 +92,7 @@ const Header: React.FC<IHeader> = (props) => {
       align="center"
       justify="flex-end"
     >
-      <ConnectedWallet {...props} />
+      <ConnectedWallet {...props} showBalance />
     </Stack>
   )
 }
@@ -779,7 +779,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
       borderColor="blackAlpha.100"
-      bg="whiteAlpha.100"
+      bg="white"
     >
       <Header sdk={sdk} tokenAddress={listing?.currencyContractAddress} />
       <Body>

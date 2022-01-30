@@ -46,7 +46,7 @@ export function useSDKWithSigner({
     return () => {
       isMounted = false;
     };
-  }, [connector]);
+  }, [connector, data?.address]);
 
   useEffect(() => {
     if (!sdk || !Signer.isSigner(signer)) {
