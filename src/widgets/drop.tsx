@@ -238,7 +238,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         }
 
         toast({
-          title: "Minting failed",
+          title: "You are not eligible to claim this drop.",
           description: message,
           status: "error",
           duration: 9000,
