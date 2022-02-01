@@ -63,8 +63,8 @@ jobs:
         with:
           tag_name: ${{ needs.bump_version.outputs.new_tag }}
           release_name: Release ${{ needs.bump_version.outputs.new_tag }}
-          prerelease: ${{ startsWith(needs.bump_version.outputs.release_type, "pre") }}
-          draft: ${{ startsWith(needs.bump_version.outputs.release_type, "pre") }}
+          prerelease: ${{ startsWith(needs.bump_version.outputs.release_type, 'pre') }}
+          draft: ${{ startsWith(needs.bump_version.outputs.release_type, 'pre') }}
           body: |
             IPFS Deployment Hash:
             - CID: `${{ steps.upload.outputs.hash }}`
