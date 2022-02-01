@@ -79,12 +79,12 @@ jobs:
     strategy:
       matrix:
         filename: ['marketplace.html', 'bundledrop.html', 'drop.html']
-        gateway: ['https://ipfs.io', 'https://cloudflare-ipfs.io', 'https://gateway.pinata.cloud', 'https://ipfs.thirdweb.com']
+        gateway: ['ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'ipfs.thirdweb.com']
     steps:
-      - name: Warming it up
+      - name: Warming ${{ matrix.gateway }} - ${{ matrix.filename }}
         uses: fjogeleit/http-request-action@a6980b2ca5f6772878f2eff8612bb309441a5cab
         with:
-          url: '${{ matrix.gateway }}/ipfs/${{ needs.release.outputs.ipfs_hash }}/${{ strategy.matrix.filename }}'
+          url: 'https://${{ matrix.gateway }}/ipfs/${{ needs.release.outputs.ipfs_hash }}/${{ matrix.filename }}'
           method: 'GET'
 
   
