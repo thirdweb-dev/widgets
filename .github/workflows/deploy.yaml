@@ -63,7 +63,7 @@ jobs:
           tag_name: ${{ needs.bump_version.outputs.new_tag }}
           release_name: Release ${{ needs.bump_version.outputs.new_tag }}
           body: |
-            Deployment Hash:
+            IPFS Deployment Hash:
             - CID: `${{ steps.upload.outputs.hash }}`
             ${{ needs.bump_version.outputs.changelog }}
 
