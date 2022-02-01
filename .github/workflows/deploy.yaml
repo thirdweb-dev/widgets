@@ -3,6 +3,8 @@ name: Deployment
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
   # manual trigger
   workflow_dispatch:
