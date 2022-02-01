@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: bump_version
     if: ${{ needs.bump_version.outputs.new_tag != null }}
+    outputs:
+      ipfs_hash: ${{ steps.upload.outputs.hash }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -82,7 +84,7 @@ jobs:
       - name: Warming it up
         uses: fjogeleit/http-request-action@a6980b2ca5f6772878f2eff8612bb309441a5cab
         with:
-          url: '${{ matrix.gateway }}/ipfs/${{ needs.release.upload.outputs.hash }}/${{ strategy.matrix.filename }}'
+          url: '${{ matrix.gateway }}/ipfs/${{ needs.release.outputs.ipfs_hash }}/${{ strategy.matrix.filename }}'
           method: 'GET'
 
   
