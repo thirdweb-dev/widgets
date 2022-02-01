@@ -86,5 +86,5 @@ jobs:
         with:
           url: 'https://${{ matrix.gateway }}/ipfs/${{ needs.release.outputs.ipfs_hash }}/${{ matrix.filename }}'
           method: 'GET'
-
+          timeout: 300000 # 5 mins
   
