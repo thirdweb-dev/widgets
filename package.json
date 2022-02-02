@@ -46,12 +46,12 @@
     "@emotion/styled": "^11",
     "ethers": "^5.5.2",
     "flat": "^5.0.2",
-    "framer-motion": "^4",
+    "framer-motion": "^6",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-icons": "^4.3.1",
     "react-query": "^3.34.1",
-    "wagmi": "^0.0.17"
+    "wagmi": "^0.2.6"
   },
   "resolutions": {
     "ansi-regex": "^5.0.1"
