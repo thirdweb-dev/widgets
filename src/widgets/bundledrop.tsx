@@ -99,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const activeClaimCondition = useQuery(
-    ["claim-condition"],
+    ["claim-condition", { tokenId }],
     async () => {
       return module?.getActiveClaimCondition(tokenId);
     },
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({
   );
 
   const owned = useQuery(
-    ["balance", { address }],
+    ["balance", { tokenId, address }],
     async () => {
       return module?.balanceOf(address || "", tokenId);
     },
@@ -182,7 +182,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
 
   const activeClaimCondition = useQuery(
-    ["claim-condition"],
+    ["claim-condition", { tokenId }],
     async () => {
       return module?.getActiveClaimCondition(tokenId);
     },
@@ -424,7 +424,10 @@ const InventoryPage: React.FC<ModuleInProps> = ({
     );
   }
 
-  const ownedDropsMetadata = ownedDrops.data?.map((d) => d.metadata);
+  const ownedDropsMetadata = ownedDrops.data?.map((d) => ({
+    ...d.metadata,
+    supply: d.supply?.toNumber(),
+  }));
 
   if (!address) {
     return (
