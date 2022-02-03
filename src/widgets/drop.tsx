@@ -43,7 +43,7 @@ import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
-import { parseError } from "src/shared/parseError";
+import { parseError } from "../shared/parseError";
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
