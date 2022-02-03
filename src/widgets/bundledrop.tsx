@@ -43,6 +43,7 @@ import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
+import { parseError } from "../shared/parseError";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -226,26 +227,19 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       return module.claim(tokenId, quantity);
     },
     {
-      onSuccess: () => queryClient.invalidateQueries("numbers"),
+      onSuccess: () => {
+        queryClient.invalidateQueries();
+        toast({
+          title: "Successfuly claimed.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      },
       onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to mint";
-        } else if (anyErr.code === "UNPREDICTABLE_GAS_LIMIT") {
-          if (anyErr.message.includes("exceed max mint supply")) {
-            message = "You are not eligible to mint right now";
-          }
-        } else if (anyErr.message.includes("User denied transaction signature")) {
-          message = "You denied the transaction";
-        } else {
-          message = "You may be ineligible to claim this drop"
-        }
-
         toast({
           title: "Minting failed",
-          description: message,
+          description: parseError(err),
           status: "error",
           duration: 9000,
           isClosable: true,
@@ -516,14 +510,12 @@ const DropWidget: React.FC<DropWidgetProps> = ({
 
   const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
 
-  const onlyOnce = useRef(true);
-
+  const numOwned = BigNumber.from(owned.data || 0).toNumber();
   useEffect(() => {
-    if (owned.data?.gt(0) && !isNotSoldOut && onlyOnce.current) {
-      onlyOnce.current = false;
+    if (owned.data?.gt(0) && isNotSoldOut) {
       setActiveTab("inventory");
     }
-  }, [owned.data, isNotSoldOut]);
+  }, [numOwned, isNotSoldOut]);
 
   return (
     <Flex
