@@ -305,9 +305,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       ) : (
         <ConnectWalletButton expectedChainId={expectedChainId} />
       )}
-      <Text size="label.md" color="green.800">
-        {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
-      </Text>
+      {chainId === expectedChainId && (
+        <Text size="label.md" color="green.800">
+          {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
+        </Text>
+      )}
     </Stack>
   );
 };
