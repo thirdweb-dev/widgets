@@ -1,7 +1,7 @@
 import { ThirdwebSDK } from "@3rdweb/sdk";
 import { Signer } from "ethers";
 import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useNetwork, useSigner } from "wagmi";
 import { ChainIDToRPCMap } from "./commonRPCUrls";
 
 interface useSdkOptions {
@@ -16,6 +16,8 @@ export function useSDKWithSigner({
   expectedChainId,
 }: useSdkOptions) {
   const [{ data }] = useAccount();
+  const [{ data: network }] = useNetwork();
+  const [{ data: signer }, getSigner] = useSigner();
   const connector = useMemo(() => data?.connector, [data]);
 
   const rpc = useMemo(() => {
@@ -32,21 +34,9 @@ export function useSDKWithSigner({
     });
   }, [relayUrl]);
 
-  const [signer, setSigner] = useState<Signer | undefined>(undefined);
   useEffect(() => {
-    let isMounted = true;
-    if (connector) {
-      (async () => {
-        const signer = await connector.getSigner();
-        if (isMounted) {
-          setSigner(signer);
-        }
-      })();
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [connector, data?.address]);
+    getSigner();
+  }, [connector, data?.address, network.chain?.id]);
 
   useEffect(() => {
     if (!sdk || !Signer.isSigner(signer)) {
