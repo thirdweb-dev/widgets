@@ -663,17 +663,6 @@ const BuyPage: React.FC<BuyPageProps> = ({
   expectedChainId,
   listing,
 }) => {
-  const [{ data: network }] = useNetwork();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
-
-  if (chainId !== expectedChainId) {
-    return (
-      <Center w="100%">
-        <ConnectWalletButton expectedChainId={expectedChainId} />
-      </Center>
-    )
-  }
-
   if (!listing) {
     return (
       <Center w="100%" h="100%">
