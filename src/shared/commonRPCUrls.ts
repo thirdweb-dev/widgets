@@ -1,8 +1,8 @@
 import { defaultChains, defaultL2Chains } from "wagmi";
 
 export const ChainIDToRPCMap: Record<number, string> = {
-  1: "mainnet",
-  4: "rinkeby",
+  1: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+  4: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
   137: "https://polygon-rpc.com",
   250: "https://rpc.ftm.tools",
   43114: "https://api.avax.network/ext/bc/C/rpc",
