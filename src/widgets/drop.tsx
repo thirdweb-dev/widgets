@@ -255,7 +255,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.gt(1) &&
     quantityLimitBigNumber.lte(1000);
 
-  if (!address || chainId !== expectedChainId) {
+  if (!isEnabled) {
     return (
       <ConnectWalletButton expectedChainId={expectedChainId} />
     )

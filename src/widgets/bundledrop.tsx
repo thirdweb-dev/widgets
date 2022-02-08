@@ -178,15 +178,16 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const address = useAddress();
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
-
   const [claimSuccess, setClaimSuccess] = useState(false);
+
+  const isEnabled = !!module && !!address && chainId === expectedChainId
 
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
     async () => {
       return module?.getActiveClaimCondition(tokenId);
     },
-    { enabled: !!module && tokenId.length > 0 },
+    { enabled: isEnabled && tokenId.length > 0 },
   );
 
   const [quantity, setQuantity] = useState(1);
@@ -272,57 +273,59 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.gt(1) &&
     quantityLimitBigNumber.lte(1000);
 
+  if (!isEnabled) {
+    return (
+      <ConnectWalletButton expectedChainId={expectedChainId} />
+    )
+  }
+
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address && chainId === expectedChainId ? (
-        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-          {showQuantityInput && (
-            <NumberInput
-              inputMode="numeric"
-              value={quantity}
-              onChange={(stringValue, value) => {
-                if (stringValue === "") {
-                  setQuantity(0);
-                } else {
-                  setQuantity(value);
-                }
-              }}
-              min={1}
-              max={quantityLimitBigNumber.toNumber()}
-              maxW={{ base: "100%", md: "100px" }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          )}
-          <Button
-            isLoading={isLoading || claimMutation.isLoading}
-            isDisabled={!canClaim}
-            leftIcon={<IoDiamondOutline />}
-            onClick={() => claimMutation.mutate()}
-            isFullWidth
-            colorScheme="blue"
-            fontSize={{ base: "label.md", md: "label.lg" }}
+      <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+        {showQuantityInput && (
+          <NumberInput
+            inputMode="numeric"
+            value={quantity}
+            onChange={(stringValue, value) => {
+              if (stringValue === "") {
+                setQuantity(0);
+              } else {
+                setQuantity(value);
+              }
+            }}
+            min={1}
+            max={quantityLimitBigNumber.toNumber()}
+            maxW={{ base: "100%", md: "100px" }}
           >
-            {!isNotSoldOut
-              ? "Sold out"
-              : canClaim
-              ? `Mint${
-                  priceToMint.eq(0)
-                    ? " (Free)"
-                    : formatedPrice
-                    ? ` (${formatedPrice})`
-                    : ""
-                }`
-              : "Minting Unavailable"}
-          </Button>
-        </Flex>
-      ) : (
-        <ConnectWalletButton expectedChainId={expectedChainId} />
-      )}
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
+        )}
+        <Button
+          isLoading={isLoading || claimMutation.isLoading}
+          isDisabled={!canClaim}
+          leftIcon={<IoDiamondOutline />}
+          onClick={() => claimMutation.mutate()}
+          isFullWidth
+          colorScheme="blue"
+          fontSize={{ base: "label.md", md: "label.lg" }}
+        >
+          {!isNotSoldOut
+            ? "Sold out"
+            : canClaim
+            ? `Mint${
+                priceToMint.eq(0)
+                  ? " (Free)"
+                  : formatedPrice
+                  ? ` (${formatedPrice})`
+                  : ""
+              }`
+            : "Minting Unavailable"}
+        </Button>
+      </Flex>
       <Text size="label.md" color="green.800">
         {`${parseHugeNumber(claimed)} / ${parseHugeNumber(
           totalAvailable,
