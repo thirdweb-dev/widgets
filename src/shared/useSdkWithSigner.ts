@@ -28,7 +28,7 @@ export function useSDKWithSigner({
     }
     return new ThirdwebSDK(rpc, {
       transactionRelayerUrl: relayUrl,
-      readOnlyRpcUrl: rpcUrl,
+      readOnlyRpcUrl: rpc,
     });
   }, [relayUrl]);
 
