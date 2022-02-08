@@ -18,6 +18,15 @@ export const ChainIDToNativeSymbol: Record<number, string> = {
   80001: "MATIC",
 };
 
+export const ChainIDToName: Record<number, string> = {
+  1: "Mainnet",
+  4: "Rinkeby",
+  137: "Polygon",
+  250: "Fantom",
+  43114: "Avalanche",
+  80001: "Mumbai",
+}
+
 export enum ChainId {
   Mainnet = 1,
   Ropsten = 3,
@@ -52,4 +61,3 @@ export const supportedChains = defaultChains
   .concat(defaultL2Chains)
   .filter((c) => SUPPORTED_CHAIN_IDS.includes(c.id));
 
-console.log("*** supportedChains", supportedChains);
