@@ -31,7 +31,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
 }) => {
   const [{ data: networkData, error: networkError }, switchNetwork] =
     useNetwork();
-  const [{ data, error: connectErrror, loading }, connect] = useConnect();
+  const [{ data, error: connectError, loading }, connect] = useConnect();
 
   if (networkData.chain && expectedChainId !== networkData?.chain?.id) {
     if (switchNetwork) {
