@@ -1,22 +1,48 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ThirdwebSDK } from "@3rdweb/sdk";
-import { Text, Button, Flex, Icon, Tooltip, useClipboard, useToast } from "@chakra-ui/react";
-import { IoWalletOutline } from "react-icons/io5";
-import { useAccount } from "wagmi";
+import { 
+  Text, 
+  Button, 
+  Flex, 
+  Icon, 
+  Tooltip, 
+  useClipboard,
+  useToast, 
+  Modal, 
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  useDisclosure,
+  ModalBody,
+  ButtonGroup,
+  IconButton,
+  ModalHeader,
+  Heading,
+  Stack,
+} from "@chakra-ui/react";
+import { IoCopy, IoWalletOutline } from "react-icons/io5";
+import { useAccount, useBalance, useNetwork, useProvider } from "wagmi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { isAddressZero, useTokenModule } from "./tokenHooks";
-import { useEffect } from "react";
 import { useQuery } from "react-query";
+import { ethers } from "ethers";
+import { ChainIDToNativeSymbol } from "./commonRPCUrls";
 
 interface IConnectedWallet {
   sdk? : ThirdwebSDK;
   tokenAddress?: string;
-  showBalance?: boolean;
 }
 
-export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress, showBalance }) => {
+function shortenAddress(str: string) {
+  return `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
+}
+
+export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress }) => {
   const toast = useToast();
+  const baseProvider = useProvider();
+  const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false });
   const [{ data }, disconnect] = useAccount();
+  const [{ data: network }] = useNetwork();
   const { onCopy } = useClipboard(data?.address || "");
   const tokenModule = useTokenModule(sdk, tokenAddress);
 
@@ -30,6 +56,16 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress,
         isAddressZero(tokenAddress) || 
         tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
       ) {
+        /*
+        const balance = await baseProvider.getBalance(data?.address);
+
+        return {
+          value: balance,
+          displayValue: ethers.utils.formatEther(balance).slice(0, 6),
+          symbol: ChainIDToNativeSymbol[network?.chain?.id || 0],
+        };
+        */
+
         return null;
       }
 
@@ -38,7 +74,25 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress,
     {
       enabled: !!data?.address && !!tokenModule,
     }
-  )
+  );
+
+  const switchWallet = async () => {
+    const provider = data?.connector?.getProvider();
+    if (!provider?.isMetaMask || !provider.request) return;
+
+    await provider.request({
+      method: "wallet_requestPermissions",
+      params: [{ eth_accounts: {} }],
+    });
+
+    onClose();
+  }
+
+
+  const disconnectWallet = () => {
+    disconnect();
+    onClose();
+  }
 
   const copyAddress = () => {
     onCopy();
@@ -50,42 +104,106 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress,
     })
   }
 
-  if (!data?.address) {
-    return null;
-  }
-
   return (
     <Flex align="center" gap={2}>
-      <Tooltip label="Copy address" hasArrow>
-        <Button 
-          variant="outline"
-          size="sm"
-          color="gray.800"
-          leftIcon={<Icon as={IoWalletOutline} color="gray.500" boxSize={4} />}
-          onClick={copyAddress}
-        >
-          {data?.address?.slice(0, 6)}...{data?.address?.slice(-4)}
-        </Button>
-      </Tooltip>
-      {balance && showBalance && (
-        <Flex
-          height="32px"
-          px="10px"
-          borderRadius="md"
-          borderColor="gray.200"
-          borderWidth="1px"
-          align="center"
-          gap={1}
-        >
-          <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
-          <Text fontSize="sm" fontWeight="semibold">
-            {balance?.displayValue} {balance?.symbol}
-          </Text>
-        </Flex>
+      {data?.address && (
+        <>
+          <Button 
+            variant="outline"
+            size="sm"
+            color="gray.800"
+            leftIcon={<Icon as={IoWalletOutline} color="gray.500" boxSize={4} />}
+            onClick={onOpen}
+          >
+            {shortenAddress(data.address)}
+          </Button>
+          {balance && (
+            <Stack
+              direction="row"
+              display={{ base: "none", md: "flex" }}
+              height="32px"
+              px="10px"
+              borderRadius="md"
+              borderColor="gray.200"
+              borderWidth="1px"
+              align="center"
+            >
+              <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
+              <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
+                {balance?.displayValue} {balance?.symbol}
+              </Text>
+            </Stack>
+          )}
+        </>
       )}
-      <Button colorScheme="red" size="sm" onClick={disconnect}>
-        Disconnect
-      </Button>
+      
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent pb={4} bg="gray.50">
+          <ModalCloseButton />
+
+          <ModalHeader>
+            <Heading size="label.lg">Account Details</Heading>
+          </ModalHeader>
+
+          <ModalBody>
+            <Flex direction="column" gap={5}>
+              <Stack>
+                <Text size="label.md" display={{ base: "flex", md: "none" }}>Connected Wallet</Text>
+                <ButtonGroup isAttached>
+                  <IconButton
+                    onClick={copyAddress}
+                    mr="-px"
+                    borderRight="none"
+                    aria-label="Add to friends"
+                    variant="outline"
+                    size="sm"
+                    icon={<Icon as={IoCopy} />}
+                  />
+                  <Button size="sm" variant="outline" width="120px" onClick={copyAddress}>
+                    {shortenAddress(data?.address || "")}
+                  </Button>
+                  {data?.connector?.getProvider()?.isMetaMask && (
+                    <Button size="sm" onClick={switchWallet}>
+                      Switch
+                    </Button>
+                  )}
+                  <Button
+                    onClick={disconnectWallet}
+                    colorScheme="red"
+                    size="sm"
+                  >
+                    Disconnect
+                  </Button>
+                </ButtonGroup>
+              </Stack>
+
+              {balance && (
+                <Stack display={{ base: "flex", md: "none" }}>
+                  <Text size="label.md">Balance</Text>
+                  <Flex>
+                    <Flex
+                      direction="row"
+                      height="32px"
+                      px="10px"
+                      borderRadius="md"
+                      borderColor="gray.200"
+                      borderWidth="1px"
+                      align="center"
+                      gap={1}
+                    >
+                      <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
+                      <Text fontSize="sm" fontWeight="semibold">
+                        {balance?.displayValue} {balance?.symbol}
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Stack>
+              )}
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   )
 }
