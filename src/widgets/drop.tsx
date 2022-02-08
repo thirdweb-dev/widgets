@@ -149,33 +149,34 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [{ data: network }] = useNetwork();
   const address = useAddress();
   const chainId = useMemo(() => network?.chain?.id, [network]);
-
   const [quantity, setQuantity] = useState(1);
-
   const [claimSuccess, setClaimSuccess] = useState(false);
+
+  // Enable all queries
+  const isEnabled = !!module && !!address && chainId === expectedChainId
 
   const claimed = useQuery(
     ["numbers", "claimed"],
     () => module?.totalClaimedSupply(),
-    { enabled: !!module },
+    { enabled: isEnabled },
   );
 
   const totalAvailable = useQuery(
     ["numbers", "total"],
     () => module?.totalSupply(),
-    { enabled: !!module },
+    { enabled: isEnabled },
   );
 
   const unclaimed = useQuery(
     ["numbers", "available"],
     () => module?.totalUnclaimedSupply(),
-    { enabled: !!module },
+    { enabled: isEnabled },
   );
 
   const claimCondition = useQuery(
     ["claimcondition"],
     () => module?.getActiveClaimCondition(),
-    { enabled: !!module },
+    { enabled: isEnabled },
   );
 
   const priceToMint = BigNumber.from(
@@ -254,58 +255,60 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.gt(1) &&
     quantityLimitBigNumber.lte(1000);
 
+  if (!address || chainId !== expectedChainId) {
+    return (
+      <ConnectWalletButton expectedChainId={expectedChainId} />
+    )
+  }
+
   return (
     <Stack spacing={4} align="center" w="100%">
-      {address && chainId === expectedChainId ? (
-        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-          {showQuantityInput && (
-            <NumberInput
-              inputMode="numeric"
-              value={quantity}
-              onChange={(stringValue, value) => {
-                if (stringValue === "") {
-                  setQuantity(0);
-                } else {
-                  setQuantity(value);
-                }
-              }}
-              min={1}
-              max={quantityLimitBigNumber.toNumber()}
-              maxW={{ base: "100%", md: "100px" }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          )}
-          <Button
-            fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={isLoading || claimMutation.isLoading}
-            isDisabled={!canClaim}
-            leftIcon={<IoDiamondOutline />}
-            onClick={() => claimMutation.mutate()}
-            isFullWidth
-            colorScheme="blue"
+      <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+        {showQuantityInput && (
+          <NumberInput
+            inputMode="numeric"
+            value={quantity}
+            onChange={(stringValue, value) => {
+              if (stringValue === "") {
+                setQuantity(0);
+              } else {
+                setQuantity(value);
+              }
+            }}
+            min={1}
+            max={quantityLimitBigNumber.toNumber()}
+            maxW={{ base: "100%", md: "100px" }}
           >
-            {!isNotSoldOut
-              ? "Sold out"
-              : canClaim
-              ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
-                  priceToMint.eq(0)
-                    ? " (Free)"
-                    : formatedPrice
-                    ? ` (${formatedPrice})`
-                    : ""
-                }`
-              : "Minting Unavailable"}
-          </Button>
-        </Flex>
-      ) : (
-        <ConnectWalletButton expectedChainId={expectedChainId} />
-      )}
-      {chainId === expectedChainId && (
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
+        )}
+        <Button
+          fontSize={{ base: "label.md", md: "label.lg" }}
+          isLoading={isLoading || claimMutation.isLoading}
+          isDisabled={!canClaim}
+          leftIcon={<IoDiamondOutline />}
+          onClick={() => claimMutation.mutate()}
+          isFullWidth
+          colorScheme="blue"
+        >
+          {!isNotSoldOut
+            ? "Sold out"
+            : canClaim
+            ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
+                priceToMint.eq(0)
+                  ? " (Free)"
+                  : formatedPrice
+                  ? ` (${formatedPrice})`
+                  : ""
+              }`
+            : "Minting Unavailable"}
+        </Button>
+      </Flex>
+      {claimed.data && totalAvailable.data && (
         <Text size="label.md" color="green.800">
           {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
         </Text>
