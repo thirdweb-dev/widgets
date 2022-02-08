@@ -92,7 +92,7 @@ const Header: React.FC<IHeader> = (props) => {
       align="center"
       justify="flex-end"
     >
-      <ConnectedWallet {...props} showBalance />
+      <ConnectedWallet {...props} />
     </Stack>
   )
 }
