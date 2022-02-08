@@ -64,10 +64,17 @@ interface HeaderProps extends ModuleInProps {
   tokenAddress?: string;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
+  expectedChainId: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ sdk, tokenAddress, activeTab, setActiveTab, module }) => {
+const Header: React.FC<HeaderProps> = ({ sdk, expectedChainId, tokenAddress, activeTab, setActiveTab, module }) => {
   const address = useAddress();
+  const [{ data: network }] = useNetwork();
+  const chainId = useMemo(() => network?.chain?.id, [network]);
+
+  // Enable all queries
+  const isEnabled = !!module && !!address && chainId === expectedChainId
+
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
     borderBottomColor: "blue.500",
@@ -517,6 +524,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     >
       <Header
         sdk={sdk}
+        expectedChainId={expectedChainId}
         tokenAddress={claimCondition.data?.currency}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}

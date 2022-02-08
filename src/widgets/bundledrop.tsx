@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { BigNumber, BigNumberish } from "ethers";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -78,6 +78,7 @@ interface HeaderProps extends ModuleInProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   tokenId: string;
+  expectedChainId: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -86,9 +87,15 @@ const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   module,
+  expectedChainId,
   tokenId,
 }) => {
   const address = useAddress();
+  const [{ data: network }] = useNetwork();
+  const chainId = useMemo(() => network?.chain?.id, [network]);
+
+  const isEnabled = !!module && !!address && chainId === expectedChainId
+
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
     borderBottomColor: "blue.500",
@@ -103,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
     async () => {
       return module?.getActiveClaimCondition(tokenId);
     },
-    { enabled: !!module && tokenId.length > 0 },
+    { enabled: isEnabled && tokenId.length > 0 },
   );
 
   const owned = useQuery(
@@ -112,7 +119,7 @@ const Header: React.FC<HeaderProps> = ({
       return module?.balanceOf(address || "", tokenId);
     },
     {
-      enabled: !!module && tokenId.length > 0 && !!address,
+      enabled: isEnabled && tokenId.length > 0 && !!address,
     },
   );
 
