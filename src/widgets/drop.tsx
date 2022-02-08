@@ -548,7 +548,6 @@ const App: React.FC = () => {
   const relayUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
-  console.log(connectors);
 
   return (
     <>
