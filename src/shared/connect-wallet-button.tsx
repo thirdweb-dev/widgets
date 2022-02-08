@@ -14,7 +14,7 @@ import {
 import React from "react";
 import { IoSwapHorizontalSharp } from "react-icons/io5";
 import { useConnect, useNetwork } from "wagmi";
-import { supportedChains } from "./commonRPCUrls";
+import { ChainIDToName, supportedChains } from "./commonRPCUrls";
 
 interface ConnectWalletButtonProps {
   expectedChainId: number;
@@ -43,10 +43,11 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
           leftIcon={<IoSwapHorizontalSharp />}
           onClick={() => switchNetwork(expectedChainId)}
         >
-          Switch Network
+          Switch Network To {ChainIDToName[expectedChainId]}
         </Button>
       );
     }
+    
     return (
       <Alert variant="left-accent" status="warning">
         <AlertIcon />
