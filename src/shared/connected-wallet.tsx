@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { ThirdwebSDK } from "@3rdweb/sdk";
 import { 
   Text, 
   Button, 
   Flex, 
   Icon, 
-  Tooltip, 
   useClipboard,
   useToast, 
   Modal, 
@@ -21,12 +20,11 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
-import { useAccount, useBalance, useNetwork, useProvider } from "wagmi";
+import { useAccount } from "wagmi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { isAddressZero, useTokenModule } from "./tokenHooks";
 import { useQuery } from "react-query";
-import { ethers } from "ethers";
-import { ChainIDToNativeSymbol } from "./commonRPCUrls";
+import { BigNumber, ethers } from "ethers";
 
 interface IConnectedWallet {
   sdk? : ThirdwebSDK;
@@ -39,10 +37,8 @@ function shortenAddress(str: string) {
 
 export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress }) => {
   const toast = useToast();
-  const baseProvider = useProvider();
   const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false });
   const [{ data }, disconnect] = useAccount();
-  const [{ data: network }] = useNetwork();
   const { onCopy } = useClipboard(data?.address || "");
   const tokenModule = useTokenModule(sdk, tokenAddress);
 
@@ -130,7 +126,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
             >
               <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
               <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
-                {balance?.displayValue} {balance?.symbol}
+                {ethers.utils.formatUnits(balance.value, balance.decimals || 18)} {balance.symbol}
               </Text>
             </Stack>
           )}
@@ -194,7 +190,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
                     >
                       <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
                       <Text fontSize="sm" fontWeight="semibold">
-                        {balance?.displayValue} {balance?.symbol}
+                        {ethers.utils.formatUnits(balance.value, balance.decimals || 18)} {balance.symbol}
                       </Text>
                     </Flex>
                   </Flex>
