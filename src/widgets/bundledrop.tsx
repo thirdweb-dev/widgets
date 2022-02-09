@@ -113,17 +113,6 @@ const Header: React.FC<HeaderProps> = ({
     { enabled: isEnabled && tokenId.length > 0 },
   );
 
-  const owned = useQuery(
-    ["numbers", "owned", { address }],
-    async () => {
-      const owned = await module?.getOwned(address || "");
-      return BigNumber.from(owned?.length || 0);
-    },
-    {
-      enabled: !!module && !!address,
-    },
-  );
-
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
   return (
@@ -162,7 +151,7 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius={0}
           onClick={() => setActiveTab("inventory")}
         >
-          Inventory{owned.data ? ` (${owned.data})` : ""}
+          Inventory
         </Button>
       </Stack>
       <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />
