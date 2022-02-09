@@ -39,7 +39,7 @@
     "typescript": "^4.4.4"
   },
   "dependencies": {
-    "@3rdweb/sdk": "^1.39.3",
+    "@3rdweb/sdk": "^2.0.0-13",
     "@chakra-ui/icons": "^1.1.1",
     "@chakra-ui/react": "^1.7.2",
     "@emotion/react": "^11",
