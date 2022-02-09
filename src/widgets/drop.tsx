@@ -1,4 +1,4 @@
-import { DropModule, ThirdwebSDK } from "@3rdweb/sdk";
+import { DropErc721Module, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -56,7 +56,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropModule;
+  module?: DropErc721Module;
 }
 
 interface HeaderProps extends ModuleInProps {
@@ -143,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({ sdk, expectedChainId, tokenAddress, act
 };
 
 interface ClaimPageProps {
-  module?: DropModule;
+  module?: DropErc721Module;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
 }
@@ -182,14 +182,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const claimCondition = useQuery(
     ["claimcondition"],
-    () => module?.getActiveClaimCondition(),
-    { enabled: isEnabled },
+    () => module?.claimConditions.getActive(),
+    { enabled: !!module },
   );
 
   const priceToMint = BigNumber.from(
-    claimCondition?.data?.pricePerToken || 0,
+    claimCondition?.data?.price || 0,
   ).mul(quantity);
-  const currency = claimCondition?.data?.currency;
+  const currency = claimCondition?.data?.currencyAddress;
   const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
 
   const quantityLimitBigNumber = useMemo(() => {
@@ -329,9 +329,9 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   sdk,
   expectedChainId,
 }) => {
-  const { data, isLoading } = useQuery(
+  const { data: metadata, isLoading } = useQuery(
     "module_metadata",
-    () => module?.getMetadata(),
+    () => module?.metadata.get(),
     { enabled: !!module },
   );
 
@@ -358,24 +358,24 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {data?.metadata?.image ? (
+          {metadata?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={data?.metadata?.image}
-              alt={data?.metadata?.name}
+              src={metadata?.image}
+              alt={metadata?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {data?.metadata?.name}
+          {metadata?.name}
         </Heading>
-        {data?.metadata?.description && (
+        {metadata?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {data.metadata.description}
+            {metadata.description}
           </Heading>
         )}
         <ClaimButton
@@ -494,7 +494,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
 
   const claimCondition = useQuery(
     ["claimcondition"],
-    () => dropModule?.getActiveClaimCondition(),
+    () => dropModule?.claimConditions.getActive(),
     { enabled: !!dropModule },
   );
 
@@ -525,7 +525,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
       <Header
         sdk={sdk}
         expectedChainId={expectedChainId}
-        tokenAddress={claimCondition.data?.currency}
+        tokenAddress={claimCondition.data?.currencyAddress}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
         module={dropModule}

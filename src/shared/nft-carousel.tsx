@@ -11,13 +11,8 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import React, { useCallback, useState } from "react";
-
-interface MetadataWithSupply extends NFTMetadata {
-  supply?: number;
-}
-
 interface NftCarouselProps {
-  metadata: MetadataWithSupply[];
+  metadata: NFTMetadata[];
 }
 
 export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
@@ -58,7 +53,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
           <Flex py={4} position="relative" overflow="hidden">
             {metadata.map((nft, idx) => (
               <Stack
-                key={nft.id}
+                key={nft.id.toNumber()}
                 justify="center"
                 align="center"
                 w="100%"

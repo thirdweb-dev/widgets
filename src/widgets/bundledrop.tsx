@@ -1,4 +1,4 @@
-import { BundleDropModule, ThirdwebSDK } from "@3rdweb/sdk";
+import { DropErc1155Module, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -68,7 +68,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: BundleDropModule;
+  module?: DropErc1155Module;
   expectedChainId: number;
 }
 
@@ -108,7 +108,7 @@ const Header: React.FC<HeaderProps> = ({
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
     async () => {
-      return module?.getActiveClaimCondition(tokenId);
+      return module?.claimConditions.getActive(tokenId);
     },
     { enabled: isEnabled && tokenId.length > 0 },
   );
@@ -160,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 interface ClaimPageProps {
-  module?: BundleDropModule;
+  module?: DropErc1155Module;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
@@ -181,19 +181,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
-    async () => {
-      return module?.getActiveClaimCondition(tokenId);
-    },
+    () => module?.claimConditions.getActive(tokenId),
     { enabled: isEnabled && tokenId.length > 0 },
   );
 
   const [quantity, setQuantity] = useState(1);
   const priceToMint = BigNumber.from(
-    activeClaimCondition?.data?.pricePerToken || 0,
+    activeClaimCondition?.data?.price || 0,
   ).mul(quantity);
-  const currency = activeClaimCondition?.data?.currency;
-  const claimed = activeClaimCondition.data?.currentMintSupply || "0";
-  const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
+  const currency = activeClaimCondition?.data?.currencyAddress;
+  const claimed = activeClaimCondition.data?.availableSupply || "0";
+  const totalAvailable = activeClaimCondition.data?.maxQuantity?.toString() || "0";
 
   const tokenModule = useMemo(() => {
     if (!currency || !sdk) {
@@ -424,10 +422,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({
     );
   }
 
-  const ownedDropsMetadata = ownedDrops.data?.map((d) => ({
-    ...d.metadata,
-    supply: d.supply?.toNumber(),
-  }));
+  const ownedDropsMetadata = ownedDrops.data?.map((d) => d.metadata);
 
   if (!address) {
     return (
@@ -495,13 +490,13 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   const activeClaimCondition = useQuery(
     ["claim-condition"],
     async () => {
-      return dropModule?.getActiveClaimCondition(tokenId);
+      return dropModule?.claimConditions.getActive(tokenId);
     },
     { enabled: !!dropModule && tokenId.length > 0 },
   );
 
-  const claimed = activeClaimCondition.data?.currentMintSupply || "0";
-  const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
+  const claimed = activeClaimCondition.data?.availableSupply || "0";
+  const totalAvailable = BigNumber.from(activeClaimCondition.data?.maxQuantity).toString() || "0";
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
@@ -540,7 +535,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     >
       <Header
         sdk={sdk}
-        tokenAddress={activeClaimCondition.data?.currency}
+        tokenAddress={activeClaimCondition.data?.currencyAddress}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
         module={dropModule}
