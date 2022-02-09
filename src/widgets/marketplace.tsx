@@ -23,8 +23,6 @@ import {
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
-  useClipboard,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -663,6 +661,16 @@ const BuyPage: React.FC<BuyPageProps> = ({
   expectedChainId,
   listing,
 }) => {
+  const [{ data: network }] = useNetwork();
+
+  if (expectedChainId !== network?.chain?.id) {
+    return (
+      <Center w="100%" h="100%">
+        <ConnectWalletButton expectedChainId={expectedChainId} />
+      </Center>
+    );
+  }
+
   if (!listing) {
     return (
       <Center w="100%" h="100%">
@@ -767,7 +775,6 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
     () => marketplaceModule?.getListing(listingId),
     { enabled: !!marketplaceModule && !!listingId },
   );
-
 
   return (
     <Flex

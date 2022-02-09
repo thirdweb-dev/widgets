@@ -114,12 +114,13 @@ const Header: React.FC<HeaderProps> = ({
   );
 
   const owned = useQuery(
-    ["balance", { tokenId, address }],
+    ["numbers", "owned", { address }],
     async () => {
-      return module?.balanceOf(address || "", tokenId);
+      const owned = await module?.getOwned(address || "");
+      return BigNumber.from(owned?.length || 0);
     },
     {
-      enabled: isEnabled && tokenId.length > 0 && !!address,
+      enabled: !!module && !!address,
     },
   );
 
@@ -515,7 +516,10 @@ const DropWidget: React.FC<DropWidgetProps> = ({
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
-    () => dropModule?.balanceOf(address || "", tokenId),
+    async () => {
+      const owned = await dropModule?.getOwned(address || "");
+      return BigNumber.from(owned?.length || 0);
+    },
     {
       enabled: !!dropModule && !!address,
     },
