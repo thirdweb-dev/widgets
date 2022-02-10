@@ -29,7 +29,7 @@ export function useSDKWithSigner({
       return undefined;
     }
     return new ThirdwebSDK(rpc, {
-      transactionRelayerUrl: relayUrl,
+      thirdwebModuleFactory: "0x0000000000000000000000000000000000000000",
       readOnlyRpcUrl: rpc,
     });
   }, [relayUrl]);
@@ -42,7 +42,7 @@ export function useSDKWithSigner({
     if (!sdk || !Signer.isSigner(signer)) {
       return;
     }
-    sdk.setProviderOrSigner(signer);
+    sdk.updateSignerOrProvider(signer);
   }, [sdk, signer]);
 
   return sdk;

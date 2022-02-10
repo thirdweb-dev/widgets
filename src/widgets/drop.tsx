@@ -462,7 +462,6 @@ const DropWidget: React.FC<DropWidgetProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const address = useAddress();
-
   const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expectedChainId });
 
   const dropModule = useMemo(() => {
