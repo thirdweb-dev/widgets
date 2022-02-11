@@ -1,4 +1,4 @@
-import { DropErc1155Module, ThirdwebSDK } from "@3rdweb/sdk";
+import { DropErc1155Contract, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -68,7 +68,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropErc1155Module;
+  module?: DropErc1155Contract;
   expectedChainId: number;
 }
 
@@ -160,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 interface ClaimPageProps {
-  module?: DropErc1155Module;
+  module?: DropErc1155Contract;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
@@ -197,7 +197,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     if (!currency || !sdk) {
       return undefined;
     }
-    return sdk.getTokenModule(currency);
+    return sdk.getTokenContract(currency);
   }, [currency, sdk]);
 
   const formatedPrice = useFormatedValue(
@@ -422,7 +422,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({
     );
   }
 
-  const ownedDropsMetadata = ownedDrops.data?.map((d) => d.metadata);
+  const ownedDropsMetadata = ownedDrops.data?.map((d: any) => d.metadata);
 
   if (!address) {
     return (
@@ -484,7 +484,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!sdk || !contractAddress) {
       return undefined;
     }
-    return sdk.getBundleDropModule(contractAddress);
+    return sdk.getBundleDropContract(contractAddress);
   }, [sdk]);
 
   const activeClaimCondition = useQuery(
