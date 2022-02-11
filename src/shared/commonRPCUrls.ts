@@ -3,6 +3,7 @@ import { defaultChains, defaultL2Chains } from "wagmi";
 export const ChainIDToRPCMap: Record<number, string> = {
   1: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
   4: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+  5: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
   137: "https://polygon-rpc.com",
   250: "https://rpc.ftm.tools",
   43114: "https://api.avax.network/ext/bc/C/rpc",
@@ -12,6 +13,7 @@ export const ChainIDToRPCMap: Record<number, string> = {
 export const ChainIDToNativeSymbol: Record<number, string> = {
   1: "ETH",
   4: "ETH",
+  5: "ETH",
   137: "MATIC",
   250: "FTM",
   43114: "AVAX",
@@ -21,6 +23,7 @@ export const ChainIDToNativeSymbol: Record<number, string> = {
 export const ChainIDToName: Record<number, string> = {
   1: "Mainnet",
   4: "Rinkeby",
+  5: "Goerli",
   137: "Polygon",
   250: "Fantom",
   43114: "Avalanche",
@@ -49,6 +52,7 @@ export enum ChainId {
 export const SUPPORTED_CHAIN_IDS = [
   ChainId.Mainnet,
   ChainId.Rinkeby,
+  ChainId.Goerli,
   ChainId.Mumbai,
   ChainId.Polygon,
   ChainId.Fantom,

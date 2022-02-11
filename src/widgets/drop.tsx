@@ -1,4 +1,4 @@
-import { DropErc721Module, ThirdwebSDK } from "@3rdweb/sdk";
+import { DropErc721Contract, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -56,7 +56,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropErc721Module;
+  module?: DropErc721Contract;
 }
 
 interface HeaderProps extends ModuleInProps {
@@ -143,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({ sdk, expectedChainId, tokenAddress, act
 };
 
 interface ClaimPageProps {
-  module?: DropErc721Module;
+  module?: DropErc721Contract;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
 }
@@ -206,7 +206,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     if (!currency || !sdk) {
       return undefined;
     }
-    return sdk.getTokenModule(currency);
+    return sdk.getTokenContract(currency);
   }, [currency, sdk]);
 
   const formatedPrice = useFormatedValue(
@@ -468,7 +468,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     if (!sdk || !contractAddress) {
       return undefined;
     }
-    return sdk.getDropModule(contractAddress);
+    return sdk.getDropContract(contractAddress);
   }, [sdk]);
 
   const available = useQuery(
