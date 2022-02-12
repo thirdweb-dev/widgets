@@ -22,6 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { BigNumber } from "ethers";
+import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
@@ -40,7 +41,6 @@ import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
@@ -193,10 +193,19 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { enabled: !!module },
   );
 
-  const priceToMint = BigNumber.from(claimCondition?.data?.price || 0).mul(
-    quantity,
+  const claimConditionReasons = useQuery(
+    ["ineligiblereasons", { quantity, address }],
+    () =>
+      module?.claimConditions.getClaimIneligibilityReasons(quantity, address),
+    { enabled: !!module && !!address },
   );
-  const currency = claimCondition?.data?.currencyAddress;
+
+  const bnPrice = parseUnits(
+    claimCondition.data?.currencyMetadata.displayValue || "0",
+    claimCondition.data?.currencyMetadata.decimals,
+  );
+  const priceToMint = bnPrice.mul(quantity);
+
   const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
 
   const quantityLimitBigNumber = useMemo(() => {
@@ -208,19 +217,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     }
     return bn;
   }, [quantityLimit]);
-
-  const tokenModule = useMemo(() => {
-    if (!currency || !sdk) {
-      return undefined;
-    }
-    return sdk.getTokenContract(currency);
-  }, [currency, sdk]);
-
-  const formatedPrice = useFormatedValue(
-    priceToMint,
-    tokenModule,
-    expectedChainId,
-  );
 
   const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
 
@@ -260,9 +256,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
   );
 
-  const isLoading = totalAvailable.isLoading || claimed.isLoading;
+  const isLoading =
+    totalAvailable.isLoading ||
+    claimed.isLoading ||
+    claimCondition.isLoading ||
+    claimConditionReasons.isLoading;
 
-  const canClaim = !!isNotSoldOut && !!address;
+  const canClaim =
+    !!isNotSoldOut && !!address && !claimConditionReasons.data?.length;
 
   const showQuantityInput =
     canClaim &&
@@ -276,7 +277,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-        {showQuantityInput && (
+        {showQuantityInput && !isLoading && (
           <NumberInput
             inputMode="numeric"
             value={quantity}
@@ -311,12 +312,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             ? "Sold out"
             : canClaim
             ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
-                priceToMint.eq(0)
+                claimCondition.data?.price.eq(0)
                   ? " (Free)"
-                  : formatedPrice
-                  ? ` (${formatedPrice})`
+                  : claimCondition.data?.currencyMetadata.displayValue
+                  ? ` (${formatUnits(
+                      priceToMint,
+                      claimCondition.data.currencyMetadata.decimals,
+                    )} ${claimCondition.data?.currencyMetadata.symbol})`
                   : ""
               }`
+            : claimConditionReasons.data?.length
+            ? claimConditionReasons.data[0]
             : "Minting Unavailable"}
         </Button>
       </Flex>

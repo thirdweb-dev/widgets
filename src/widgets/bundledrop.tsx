@@ -22,6 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { BigNumber, BigNumberish } from "ethers";
+import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
@@ -31,19 +32,18 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
+import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
-import { parseError } from "../shared/parseError";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -82,7 +82,7 @@ interface HeaderProps extends ModuleInProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  sdk, 
+  sdk,
   tokenAddress,
   activeTab,
   setActiveTab,
@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -176,8 +176,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [claimSuccess, setClaimSuccess] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
@@ -185,26 +186,27 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { enabled: isEnabled && tokenId.length > 0 },
   );
 
-  const [quantity, setQuantity] = useState(1);
-  const priceToMint = BigNumber.from(
-    activeClaimCondition?.data?.price || 0,
-  ).mul(quantity);
-  const currency = activeClaimCondition?.data?.currencyAddress;
-  const claimed = activeClaimCondition.data?.availableSupply || "0";
-  const totalAvailable = activeClaimCondition.data?.maxQuantity?.toString() || "0";
-
-  const tokenModule = useMemo(() => {
-    if (!currency || !sdk) {
-      return undefined;
-    }
-    return sdk.getTokenContract(currency);
-  }, [currency, sdk]);
-
-  const formatedPrice = useFormatedValue(
-    priceToMint,
-    tokenModule,
-    expectedChainId,
+  const claimConditionReasons = useQuery(
+    ["ineligiblereasons", { tokenId, quantity, address }],
+    () =>
+      module?.claimConditions.getClaimIneligibilityReasons(
+        tokenId,
+        quantity,
+        address,
+      ),
+    { enabled: !!module && !!address },
   );
+
+  const bnPrice = parseUnits(
+    activeClaimCondition.data?.currencyMetadata.displayValue || "0",
+    activeClaimCondition.data?.currencyMetadata.decimals,
+  );
+
+  const priceToMint = bnPrice.mul(quantity);
+
+  const claimed = activeClaimCondition.data?.availableSupply || "0";
+  const totalAvailable =
+    activeClaimCondition.data?.maxQuantity?.toString() || "0";
 
   const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
 
@@ -244,9 +246,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
   );
 
-  const isLoading = activeClaimCondition.isLoading;
+  const isLoading =
+    activeClaimCondition.isLoading || claimConditionReasons.isLoading;
 
-  const canClaim = isNotSoldOut && address;
+  const canClaim =
+    !!isNotSoldOut && !!address && !claimConditionReasons.data?.length;
 
   const quantityLimit =
     activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
@@ -269,9 +273,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.lte(1000);
 
   if (!isEnabled) {
-    return (
-      <ConnectWalletButton expectedChainId={expectedChainId} />
-    )
+    return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
 
   return (
@@ -311,13 +313,18 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {!isNotSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${
-                priceToMint.eq(0)
+            ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
+                activeClaimCondition.data?.price.eq(0)
                   ? " (Free)"
-                  : formatedPrice
-                  ? ` (${formatedPrice})`
+                  : activeClaimCondition.data?.currencyMetadata.displayValue
+                  ? ` (${formatUnits(
+                      priceToMint,
+                      activeClaimCondition.data.currencyMetadata.decimals,
+                    )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
                   : ""
               }`
+            : claimConditionReasons.data?.length
+            ? claimConditionReasons.data[0]
             : "Minting Unavailable"}
         </Button>
       </Flex>
@@ -496,7 +503,8 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   );
 
   const claimed = activeClaimCondition.data?.availableSupply || "0";
-  const totalAvailable = BigNumber.from(activeClaimCondition.data?.maxQuantity).toString() || "0";
+  const totalAvailable =
+    BigNumber.from(activeClaimCondition.data?.maxQuantity).toString() || "0";
 
   const owned = useQuery(
     ["numbers", "owned", { address }],

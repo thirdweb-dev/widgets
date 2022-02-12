@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@3rdweb/contracts@2.0.1-36", "@3rdweb/contracts@^2.0.1-26":
+"@3rdweb/contracts@2.0.1-36":
   version "2.0.1-36"
   resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-2.0.1-36.tgz#c75c45e2e18f3d89dcb21ba3679d6e495b11e15b"
   integrity sha512-CC8mwjmHiyh0EG9eImapSU3Gkb1oKUxyHFh4RjZEMuYVbF5vVu0uVRNDCBpllQeMzXTIW2J0v//H6H0SvKGJYQ==
 
-"@3rdweb/sdk@^2.0.0-25":
-  version "2.0.0-25"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-2.0.0-25.tgz#9094200a4d8c69c72c71ad7f1fc7a1cb2aa4468b"
-  integrity sha512-PRTUbETDAJHNK7TVcWUuVwnrm0s9H1OWt8EPQ0Rh2lfDly1KRcEN0NFJzzxNdJ5bO/gYC9uGRB6Hsd/U83rgKA==
+"@3rdweb/sdk@^2.0.0-26":
+  version "2.0.0-26"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-2.0.0-26.tgz#eb0990e19b4649f35e4b0953bd29c760cd678000"
+  integrity sha512-fKMDFe/0MR0PtPXX1lKWy/XWp1DUU/mTj0L7KFyjc0au5e40fCr6PLcxhE8hjULvAGNC9/7dMosksPKoCbJy8g==
   dependencies:
-    "@3rdweb/contracts" "^2.0.1-26"
+    "@3rdweb/contracts" "2.0.1-36"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
@@ -22,9 +22,7 @@
     "@web-std/file" "^3.0.0"
     deep-equal "^2.0.5"
     eventemitter2 "^6.4.5"
-    events "^3.3.0"
     form-data "^4.0.0"
-    json2typescript "^1.5.0-rc.0"
     keccak256 "^1.0.6"
     tiny-invariant "^1.2.0"
     uuid "^8.3.2"
@@ -3880,7 +3878,7 @@ eventemitter3@4.0.7, eventemitter3@^4.0.7:
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
-events@^3.0.0, events@^3.3.0:
+events@^3.0.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
   integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
@@ -4620,11 +4618,6 @@ json-stable-stringify@^1.0.1:
   integrity sha1-mnWdOcXy/1A/1TAGRu1EX4jE+a8=
   dependencies:
     jsonify "~0.0.0"
-
-json2typescript@^1.5.0-rc.0:
-  version "1.5.0-rc.0"
-  resolved "https://registry.yarnpkg.com/json2typescript/-/json2typescript-1.5.0-rc.0.tgz#73f2101b438a0ca3a393c54cbcb7c0508e73313a"
-  integrity sha512-9v0Q6P38nV9zznaZxHRA8THp5oEGzancSUGgm8NXZSVRU/X8h/RlpP5hutP15J5sMODdx2pz9Fs/SNEpCTFAfA==
 
 json5@^1.0.1:
   version "1.0.1"
