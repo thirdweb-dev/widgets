@@ -53,8 +53,7 @@
     "wagmi": "^0.2.9"
   },
   "resolutions": {
-    "ansi-regex": "^5.0.1",
-    "@3rdweb/contracts": "2.0.1-36"
+    "ansi-regex": "^5.0.1"
   },
   "alias": {
     "process": false
