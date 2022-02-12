@@ -1,6 +1,5 @@
 const path = require("path");
 const fs = require("fs");
-const buffer = require("buffer");
 
 const WIDGETS_SRC_PATH = path.resolve(process.cwd(), "src/widgets");
 const DIST_PATH = path.resolve(process.cwd(), "dist/");
@@ -13,7 +12,7 @@ require("esbuild")
   .build({
     entryPoints: files.map((f) => path.resolve(WIDGETS_SRC_PATH, f)),
     bundle: true,
-    minify: true,
+    minify: false,
     platform: "browser",
     target: "es6",
     outdir: "./esout",

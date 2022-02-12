@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { InjectedConnector } from "wagmi/connectors/injected";
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
-import { WalletLinkConnector } from "wagmi/connectors/walletLink"
+import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
+import { WalletLinkConnector } from "wagmi/connectors/walletLink";
 import { ChainIDToRPCMap, supportedChains } from "../shared/commonRPCUrls";
 
 export function useConnectors(expectedChainId: number, rpcUrl?: string) {
