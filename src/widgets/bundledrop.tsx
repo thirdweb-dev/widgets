@@ -168,7 +168,6 @@ interface ClaimPageProps {
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   module,
-  sdk,
   expectedChainId,
   tokenId,
 }) => {
@@ -204,11 +203,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const priceToMint = bnPrice.mul(quantity);
 
-  const claimed = activeClaimCondition.data?.availableSupply || "0";
-  const totalAvailable =
-    activeClaimCondition.data?.maxQuantity?.toString() || "0";
+  const stillAvailableSupply =
+    activeClaimCondition.data?.availableSupply || "0";
 
-  const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
+  const isNotSoldOut = parseInt(stillAvailableSupply, 10) > 0;
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -268,9 +266,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }, [quantityLimit]);
 
   const showQuantityInput =
-    canClaim &&
-    quantityLimitBigNumber.gt(1) &&
-    quantityLimitBigNumber.lte(1000);
+    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lte(1000);
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -328,11 +324,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             : "Minting Unavailable"}
         </Button>
       </Flex>
-      <Text size="label.md" color="green.800">
-        {`${parseHugeNumber(claimed)} / ${parseHugeNumber(
-          totalAvailable,
-        )} claimed`}
-      </Text>
+      {activeClaimCondition.data && (
+        <Text size="label.md" color="green.800">
+          {`${parseHugeNumber(
+            activeClaimCondition.data?.maxQuantity.sub(
+              activeClaimCondition.data.availableSupply,
+            ),
+          )} / ${parseHugeNumber(
+            activeClaimCondition.data?.maxQuantity,
+          )} claimed`}
+        </Text>
+      )}
     </Stack>
   );
 };
@@ -465,16 +467,17 @@ const Body: React.FC = ({ children }) => {
   );
 };
 
-interface DropWidgetProps {
+interface BundleDropWidgetProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
   expectedChainId: number;
   relayUrl: string | undefined;
+  tokenId: string;
 }
 
-const DropWidget: React.FC<DropWidgetProps> = ({
+const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   startingTab = "claim",
   rpcUrl,
   contractAddress,
@@ -502,9 +505,8 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     { enabled: !!dropModule && tokenId.length > 0 },
   );
 
-  const claimed = activeClaimCondition.data?.availableSupply || "0";
-  const totalAvailable =
-    BigNumber.from(activeClaimCondition.data?.maxQuantity).toString() || "0";
+  const stillAvailableSupply =
+    activeClaimCondition.data?.availableSupply || "0";
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
@@ -517,7 +519,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     },
   );
 
-  const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
+  const isNotSoldOut = parseInt(stillAvailableSupply) > 0;
 
   const numOwned = BigNumber.from(owned.data || 0).toNumber();
   useEffect(() => {
@@ -577,7 +579,7 @@ const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
-  const tokenId = urlParams.get("tokenId") || "";
+  const tokenId = urlParams.get("tokenId") || "0";
   const relayUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
@@ -595,7 +597,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <Provider autoConnect connectors={connectors}>
-            <DropWidget
+            <BundleDropWidget
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
