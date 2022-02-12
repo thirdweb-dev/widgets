@@ -29,7 +29,9 @@ export function useSDKWithSigner({
       return undefined;
     }
     return new ThirdwebSDK(rpc, {
-      readOnlyRpcUrl: rpc,
+      readonlySettings: {
+        rpcUrl: rpc
+      },
     });
   }, [relayUrl]);
 
