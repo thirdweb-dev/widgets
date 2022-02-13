@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@3rdweb/contracts@2.0.1-36":
-  version "2.0.1-36"
-  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-2.0.1-36.tgz#c75c45e2e18f3d89dcb21ba3679d6e495b11e15b"
-  integrity sha512-CC8mwjmHiyh0EG9eImapSU3Gkb1oKUxyHFh4RjZEMuYVbF5vVu0uVRNDCBpllQeMzXTIW2J0v//H6H0SvKGJYQ==
+"@3rdweb/contracts@^2.0.1-38":
+  version "2.0.1-38"
+  resolved "https://registry.yarnpkg.com/@3rdweb/contracts/-/contracts-2.0.1-38.tgz#8ffd2003eca01cad6bb0cb07704867b8a9dc6bac"
+  integrity sha512-cQZvyVTbctTYz3HNqARlCCe5xPweWfi06BlcFEzEZoCnRA3JD0AG9k0A8muf5OQEdGRvnkH2XaGAndT/QN6JfQ==
 
-"@3rdweb/sdk@^2.0.0-26":
-  version "2.0.0-26"
-  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-2.0.0-26.tgz#eb0990e19b4649f35e4b0953bd29c760cd678000"
-  integrity sha512-fKMDFe/0MR0PtPXX1lKWy/XWp1DUU/mTj0L7KFyjc0au5e40fCr6PLcxhE8hjULvAGNC9/7dMosksPKoCbJy8g==
+"@3rdweb/sdk@^2.0.0-29":
+  version "2.0.0-29"
+  resolved "https://registry.yarnpkg.com/@3rdweb/sdk/-/sdk-2.0.0-29.tgz#373348603a76c2a9258ff51256d05d4e06048034"
+  integrity sha512-Uy7hwF96u57CE0IdSLvJH6d/7cYEIbFPuEC1ZrUd9hsi2hFdb2d1jZ+Fl280wRdl3DiREVPqiFJeneB5Vlyb/w==
   dependencies:
-    "@3rdweb/contracts" "2.0.1-36"
+    "@3rdweb/contracts" "^2.0.1-38"
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/constants" "^5.5.0"
@@ -4861,9 +4861,9 @@ minimalistic-crypto-utils@^1.0.1:
   integrity sha1-9sAMHAsIIkblxNmd+4x8CDsrWCo=
 
 minimatch@^3.0.4:
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.5.tgz#4da8f1290ee0f0f8e83d60ca69f8f134068604a3"
-  integrity sha512-tUpxzX0VAzJHjLu0xUfFv1gwVp9ba3IOuRAVH2EGuRW8a5emA2FlACLqiT/lDVtS1W+TGNwqz3sWaNyLgDJWuw==
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.0.tgz#f59168d5cba6b6fde15f6a88f557fe7eaf31d8ea"
+  integrity sha512-vgmUyWyt2qidcJXdF6e+kf4DgJha4vzf3ctWJ0uGjfvqEgoX2V4GXQt0eZwM2FJWKANfS8VmzpvPKbWYibkHZA==
   dependencies:
     brace-expansion "^1.1.7"
 
@@ -5621,9 +5621,9 @@ react-is@^16.13.1, react-is@^16.7.0:
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
 
 react-query@^3.34.1:
-  version "3.34.14"
-  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.34.14.tgz#ba944c1c36bbeab3e7037c42e8e862acd73111ff"
-  integrity sha512-KVMnM8omt+81oO9fPZfM65pGhQilpWzGsNwAqeeLMB2sG3xwY3bpIEYbhDf7FFgsqhAQfSzmCL4gRSiJaWIDwA==
+  version "3.34.15"
+  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.34.15.tgz#9e143b7d0aa39c515102a35120d5518ad91b10f6"
+  integrity sha512-dOhGLB5RT3p+wWj0rVdAompSg+R9t6oMRk+JhU8DP0tpJM2UyIv3r4Kk0zUkHSxT+QG34hFdrgdqxVWxgeNq4g==
   dependencies:
     "@babel/runtime" "^7.5.5"
     broadcast-channel "^3.4.1"
