@@ -228,13 +228,22 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const toast = useToast();
 
   const claimMutation = useMutation(
-    () => {
+    (quantity: number) => {
       if (!address || !module) {
         throw new Error("No address or module");
       }
       return module.claim(quantity);
     },
     {
+      onSuccess: () => {
+        queryClient.invalidateQueries();
+      },
+    },
+  );
+
+  const claim = async () => {
+    const metadata = await module?.metadata.get();
+    claimMutation.mutate(quantity, {
       onSuccess: () => {
         queryClient.invalidateQueries();
         toast({
@@ -253,8 +262,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           isClosable: true,
         });
       },
-    },
-  );
+    })
+  }
 
   const isLoading =
     totalAvailable.isLoading ||
@@ -301,10 +310,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         )}
         <Button
           fontSize={{ base: "label.md", md: "label.lg" }}
-          isLoading={isLoading || claimMutation.isLoading}
+          isLoading={claimMutation.isLoading}
           isDisabled={!canClaim}
           leftIcon={<IoDiamondOutline />}
-          onClick={() => claimMutation.mutate()}
+          onClick={claim}
           isFullWidth
           colorScheme="blue"
         >
