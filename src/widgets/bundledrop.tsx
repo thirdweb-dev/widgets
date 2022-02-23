@@ -179,6 +179,15 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const isEnabled = !!module && !!address && chainId === expectedChainId
 
+  const tokenMetadata = useQuery(
+    ["token-metadata", { tokenId }],
+    async () => {
+      return module?.get(tokenId);
+    },
+    { enabled: !!module && tokenId.length > 0 },
+  );
+
+
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
     async () => {
@@ -192,7 +201,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     activeClaimCondition?.data?.pricePerToken || 0,
   ).mul(quantity);
   const currency = activeClaimCondition?.data?.currency;
-  const claimed = activeClaimCondition.data?.currentMintSupply || "0";
+  const claimed = tokenMetadata.data?.supply || BigNumber.from(0);
   const totalAvailable = activeClaimCondition.data?.maxMintSupply || "0";
 
   const tokenModule = useMemo(() => {
@@ -208,7 +217,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     expectedChainId,
   );
 
-  const isNotSoldOut = parseInt(claimed) < parseInt(totalAvailable);
+  const isNotSoldOut = claimed.lt(BigNumber.from(totalAvailable));
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
