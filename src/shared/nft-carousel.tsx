@@ -70,7 +70,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
                 <AspectRatio ratio={1} w="80%">
                   {nft.animation_url ? (
                     // Its important that we replace cloudflare-ipfs here because they banned video streaming
-                    <iframe src={nft.animation_url.replace("cloudflare-ipfs.com", "ipfs.thirdweb.com")} />
+                    <iframe src={nft.animation_url.replace("cloudflare-ipfs.com", "gateway.pinata.cloud")} />
                   ) : (
                     <Image
                       borderRadius="20px"
