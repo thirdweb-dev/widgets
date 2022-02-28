@@ -56,48 +56,44 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
         />
         <AspectRatio ratio={1} w="69vw" maxW="400px">
           <Flex py={4} position="relative" overflow="hidden">
-            {metadata.map((nft, idx) => {
-              console.log(nft.animation_url || nft.image);
-
-              return (
-                <Stack
-                  key={nft.id}
-                  justify="center"
-                  align="center"
-                  w="100%"
-                  position="absolute"
-                  left={"calc(100% * " + idx + ")"}
-                  transform={`translateX(${currentIndex * -100}%)`}
-                  transition="transform .333s ease"
-                >
-                  <AspectRatio ratio={1} w="80%">
-                    {nft.animation_url ? (
-                      // Its important that we replace cloudflare-ipfs here because they banned video streaming
-                      <iframe src={nft.animation_url.replace("cloudflare-ipfs.com", "ipfs.thirdweb.com")} />
-                    ) : (
-                      <Image
-                        borderRadius="20px"
-                        overflow="hidden"
-                        border="1px solid rgba(0, 0, 0, 0.1)"
-                        bg="#F2F0FF"
-                        //@ts-ignore
-                        objectFit="contain!important"
-                        src={nft.image}
-                        alt={nft.name}
-                      />
-                    )}
-                  </AspectRatio>
-                  <Heading fontWeight={500} fontSize="18px" size="sm" as="h3">
-                    {nft.name}
-                  </Heading>
-                  {nft.supply && (
-                    <Text>
-                      <strong>Quantity:</strong> {nft.supply}
-                    </Text>
+            {metadata.map((nft, idx) => (
+              <Stack
+                key={nft.id}
+                justify="center"
+                align="center"
+                w="100%"
+                position="absolute"
+                left={"calc(100% * " + idx + ")"}
+                transform={`translateX(${currentIndex * -100}%)`}
+                transition="transform .333s ease"
+              >
+                <AspectRatio ratio={1} w="80%">
+                  {nft.animation_url ? (
+                    // Its important that we replace cloudflare-ipfs here because they banned video streaming
+                    <iframe src={nft.animation_url.replace("cloudflare-ipfs.com", "ipfs.thirdweb.com")} />
+                  ) : (
+                    <Image
+                      borderRadius="20px"
+                      overflow="hidden"
+                      border="1px solid rgba(0, 0, 0, 0.1)"
+                      bg="#F2F0FF"
+                      //@ts-ignore
+                      objectFit="contain!important"
+                      src={nft.image}
+                      alt={nft.name}
+                    />
                   )}
-                </Stack>
-              );
-            })}
+                </AspectRatio>
+                <Heading fontWeight={500} fontSize="18px" size="sm" as="h3">
+                  {nft.name}
+                </Heading>
+                {nft.supply && (
+                  <Text>
+                    <strong>Quantity:</strong> {nft.supply}
+                  </Text>
+                )}
+              </Stack>
+            ))}
           </Flex>
         </AspectRatio>
         <IconButton
