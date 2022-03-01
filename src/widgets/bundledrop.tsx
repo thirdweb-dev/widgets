@@ -592,9 +592,17 @@ const App: React.FC = () => {
   let ipfsGateway = urlParams.get("ipfsGateway") || "";
 
   if (ipfsGateway.length === 0) {
+    // handle origin split ipfs gateways
     if (
-      window.location.pathname.startsWith("/ipfs/") &&
+      window.location.origin.includes(".ipfs.") ||
       window.location.origin.startsWith("https://")
+    ) {
+      // we need to take the right part of the .ipfs. part
+      ipfsGateway = window.location.origin.split(".ipfs.")[1];
+      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
+    } else if (
+      ipfsGateway.startsWith("http") &&
+      window.location.pathname.startsWith("/ipfs/")
     ) {
       ipfsGateway = window.location.origin + "/ipfs/";
     }
