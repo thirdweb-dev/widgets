@@ -566,6 +566,8 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
+
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
   if (ipfsGateway.length === 0) {
     // handle origin split ipfs gateways
     if (
