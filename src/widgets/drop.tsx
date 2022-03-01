@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { BigNumber } from "ethers";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -31,11 +31,12 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { NftCarousel } from "../shared/nft-carousel";
+import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
@@ -43,7 +44,6 @@ import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
-import { parseError } from "../shared/parseError";
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
@@ -67,13 +67,20 @@ interface HeaderProps extends ModuleInProps {
   expectedChainId: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ sdk, expectedChainId, tokenAddress, activeTab, setActiveTab, module }) => {
+const Header: React.FC<HeaderProps> = ({
+  sdk,
+  expectedChainId,
+  tokenAddress,
+  activeTab,
+  setActiveTab,
+  module,
+}) => {
   const address = useAddress();
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
 
   // Enable all queries
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -160,7 +167,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
 
   // Enable all queries
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const claimed = useQuery(
     ["numbers", "claimed"],
@@ -233,7 +240,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries()
+        queryClient.invalidateQueries();
         toast({
           title: "Successfuly claimed.",
           status: "success",
@@ -263,9 +270,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.lte(1000);
 
   if (!isEnabled) {
-    return (
-      <ConnectWalletButton expectedChainId={expectedChainId} />
-    )
+    return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
 
   return (
@@ -451,6 +456,7 @@ interface DropWidgetProps {
   relayUrl?: string;
   contractAddress: string;
   expectedChainId: number;
+  ipfsGateway?: string;
 }
 
 const DropWidget: React.FC<DropWidgetProps> = ({
@@ -459,11 +465,17 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   relayUrl,
   contractAddress,
   expectedChainId,
+  ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const address = useAddress();
 
-  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expectedChainId });
+  const sdk = useSDKWithSigner({
+    rpcUrl,
+    relayUrl,
+    expectedChainId,
+    ipfsGateway,
+  });
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -554,6 +566,16 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
+
+  if (ipfsGateway.length === 0) {
+    if (
+      window.location.pathname.startsWith("/ipfs/") &&
+      window.location.origin.startsWith("https://")
+    ) {
+      ipfsGateway = window.location.origin + "/ipfs/";
+    }
+  }
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -575,6 +597,7 @@ const App: React.FC = () => {
               relayUrl={relayUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
+              ipfsGateway={ipfsGateway}
             />
           </Provider>
         </ChakraProvider>

@@ -2,15 +2,18 @@ import { NFTMetadata } from "@3rdweb/sdk";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   AspectRatio,
+  Box,
+  BoxProps,
   Center,
   Flex,
   Heading,
   IconButton,
-  Text,
   Image,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import React, { useCallback, useState } from "react";
+import { isExtensionVideoFile } from "../utils/isExtensionVideoFile";
 
 interface MetadataWithSupply extends NFTMetadata {
   supply?: number;
@@ -67,22 +70,19 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
                 transform={`translateX(${currentIndex * -100}%)`}
                 transition="transform .333s ease"
               >
-                <AspectRatio ratio={1} w="80%">
-                  {nft.animation_url ? (
-                    // Its important that we replace cloudflare-ipfs here because they banned video streaming
-                    <iframe src={nft.animation_url} />
-                  ) : (
-                    <Image
-                      borderRadius="20px"
-                      overflow="hidden"
-                      border="1px solid rgba(0, 0, 0, 0.1)"
-                      bg="#F2F0FF"
-                      //@ts-ignore
-                      objectFit="contain!important"
-                      src={nft.image}
-                      alt={nft.name}
-                    />
-                  )}
+                <AspectRatio
+                  ratio={1}
+                  w="80%"
+                  borderRadius="20px"
+                  overflow="hidden"
+                  border="1px solid rgba(0, 0, 0, 0.1)"
+                  bg="#F2F0FF"
+                >
+                  <NFTImageOrVideo
+                    animation_url={nft.animation_url}
+                    image={nft.image}
+                    title={nft.name}
+                  />
                 </AspectRatio>
                 <Heading fontWeight={500} fontSize="18px" size="sm" as="h3">
                   {nft.name}
@@ -107,4 +107,45 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
       </Stack>
     </Center>
   );
+};
+
+interface NFTImageOrVideoProps extends BoxProps {
+  animation_url?: string;
+  image?: string;
+  title?: string;
+}
+
+export const NFTImageOrVideo: React.FC<NFTImageOrVideoProps> = ({
+  animation_url,
+  image,
+  title,
+  children,
+  ...restBoxProps
+}) => {
+  if (animation_url && isExtensionVideoFile(animation_url)) {
+    return (
+      <Box
+        as="video"
+        //@ts-ignore
+        objectFit="contain!important"
+        autoPlay
+        loop
+        playsInline
+        muted
+        src={animation_url}
+        poster={image}
+        {...restBoxProps}
+      />
+    );
+  } else {
+    return (
+      <Image
+        //@ts-ignore
+        objectFit="contain!important"
+        src={image}
+        alt={title || "NFT"}
+        {...restBoxProps}
+      />
+    );
+  }
 };

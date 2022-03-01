@@ -1,6 +1,6 @@
-import { ThirdwebSDK } from "@3rdweb/sdk";
+import { ISDKOptions, ThirdwebSDK } from "@3rdweb/sdk";
 import { Signer } from "ethers";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useAccount, useNetwork, useSigner } from "wagmi";
 import { ChainIDToRPCMap } from "./commonRPCUrls";
 
@@ -8,12 +8,14 @@ interface useSdkOptions {
   rpcUrl?: string;
   relayUrl?: string;
   expectedChainId: number;
+  ipfsGateway?: string;
 }
 
 export function useSDKWithSigner({
   rpcUrl,
   relayUrl,
   expectedChainId,
+  ipfsGateway,
 }: useSdkOptions) {
   const [{ data }] = useAccount();
   const [{ data: network }] = useNetwork();
@@ -28,11 +30,15 @@ export function useSDKWithSigner({
     if (!rpc) {
       return undefined;
     }
-    return new ThirdwebSDK(rpc, {
+    const opts: Partial<ISDKOptions> = {
       transactionRelayerUrl: relayUrl,
       readOnlyRpcUrl: rpc,
-    });
-  }, [relayUrl]);
+    };
+    if (ipfsGateway && ipfsGateway.length) {
+      opts.ipfsGatewayUrl = ipfsGateway;
+    }
+    return new ThirdwebSDK(rpc, opts);
+  }, [relayUrl, rpc, ipfsGateway]);
 
   useEffect(() => {
     getSigner();

@@ -8,7 +8,6 @@ import {
   Grid,
   Heading,
   Icon,
-  Image,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -31,11 +30,12 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
-import { NftCarousel } from "../shared/nft-carousel";
+import { NftCarousel, NFTImageOrVideo } from "../shared/nft-carousel";
+import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
@@ -43,7 +43,7 @@ import { useFormatedValue } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
-import { parseError } from "../shared/parseError";
+import { isExtensionVideoFile } from "../utils/isExtensionVideoFile";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -82,7 +82,7 @@ interface HeaderProps extends ModuleInProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  sdk, 
+  sdk,
   tokenAddress,
   activeTab,
   setActiveTab,
@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -177,7 +177,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [claimSuccess, setClaimSuccess] = useState(false);
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId
+  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const tokenMetadata = useQuery(
     ["token-metadata", { tokenId }],
@@ -186,7 +186,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
     { enabled: !!module && tokenId.length > 0 },
   );
-
 
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
@@ -280,9 +279,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     quantityLimitBigNumber.lte(1000);
 
   if (!isEnabled) {
-    return (
-      <ConnectWalletButton expectedChainId={expectedChainId} />
-    )
+    return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
 
   return (
@@ -380,13 +377,13 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {metaData?.image ? (
-            <Image
-              objectFit="contain"
-              w="100%"
-              h="100%"
-              src={metaData?.image}
-              alt={metaData?.name}
+          {metaData?.image ||
+          (metaData?.animation_url &&
+            isExtensionVideoFile(metaData.animation_url)) ? (
+            <NFTImageOrVideo
+              image={metaData?.image}
+              animation_url={metaData?.animation_url}
+              title={metaData?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
@@ -479,6 +476,7 @@ interface DropWidgetProps {
   contractAddress: string;
   expectedChainId: number;
   relayUrl: string | undefined;
+  ipfsGateway?: string;
 }
 
 const DropWidget: React.FC<DropWidgetProps> = ({
@@ -488,10 +486,16 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   expectedChainId,
   tokenId,
   relayUrl,
+  ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
 
-  const sdk = useSDKWithSigner({ expectedChainId, rpcUrl, relayUrl });
+  const sdk = useSDKWithSigner({
+    expectedChainId,
+    rpcUrl,
+    relayUrl,
+    ipfsGateway,
+  });
   const address = useAddress();
 
   const dropModule = useMemo(() => {
@@ -585,6 +589,16 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const tokenId = urlParams.get("tokenId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
+
+  if (ipfsGateway.length === 0) {
+    if (
+      window.location.pathname.startsWith("/ipfs/") &&
+      window.location.origin.startsWith("https://")
+    ) {
+      ipfsGateway = window.location.origin + "/ipfs/";
+    }
+  }
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -607,6 +621,7 @@ const App: React.FC = () => {
               expectedChainId={expectedChainId}
               tokenId={tokenId}
               relayUrl={relayUrl}
+              ipfsGateway={ipfsGateway}
             />
           </Provider>
         </ChakraProvider>

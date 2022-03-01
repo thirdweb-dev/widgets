@@ -38,9 +38,9 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -92,8 +92,8 @@ const Header: React.FC<IHeader> = (props) => {
     >
       <ConnectedWallet {...props} />
     </Stack>
-  )
-}
+  );
+};
 
 const AuctionListing: React.FC<AuctionListingProps> = ({
   module,
@@ -109,11 +109,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const [bid, setBid] = useState("0");
 
   const isAuctionEnded = useMemo(() => {
-    const endTime = BigNumber.from(listing.endTimeInEpochSeconds)
+    const endTime = BigNumber.from(listing.endTimeInEpochSeconds);
     const currentTime = BigNumber.from(Math.floor(Date.now() / 1000));
 
     return endTime.sub(currentTime).lte(0);
-  }, [listing.endTimeInEpochSeconds])
+  }, [listing.endTimeInEpochSeconds]);
 
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
@@ -342,7 +342,6 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
               <Stack>
                 <Flex w="100%">
                   <NumberInput
-                    type="numeric"
                     width="100%"
                     borderRightRadius="0"
                     value={bid}
@@ -404,16 +403,20 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                           ) : (
                             <>
                               The highest bidder is currently{" "}
-                              <Tooltip label={currentBid?.buyerAddress}>  
-                                <Text fontWeight="bold" cursor="pointer" display="inline">
+                              <Tooltip label={currentBid?.buyerAddress}>
+                                <Text
+                                  fontWeight="bold"
+                                  cursor="pointer"
+                                  display="inline"
+                                >
                                   {currentBid?.buyerAddress.slice(0, 10)}...
                                 </Text>
                               </Tooltip>
                             </>
                           )}
                         </>
-                      )}
-                      {" "}with a bid of <strong>{currentBidFormatted}</strong>.
+                      )}{" "}
+                      with a bid of <strong>{currentBidFormatted}</strong>.
                     </Text>
                   ) : (
                     <Text color="gray.600" display="inline">
@@ -426,7 +429,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   </Text>
                   {BigNumber.from(listing.quantity).gt(1) && (
                     <Text>
-                      The winner of this auction will receive <strong>{BigNumber.from(listing.quantity).toNumber()}</strong> of the displayed asset.
+                      The winner of this auction will receive{" "}
+                      <strong>
+                        {BigNumber.from(listing.quantity).toNumber()}
+                      </strong>{" "}
+                      of the displayed asset.
                     </Text>
                   )}
                 </Stack>
@@ -487,12 +494,17 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     <Text>
                       This auction was won by{" "}
                       <Tooltip label={auctionWinner}>
-                        <Text fontWeight="bold" cursor="pointer" display="inline">
+                        <Text
+                          fontWeight="bold"
+                          cursor="pointer"
+                          display="inline"
+                        >
                           {auctionWinner.slice(0, 10)}...
                         </Text>
                       </Tooltip>
                       <br />
-                      If you made a bid, the bid has been refunded to your wallet.
+                      If you made a bid, the bid has been refunded to your
+                      wallet.
                     </Text>
                   )}
                 </Stack>
@@ -574,7 +586,9 @@ const DirectListing: React.FC<DirectListingProps> = ({
 
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to purchase.";
-        } else if (anyErr.message.includes("User denied transaction signature")) {
+        } else if (
+          anyErr.message.includes("User denied transaction signature")
+        ) {
           message = "You denied the transaction";
         }
 
@@ -752,6 +766,7 @@ interface MarketplaceWidgetProps {
   contractAddress: string;
   expectedChainId: number;
   listingId: string;
+  ipfsGateway?: string;
 }
 
 const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
@@ -760,8 +775,14 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
   contractAddress,
   expectedChainId,
   listingId,
+  ipfsGateway,
 }) => {
-  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expectedChainId });
+  const sdk = useSDKWithSigner({
+    rpcUrl,
+    relayUrl,
+    expectedChainId,
+    ipfsGateway,
+  });
 
   const marketplaceModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -814,6 +835,16 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
+
+  if (ipfsGateway.length === 0) {
+    if (
+      window.location.pathname.startsWith("/ipfs/") &&
+      window.location.origin.startsWith("https://")
+    ) {
+      ipfsGateway = window.location.origin + "/ipfs/";
+    }
+  }
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -836,6 +867,7 @@ const App: React.FC = () => {
               expectedChainId={expectedChainId}
               listingId={listingId}
               relayUrl={relayUrl}
+              ipfsGateway={ipfsGateway}
             />
           </Provider>
         </ChakraProvider>
