@@ -1,4 +1,3 @@
-import { DropErc721Contract, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -21,6 +20,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
+import { NFTDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useState } from "react";
@@ -56,7 +56,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropErc721Contract;
+  module?: NFTDrop;
 }
 
 interface HeaderProps extends ModuleInProps {
@@ -150,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 interface ClaimPageProps {
-  module?: DropErc721Contract;
+  module?: NFTDrop;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
 }
@@ -462,6 +462,7 @@ interface DropWidgetProps {
   relayUrl?: string;
   contractAddress: string;
   expectedChainId: number;
+  ipfsGateway?: string;
 }
 
 const DropWidget: React.FC<DropWidgetProps> = ({
@@ -470,16 +471,22 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   relayUrl,
   contractAddress,
   expectedChainId,
+  ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const address = useAddress();
-  const sdk = useSDKWithSigner({ rpcUrl, relayUrl, expectedChainId });
+  const sdk = useSDKWithSigner({
+    rpcUrl,
+    relayUrl,
+    expectedChainId,
+    ipfsGateway,
+  });
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
       return undefined;
     }
-    return sdk.getDropContract(contractAddress);
+    return sdk.getNFTDrop(contractAddress);
   }, [sdk]);
 
   const available = useQuery(
@@ -567,6 +574,24 @@ const App: React.FC = () => {
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
+  if (ipfsGateway.length === 0) {
+    // handle origin split ipfs gateways
+    if (
+      window.location.origin.includes(".ipfs.") ||
+      window.location.origin.startsWith("https://")
+    ) {
+      // we need to take the right part of the .ipfs. part
+      ipfsGateway = window.location.origin.split(".ipfs.")[1];
+      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
+    } else if (
+      ipfsGateway.startsWith("http") &&
+      window.location.pathname.startsWith("/ipfs/")
+    ) {
+      ipfsGateway = window.location.origin + "/ipfs/";
+    }
+  }
+
   return (
     <>
       <Global
@@ -585,6 +610,7 @@ const App: React.FC = () => {
               relayUrl={relayUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
+              ipfsGateway={ipfsGateway}
             />
           </Provider>
         </ChakraProvider>

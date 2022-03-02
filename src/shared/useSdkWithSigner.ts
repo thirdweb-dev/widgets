@@ -1,4 +1,4 @@
-import { ThirdwebSDK } from "@3rdweb/sdk";
+import { IpfsStorage, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { useEffect, useMemo } from "react";
 import { ChainIDToRPCMap } from "./commonRPCUrls";
 import { useSigner } from "./useSigner";
@@ -7,12 +7,14 @@ interface useSdkOptions {
   rpcUrl?: string;
   relayUrl?: string;
   expectedChainId: number;
+  ipfsGateway?: string;
 }
 
 export function useSDKWithSigner({
   rpcUrl,
   relayUrl,
   expectedChainId,
+  ipfsGateway,
 }: useSdkOptions) {
   const signer = useSigner();
 
@@ -24,12 +26,24 @@ export function useSDKWithSigner({
     if (!rpc) {
       return undefined;
     }
-    return new ThirdwebSDK(rpc, {
-      readonlySettings: {
-        rpcUrl: rpc,
+    const storage = ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined;
+    return new ThirdwebSDK(
+      rpc,
+      {
+        readonlySettings: {
+          rpcUrl: rpc,
+        },
+        gasless: relayUrl
+          ? {
+              openzeppelin: {
+                relayerUrl: relayUrl,
+              },
+            }
+          : undefined,
       },
-    });
-  }, [rpc, expectedChainId, relayUrl]);
+      storage,
+    );
+  }, [rpc, relayUrl, ipfsGateway]);
 
   useEffect(() => {
     if (!sdk || !signer.data) {

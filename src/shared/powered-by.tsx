@@ -1,5 +1,5 @@
 import Icon, { IconProps } from "@chakra-ui/icon";
-import { Heading, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import React from "react";
 
 export const PoweredBy: React.FC<IconProps> = (props) => {

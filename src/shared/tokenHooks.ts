@@ -1,5 +1,5 @@
-import { ThirdwebSDK, TokenErc20Contract } from "@3rdweb/sdk";
 import { AddressZero } from "@ethersproject/constants";
+import { ThirdwebSDK, Token } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,19 +17,22 @@ export function isAddressZero(address: string): boolean {
   );
 }
 
-export function useTokenModule(sdk?: ThirdwebSDK, assetContractAddress?: string) {
+export function useTokenModule(
+  sdk?: ThirdwebSDK,
+  assetContractAddress?: string,
+) {
   const tokenModule = useMemo(() => {
     if (!assetContractAddress || !sdk) {
       return undefined;
-    };
+    }
 
-    return sdk.getTokenContract(assetContractAddress);
+    return sdk.getToken(assetContractAddress);
   }, [assetContractAddress]);
 
   return tokenModule;
 }
 
-export function useTokenUnitConversion(tokenModule?: TokenErc20Contract) {
+export function useTokenUnitConversion(tokenModule?: Token) {
   const format = useCallback(
     async (value: BigNumberish, chainId?: number) => {
       value = BigNumber.from(value);
@@ -64,7 +67,7 @@ export function useTokenUnitConversion(tokenModule?: TokenErc20Contract) {
 
 export function useFormatedValue(
   value?: BigNumberish,
-  tokenModule?: TokenErc20Contract,
+  tokenModule?: Token,
   chainId?: number,
 ) {
   const [formatted, setFormatted] = useState<string | undefined>();

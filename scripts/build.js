@@ -12,7 +12,7 @@ require("esbuild")
   .build({
     entryPoints: files.map((f) => path.resolve(WIDGETS_SRC_PATH, f)),
     bundle: true,
-    minify: false,
+    minify: true,
     platform: "browser",
     target: "es6",
     outdir: "./esout",

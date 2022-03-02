@@ -1,4 +1,3 @@
-import { NFTMetadata } from "@3rdweb/sdk";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   AspectRatio,
@@ -6,10 +5,11 @@ import {
   Flex,
   Heading,
   IconButton,
-  Text,
   Image,
   Stack,
+  Text,
 } from "@chakra-ui/react";
+import { NFTMetadata } from "@thirdweb-dev/sdk";
 import React, { useCallback, useState } from "react";
 interface NftCarouselProps {
   metadata: NFTMetadata[];

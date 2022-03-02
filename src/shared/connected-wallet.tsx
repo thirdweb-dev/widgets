@@ -1,33 +1,33 @@
-import React from "react";
-import { ThirdwebSDK } from "@3rdweb/sdk";
-import { 
-  Text, 
-  Button, 
-  Flex, 
-  Icon, 
-  useClipboard,
-  useToast, 
-  Modal, 
+import {
+  Button,
+  ButtonGroup,
+  Flex,
+  Heading,
+  Icon,
+  IconButton,
+  Modal,
+  ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalOverlay,
-  useDisclosure,
-  ModalBody,
-  ButtonGroup,
-  IconButton,
   ModalHeader,
-  Heading,
+  ModalOverlay,
   Stack,
+  Text,
+  useClipboard,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { ethers } from "ethers";
+import React from "react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
-import { useAccount } from "wagmi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
-import { isAddressZero, useTokenModule } from "./tokenHooks";
 import { useQuery } from "react-query";
-import { BigNumber, ethers } from "ethers";
+import { useAccount } from "wagmi";
+import { isAddressZero, useTokenModule } from "./tokenHooks";
 
 interface IConnectedWallet {
-  sdk? : ThirdwebSDK;
+  sdk?: ThirdwebSDK;
   tokenAddress?: string;
 }
 
@@ -35,7 +35,10 @@ function shortenAddress(str: string) {
   return `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
 }
 
-export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress }) => {
+export const ConnectedWallet: React.FC<IConnectedWallet> = ({
+  sdk,
+  tokenAddress,
+}) => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false });
   const [{ data }, disconnect] = useAccount();
@@ -43,13 +46,13 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
   const tokenModule = useTokenModule(sdk, tokenAddress);
 
   const { data: balance } = useQuery(
-    ["balance", data?.address, tokenAddress], 
+    ["balance", data?.address, tokenAddress],
     async () => {
       if (!tokenAddress || !data?.address) return;
 
-      const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
       if (
-        isAddressZero(tokenAddress) || 
+        isAddressZero(tokenAddress) ||
         tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
       ) {
         /*
@@ -66,10 +69,10 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
       }
 
       return await tokenModule?.balanceOf(data.address);
-    }, 
+    },
     {
       enabled: !!data?.address && !!tokenModule,
-    }
+    },
   );
 
   const switchWallet = async () => {
@@ -82,13 +85,12 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
     });
 
     onClose();
-  }
-
+  };
 
   const disconnectWallet = () => {
     disconnect();
     onClose();
-  }
+  };
 
   const copyAddress = () => {
     onCopy();
@@ -97,18 +99,20 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
       status: "success",
       duration: 5000,
       isClosable: true,
-    })
-  }
+    });
+  };
 
   return (
     <Flex align="center" gap={2}>
       {data?.address && (
         <>
-          <Button 
+          <Button
             variant="outline"
             size="sm"
             color="gray.800"
-            leftIcon={<Icon as={IoWalletOutline} color="gray.500" boxSize={4} />}
+            leftIcon={
+              <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
+            }
             onClick={onOpen}
           >
             {shortenAddress(data.address)}
@@ -126,13 +130,17 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
             >
               <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
               <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
-                {ethers.utils.formatUnits(balance.value, balance.decimals || 18)} {balance.symbol}
+                {ethers.utils.formatUnits(
+                  balance.value,
+                  balance.decimals || 18,
+                )}{" "}
+                {balance.symbol}
               </Text>
             </Stack>
           )}
         </>
       )}
-      
+
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent pb={4} bg="gray.50">
@@ -145,7 +153,9 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
           <ModalBody>
             <Flex direction="column" gap={5}>
               <Stack>
-                <Text size="label.md" display={{ base: "flex", md: "none" }}>Connected Wallet</Text>
+                <Text size="label.md" display={{ base: "flex", md: "none" }}>
+                  Connected Wallet
+                </Text>
                 <ButtonGroup isAttached>
                   <IconButton
                     onClick={copyAddress}
@@ -156,7 +166,12 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
                     size="sm"
                     icon={<Icon as={IoCopy} />}
                   />
-                  <Button size="sm" variant="outline" width="120px" onClick={copyAddress}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    width="120px"
+                    onClick={copyAddress}
+                  >
                     {shortenAddress(data?.address || "")}
                   </Button>
                   {data?.connector?.getProvider()?.isMetaMask && (
@@ -188,9 +203,17 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
                       align="center"
                       gap={1}
                     >
-                      <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
+                      <Icon
+                        as={RiMoneyDollarCircleLine}
+                        boxSize={4}
+                        color="gray.500"
+                      />
                       <Text fontSize="sm" fontWeight="semibold">
-                        {ethers.utils.formatUnits(balance.value, balance.decimals || 18)} {balance.symbol}
+                        {ethers.utils.formatUnits(
+                          balance.value,
+                          balance.decimals || 18,
+                        )}{" "}
+                        {balance.symbol}
                       </Text>
                     </Flex>
                   </Flex>
@@ -201,5 +224,5 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({ sdk, tokenAddress 
         </ModalContent>
       </Modal>
     </Flex>
-  )
-}
+  );
+};
