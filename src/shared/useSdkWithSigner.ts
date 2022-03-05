@@ -1,24 +1,22 @@
-import { ThirdwebSDK } from "@3rdweb/sdk";
-import { Signer } from "ethers";
-import { useEffect, useMemo, useState } from "react";
-import { useAccount, useNetwork, useSigner } from "wagmi";
+import { IpfsStorage, ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { useEffect, useMemo } from "react";
 import { ChainIDToRPCMap } from "./commonRPCUrls";
+import { useSigner } from "./useSigner";
 
 interface useSdkOptions {
   rpcUrl?: string;
   relayUrl?: string;
   expectedChainId: number;
+  ipfsGateway?: string;
 }
 
 export function useSDKWithSigner({
   rpcUrl,
   relayUrl,
   expectedChainId,
+  ipfsGateway,
 }: useSdkOptions) {
-  const [{ data }] = useAccount();
-  const [{ data: network }] = useNetwork();
-  const [{ data: signer }, getSigner] = useSigner();
-  const connector = useMemo(() => data?.connector, [data]);
+  const signer = useSigner();
 
   const rpc = useMemo(() => {
     return rpcUrl || ChainIDToRPCMap[expectedChainId] || null;
@@ -28,23 +26,31 @@ export function useSDKWithSigner({
     if (!rpc) {
       return undefined;
     }
-    return new ThirdwebSDK(rpc, {
-      readonlySettings: {
-        rpcUrl: rpc
+    const storage = ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined;
+    return new ThirdwebSDK(
+      rpc,
+      {
+        readonlySettings: {
+          rpcUrl: rpc,
+        },
+        gasless: relayUrl
+          ? {
+              openzeppelin: {
+                relayerUrl: relayUrl,
+              },
+            }
+          : undefined,
       },
-    });
-  }, [relayUrl]);
+      storage,
+    );
+  }, [rpc, relayUrl, ipfsGateway]);
 
   useEffect(() => {
-    getSigner();
-  }, [connector, data?.address, network.chain?.id]);
-
-  useEffect(() => {
-    if (!sdk || !Signer.isSigner(signer)) {
+    if (!sdk || !signer.data) {
       return;
     }
-    sdk.updateSignerOrProvider(signer);
-  }, [sdk, signer]);
+    sdk.updateSignerOrProvider(signer.data);
+  }, [sdk, signer.data]);
 
   return sdk;
 }

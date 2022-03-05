@@ -1,4 +1,3 @@
-import { DropErc1155Contract, ThirdwebSDK } from "@3rdweb/sdk";
 import {
   Button,
   ButtonProps,
@@ -21,6 +20,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
+import { EditionDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useState } from "react";
@@ -68,7 +68,7 @@ interface DropWidgetProps {
 type Tab = "claim" | "inventory";
 
 interface ModuleInProps {
-  module?: DropErc1155Contract;
+  module?: EditionDrop;
   expectedChainId: number;
 }
 
@@ -160,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 interface ClaimPageProps {
-  module?: DropErc1155Contract;
+  module?: EditionDrop;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
@@ -475,6 +475,7 @@ interface BundleDropWidgetProps {
   expectedChainId: number;
   relayUrl: string | undefined;
   tokenId: string;
+  ipfsGateway?: string;
 }
 
 const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
@@ -484,17 +485,23 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   expectedChainId,
   tokenId,
   relayUrl,
+  ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
 
-  const sdk = useSDKWithSigner({ expectedChainId, rpcUrl, relayUrl });
+  const sdk = useSDKWithSigner({
+    expectedChainId,
+    rpcUrl,
+    relayUrl,
+    ipfsGateway,
+  });
   const address = useAddress();
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
       return undefined;
     }
-    return sdk.getBundleDropContract(contractAddress);
+    return sdk.getEditionDrop(contractAddress);
   }, [sdk]);
 
   const activeClaimCondition = useQuery(
@@ -584,6 +591,24 @@ const App: React.FC = () => {
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
+  let ipfsGateway = urlParams.get("ipfsGateway") || "";
+  if (ipfsGateway.length === 0) {
+    // handle origin split ipfs gateways
+    if (
+      window.location.origin.includes(".ipfs.") ||
+      window.location.origin.startsWith("https://")
+    ) {
+      // we need to take the right part of the .ipfs. part
+      ipfsGateway = window.location.origin.split(".ipfs.")[1];
+      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
+    } else if (
+      ipfsGateway.startsWith("http") &&
+      window.location.pathname.startsWith("/ipfs/")
+    ) {
+      ipfsGateway = window.location.origin + "/ipfs/";
+    }
+  }
+
   return (
     <>
       <Global
@@ -603,6 +628,7 @@ const App: React.FC = () => {
               expectedChainId={expectedChainId}
               tokenId={tokenId}
               relayUrl={relayUrl}
+              ipfsGateway={ipfsGateway}
             />
           </Provider>
         </ChakraProvider>
