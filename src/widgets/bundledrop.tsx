@@ -23,7 +23,7 @@ import { css, Global } from "@emotion/react";
 import { EditionDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -32,6 +32,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -206,7 +207,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const stillAvailableSupply =
     activeClaimCondition.data?.availableSupply || "0";
 
-  const isNotSoldOut = parseInt(stillAvailableSupply, 10) > 0;
+  const isSoldOut = parseInt(stillAvailableSupply, 10) === 0;
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -245,10 +246,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 
   const isLoading =
-    activeClaimCondition.isLoading || claimConditionReasons.isLoading;
+    activeClaimCondition.data === undefined || claimConditionReasons.data === undefined;
 
   const canClaim =
-    !!isNotSoldOut && !!address && !claimConditionReasons.data?.length;
+    !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
   const quantityLimit =
     activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
@@ -306,7 +307,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           colorScheme="blue"
           fontSize={{ base: "label.md", md: "label.lg" }}
         >
-          {!isNotSoldOut
+          {isSoldOut
             ? "Sold out"
             : canClaim
             ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
@@ -488,6 +489,7 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
+  const switched = useRef(false);
 
   const sdk = useSDKWithSigner({
     expectedChainId,
@@ -512,9 +514,6 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
     { enabled: !!dropModule && tokenId.length > 0 },
   );
 
-  const stillAvailableSupply =
-    activeClaimCondition.data?.availableSupply || "0";
-
   const owned = useQuery(
     ["numbers", "owned", { address }],
     async () => {
@@ -526,14 +525,12 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
     },
   );
 
-  const isNotSoldOut = parseInt(stillAvailableSupply) > 0;
-
-  const numOwned = BigNumber.from(owned.data || 0).toNumber();
   useEffect(() => {
-    if (owned.data?.gt(0) && isNotSoldOut) {
+    if (owned.data?.gt(0) && !switched.current) {
       setActiveTab("inventory");
+      switched.current = true;
     }
-  }, [numOwned, isNotSoldOut]);
+  }, [owned.data]);
 
   return (
     <Flex
@@ -591,23 +588,7 @@ const App: React.FC = () => {
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
-  let ipfsGateway = urlParams.get("ipfsGateway") || "";
-  if (ipfsGateway.length === 0) {
-    // handle origin split ipfs gateways
-    if (
-      window.location.origin.includes(".ipfs.") ||
-      window.location.origin.startsWith("https://")
-    ) {
-      // we need to take the right part of the .ipfs. part
-      ipfsGateway = window.location.origin.split(".ipfs.")[1];
-      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
-    } else if (
-      ipfsGateway.startsWith("http") &&
-      window.location.pathname.startsWith("/ipfs/")
-    ) {
-      ipfsGateway = window.location.origin + "/ipfs/";
-    }
-  }
+  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
     <>

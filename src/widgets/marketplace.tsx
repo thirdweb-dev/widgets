@@ -49,6 +49,7 @@ import { useFormatedValue, useTokenModule } from "../shared/tokenHooks";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface MarketplaceWidgetProps {
   colorScheme?: "light" | "dark";
@@ -816,26 +817,11 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
-  let ipfsGateway = urlParams.get("ipfsGateway") || "";
-
-  if (ipfsGateway.length === 0) {
-    // handle origin split ipfs gateways
-    if (
-      window.location.origin.includes(".ipfs.") ||
-      window.location.origin.startsWith("https://")
-    ) {
-      // we need to take the right part of the .ipfs. part
-      ipfsGateway = window.location.origin.split(".ipfs.")[1];
-      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
-    } else if (
-      ipfsGateway.startsWith("http") &&
-      window.location.pathname.startsWith("/ipfs/")
-    ) {
-      ipfsGateway = window.location.origin + "/ipfs/";
-    }
-  }
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
+
+  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+
 
   return (
     <>

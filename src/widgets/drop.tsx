@@ -23,7 +23,7 @@ import { css, Global } from "@emotion/react";
 import { NFTDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -32,6 +32,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -44,6 +45,7 @@ import { fontsizeCss } from "../shared/theme/typography";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
+import { parseIneligibility } from "../utils/parseIneligibility";
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
@@ -78,9 +80,6 @@ const Header: React.FC<HeaderProps> = ({
   const address = useAddress();
   const [{ data: network }] = useNetwork();
   const chainId = useMemo(() => network?.chain?.id, [network]);
-
-  // Enable all queries
-  const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -220,8 +219,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     return bn;
   }, [quantityLimit]);
 
-  const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
-
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
@@ -267,13 +264,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     })
   }
 
+  // Only sold out when available data is loaded
+  const isSoldOut = unclaimed.data?.eq(0);
+
   const isLoading =
-    totalAvailable.isLoading ||
-    claimed.isLoading ||
-    claimCondition.isLoading
+    totalAvailable.data === undefined ||
+    claimed.data === undefined ||
+    claimCondition.data === undefined ||
+    claimConditionReasons.data === undefined;
 
   const canClaim =
-    !!isNotSoldOut && !!address && !claimConditionReasons.data?.length;
+    !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
   const showQuantityInput =
     canClaim &&
@@ -287,7 +288,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-        {showQuantityInput && !isLoading && (
+        {showQuantityInput && (
           <NumberInput
             inputMode="numeric"
             value={quantity}
@@ -311,14 +312,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         )}
         <Button
           fontSize={{ base: "label.md", md: "label.lg" }}
-          isLoading={claimMutation.isLoading}
+          isLoading={claimMutation.isLoading || isLoading}
           isDisabled={!canClaim}
           leftIcon={<IoDiamondOutline />}
           onClick={claim}
           isFullWidth
           colorScheme="blue"
         >
-          {!isNotSoldOut
+          {isSoldOut
             ? "Sold out"
             : canClaim
             ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
@@ -332,7 +333,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? claimConditionReasons.data[0]
+            ? parseIneligibility(claimConditionReasons.data)
             : "Minting Unavailable"}
         </Button>
       </Flex>
@@ -491,6 +492,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     expectedChainId,
     ipfsGateway,
   });
+  const switched = useRef(false);
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -498,18 +500,6 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     }
     return sdk.getNFTDrop(contractAddress);
   }, [sdk]);
-
-  const available = useQuery(
-    ["numbers", "available"],
-    () => dropModule?.totalUnclaimedSupply(),
-    { enabled: !!dropModule },
-  );
-
-  const totalAvailable = useQuery(
-    ["numbers", "total"],
-    () => dropModule?.totalSupply(),
-    { enabled: !!dropModule },
-  );
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
@@ -525,14 +515,12 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     { enabled: !!dropModule },
   );
 
-  const isNotSoldOut = totalAvailable.data?.gte(available.data || 0);
-
-  const numOwned = BigNumber.from(owned.data || 0).toNumber();
   useEffect(() => {
-    if (owned.data?.gt(0) && isNotSoldOut) {
+    if (owned.data?.gt(0) && !switched.current) {
       setActiveTab("inventory");
+      switched.current = true;
     }
-  }, [numOwned, isNotSoldOut]);
+  }, [owned.data]);
 
   return (
     <Flex
@@ -584,23 +572,7 @@ const App: React.FC = () => {
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
-  let ipfsGateway = urlParams.get("ipfsGateway") || "";
-  if (ipfsGateway.length === 0) {
-    // handle origin split ipfs gateways
-    if (
-      window.location.origin.includes(".ipfs.") ||
-      window.location.origin.startsWith("https://")
-    ) {
-      // we need to take the right part of the .ipfs. part
-      ipfsGateway = window.location.origin.split(".ipfs.")[1];
-      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
-    } else if (
-      ipfsGateway.startsWith("http") &&
-      window.location.pathname.startsWith("/ipfs/")
-    ) {
-      ipfsGateway = window.location.origin + "/ipfs/";
-    }
-  }
+  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
     <>
