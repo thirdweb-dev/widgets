@@ -193,10 +193,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { enabled: !!module },
   );
 
+
   const claimConditionReasons = useQuery(
     ["ineligiblereasons", { quantity, address }],
-    () =>
-      module?.claimConditions.getClaimIneligibilityReasons(quantity, address),
+    async () => {
+      return module?.claimConditions.getClaimIneligibilityReasons(quantity, address)
+    },
     { enabled: !!module && !!address },
   );
 
@@ -242,7 +244,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 
   const claim = async () => {
-    const metadata = await module?.metadata.get();
     claimMutation.mutate(quantity, {
       onSuccess: () => {
         queryClient.invalidateQueries();
@@ -254,6 +255,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         });
       },
       onError: (err) => {
+        console.log(err);
         toast({
           title: "Failed to claim drop.",
           description: parseError(err),
@@ -268,8 +270,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const isLoading =
     totalAvailable.isLoading ||
     claimed.isLoading ||
-    claimCondition.isLoading ||
-    claimConditionReasons.isLoading;
+    claimCondition.isLoading
 
   const canClaim =
     !!isNotSoldOut && !!address && !claimConditionReasons.data?.length;
