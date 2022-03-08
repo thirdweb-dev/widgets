@@ -45,6 +45,7 @@ import { fontsizeCss } from "../shared/theme/typography";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
+import { parseIneligibility } from "../utils/parseIneligibility";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -321,7 +322,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? claimConditionReasons.data[0]
+            ? parseIneligibility(claimConditionReasons.data)
             : "Minting Unavailable"}
         </Button>
       </Flex>
