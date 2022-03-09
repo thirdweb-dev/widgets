@@ -351,6 +351,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     leftIcon={<RiAuctionLine />}
                     colorScheme="blue"
                     onClick={() => bidMutation.mutate()}
+                    isDisabled={parseFloat(bid) < parseFloat(minimumBidNumber)}
                   >
                     Bid
                   </Button>
