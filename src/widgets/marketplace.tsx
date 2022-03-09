@@ -307,6 +307,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to purchase.";
+        } else if (
+          anyErr.message.includes("User denied transaction signature")
+        ) {
+          message = "You denied the transaction";
         }
 
         toast({
@@ -789,7 +793,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
     ["numbers", "available"],
     async () => {
       try {
-        return await marketplaceModule?.getListing(listingId)
+        return await marketplaceModule?.getListing(listingId);
       } catch (err: any) {
         if (err.message.includes("Could not find listing")) {
           return null;
