@@ -267,8 +267,22 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         const anyErr = err as any;
         let message = "";
 
+        console.log(anyErr.message);
+
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to purchase.";
+        } else if (
+          anyErr.message.includes("User denied transaction signature")
+        ) {
+          message = "You denied the transaction";
+        } else if (
+          anyErr.message.includes("Invariant failed:")
+        ) {
+          message = anyErr.message.replace("Invariant failed:", "");
+        } else if (
+          anyErr.data.message.includes("insufficient funds")
+        ) {
+          message = "You don't have enough funds to make this bid.";
         }
 
         toast({
@@ -311,7 +325,12 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           anyErr.message.includes("User denied transaction signature")
         ) {
           message = "You denied the transaction";
+        } else if (
+          anyErr.data.message.includes("insufficient funds")
+        ) {
+          message = "You don't have enough funds to buyout this auction.";
         }
+
 
         toast({
           title: "Failed to buyout auction.",
@@ -401,7 +420,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                                   cursor="pointer"
                                   display="inline"
                                 >
-                                  {currentBid?.buyerAddress.slice(0, 10)}...
+                                  {currentBid?.buyerAddress.slice(0, 6)}...{currentBid?.buyerAddress.slice(-4)}
                                 </Text>
                               </Tooltip>
                             </>
@@ -579,7 +598,12 @@ const DirectListing: React.FC<DirectListingProps> = ({
           anyErr.message.includes("User denied transaction signature")
         ) {
           message = "You denied the transaction";
+        } else if (
+          anyErr.data.message.includes("insufficient funds")
+        ) {
+          message = "You don't have enough funds to buy this listing.";
         }
+
 
         toast({
           title: "Failed to purchase from listing",
