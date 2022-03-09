@@ -1896,10 +1896,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.0.1.tgz#f89b8af69be4a368b33a3853fb2481d1134ee401"
   integrity sha512-3gmiNFwVyrURZcCp2gLWelkQjTSroIu9Zj3y3RHU1ZlbPC4YHy/nUsSnMmITcV2XlOl41O2hyinLX5zYpZzCWw==
 
-"@thirdweb-dev/sdk@^2.0.0-nightly.40":
-  version "2.0.0-nightly.40"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.0.0-nightly.40.tgz#937f6ef5db2c7b7a0d6ae101050b1161b6b89cad"
-  integrity sha512-lZRElsz5Q9tD51rh/EgpYOEF63VC4aKmu/u4qfY4mDHH02/L4M3IP9rsEbo0dr6JV1R4wtdpn7Hk9xkCo32Bkw==
+"@thirdweb-dev/sdk@^2.0.0-nightly.41":
+  version "2.0.0-nightly.41"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.0.0-nightly.41.tgz#8ef30ea23f289e40dd6ca5a8d56de75ed428f2d7"
+  integrity sha512-SNwwuR00y94GMR/HlQW6L3u1VJsPMUcfml2i7/cNd+HTT1GQAQjikFRTw2UnonmRBzCDddaRYdeiDaWdyn0fPA==
   dependencies:
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/bytes" "^5.4.0"

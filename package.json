@@ -43,7 +43,7 @@
     "@chakra-ui/react": "^1.7.2",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@thirdweb-dev/sdk": "^2.0.0-nightly.40",
+    "@thirdweb-dev/sdk": "^2.0.0-nightly.41",
     "ethers": "^5.5.2",
     "flat": "^5.0.2",
     "framer-motion": "^6",

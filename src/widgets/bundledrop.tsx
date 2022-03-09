@@ -186,6 +186,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const isEnabled = !!module && !!address && chainId === expectedChainId;
 
+  const owned = useQuery(
+    ["numbers", "owned", { address }],
+    async () => {
+      const owned = await module?.getOwned(address || "");
+      return BigNumber.from(owned?.length || 0);
+    },
+    {
+      enabled: !!module && !!address,
+    },
+  );
+
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
     async () => {
@@ -338,7 +349,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? parseIneligibility(claimConditionReasons.data)
+            ? parseIneligibility(claimConditionReasons.data, owned.data)
             : "Minting Unavailable"}
         </Button>
       </Flex>

@@ -1,6 +1,7 @@
 import { ClaimEligibility } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 
-export function parseIneligibility(reasons: ClaimEligibility[]): string {
+export function parseIneligibility(reasons: ClaimEligibility[], numOwned = BigNumber.from(0)): string {
   if (!reasons.length) {
     return "";
   }
@@ -16,6 +17,10 @@ export function parseIneligibility(reasons: ClaimEligibility[]): string {
   } else if (reason === ClaimEligibility.NotEnoughTokens) {
     return "You don't have enough tokens to claim this drop.";
   } else if (reason === ClaimEligibility.AddressNotAllowed) {
+    if (numOwned.gt(0)) {
+      return "You have already claimed this drop.";
+    }
+
     return "You are not on the allow list for this drop.";
   }
 

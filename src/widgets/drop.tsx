@@ -180,6 +180,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { enabled: isEnabled },
   );
 
+  const owned = useQuery(
+    ["numbers", "owned", { address }],
+    () => module?.balanceOf(address || ""),
+    {
+      enabled: !!module && !!address,
+    },
+  );
+
   const totalAvailable = useQuery(
     ["numbers", "total"],
     () => module?.totalSupply(),
@@ -346,7 +354,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? parseIneligibility(claimConditionReasons.data)
+            ? parseIneligibility(claimConditionReasons.data, owned.data)
             : "Minting Unavailable"}
         </Button>
       </Flex>
