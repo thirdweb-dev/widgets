@@ -128,12 +128,14 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       if (!module) return;
 
       if (isAuctionEnded) {
-        return module.auction.getWinner(listing.id);
+        return await module.auction.getWinner(listing.id);
       }
 
       return undefined;
     },
+    { enabled: !!module && isAuctionEnded },
   );
+
 
   const { data: bidBuffer } = useQuery(
     ["bidBuffer"],
@@ -208,12 +210,12 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 
   const remainingTime = useMemo(() => {
-    const difference =
-      BigNumber.from(listing.endTimeInEpochSeconds).toNumber() -
-      Math.floor(Date.now() / 1000);
-    const days = Math.floor(difference / (60 * 60 * 24));
-    const hours = Math.floor((difference % (60 * 60 * 24)) / (60 * 60));
-    const minutes = Math.floor((difference % (60 * 60)) / 60);
+    const difference = BigNumber
+      .from(listing.endTimeInEpochSeconds)
+      .sub(BigNumber.from(Math.floor(Date.now() / 1000)));
+    const days = Math.floor(difference.div(BigNumber.from(60 * 60 * 24)).toNumber());
+    const hours = Math.floor((difference.mod(BigNumber.from(60 * 60 * 24))).div(BigNumber.from(60 * 60)).toNumber());
+    const minutes = Math.floor((difference.mod(BigNumber.from(60 * 60))).div(BigNumber.from(60)).toNumber());
 
     return `${
       days
@@ -667,6 +669,16 @@ const BuyPage: React.FC<BuyPageProps> = ({
     );
   }
 
+  if (listing === null) {
+    return (
+      <Center w="100%" h="100%">
+        <Button colorScheme="primary" w="100%" isDisabled>
+          This listing was either cancelled or does not exist.
+        </Button>
+      </Center>
+    );
+  }
+
   if (!listing) {
     return (
       <Center w="100%" h="100%">
@@ -775,7 +787,17 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
 
   const { data: listing } = useQuery(
     ["numbers", "available"],
-    () => marketplaceModule?.getListing(listingId),
+    async () => {
+      try {
+        return await marketplaceModule?.getListing(listingId)
+      } catch (err: any) {
+        if (err.message.includes("Could not find listing")) {
+          return null;
+        }
+
+        throw err;
+      }
+    },
     { enabled: !!marketplaceModule && !!listingId },
   );
 
