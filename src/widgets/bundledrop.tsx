@@ -178,23 +178,37 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const loaded = useRef(false);
 
   const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
-    () => module?.claimConditions.getActive(tokenId),
+    async () => {
+      try {
+        return await module?.claimConditions.getActive(tokenId)
+      } catch {
+        return undefined;
+      }
+    },
     { enabled: isEnabled && tokenId.length > 0 },
   );
 
   const claimConditionReasons = useQuery(
     ["ineligiblereasons", { tokenId, quantity, address }],
-    () =>
-      module?.claimConditions.getClaimIneligibilityReasons(
-        tokenId,
-        quantity,
-        address,
-      ),
+    async () => {
+      try {
+        const reasons = await module?.claimConditions.getClaimIneligibilityReasons(
+          tokenId,
+          quantity,
+          address,
+        );
+        loaded.current = true;
+        return reasons;
+      } catch {
+        return undefined;
+      }
+    },
     { enabled: !!module && !!address },
   );
 
@@ -246,8 +260,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
   );
 
-  const isLoading =
-    activeClaimCondition.data === undefined || claimConditionReasons.data === undefined;
+  const isLoading = claimConditionReasons.isLoading && !loaded.current;
 
   const canClaim =
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
@@ -510,7 +523,11 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   const activeClaimCondition = useQuery(
     ["claim-condition"],
     async () => {
-      return dropModule?.claimConditions.getActive(tokenId);
+      try {
+        return await dropModule?.claimConditions.getActive(tokenId);
+      } catch {
+        return undefined;
+      }
     },
     { enabled: !!dropModule && tokenId.length > 0 },
   );
