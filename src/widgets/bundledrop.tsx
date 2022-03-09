@@ -110,7 +110,11 @@ const Header: React.FC<HeaderProps> = ({
   const activeClaimCondition = useQuery(
     ["claim-condition", { tokenId }],
     async () => {
-      return module?.claimConditions.getActive(tokenId);
+      try {
+        return module?.claimConditions.getActive(tokenId);
+      } catch {
+        return undefined;
+      }
     },
     { enabled: isEnabled && tokenId.length > 0 },
   );
