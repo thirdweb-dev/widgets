@@ -223,10 +223,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const priceToMint = bnPrice.mul(quantity);
 
-  const stillAvailableSupply =
-    activeClaimCondition.data?.availableSupply || "0";
-
-  const isSoldOut = parseInt(stillAvailableSupply, 10) === 0;
+  const isSoldOut = 
+    activeClaimCondition.data &&
+    parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
   useEffect(() => {
     let t = setTimeout(() => setClaimSuccess(false), 3000);
