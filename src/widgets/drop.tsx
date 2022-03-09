@@ -63,23 +63,17 @@ interface ModuleInProps {
 
 interface HeaderProps extends ModuleInProps {
   sdk?: ThirdwebSDK;
-  tokenAddress?: string;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
-  expectedChainId: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
   sdk,
-  expectedChainId,
-  tokenAddress,
   activeTab,
   setActiveTab,
   module,
 }) => {
   const address = useAddress();
-  const [{ data: network }] = useNetwork();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -102,6 +96,18 @@ const Header: React.FC<HeaderProps> = ({
     {
       enabled: !!module && !!address,
     },
+  );
+
+  const claimCondition = useQuery(
+    ["claimcondition"],
+    async () => {
+      try {
+        return await module?.claimConditions.getActive();
+      } catch {
+        return undefined;
+      }
+    },
+    { enabled: !!module },
   );
 
   return (
@@ -143,7 +149,7 @@ const Header: React.FC<HeaderProps> = ({
           Inventory{owned.data ? ` (${owned.data})` : ""}
         </Button>
       </Stack>
-      <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />
+      <ConnectedWallet sdk={sdk} tokenAddress={claimCondition?.data?.currencyAddress} />
     </Stack>
   );
 };
@@ -156,7 +162,6 @@ interface ClaimPageProps {
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   module,
-  sdk,
   expectedChainId,
 }) => {
   const [{ data: network }] = useNetwork();
@@ -164,13 +169,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const chainId = useMemo(() => network?.chain?.id, [network]);
   const [quantity, setQuantity] = useState(1);
   const [claimSuccess, setClaimSuccess] = useState(false);
+  const loaded = useRef(false);
 
   // Enable all queries
   const isEnabled = !!module && !!address && chainId === expectedChainId;
 
   const claimed = useQuery(
     ["numbers", "claimed"],
-    () => module?.totalClaimedSupply(),
+    async () => module?.totalClaimedSupply(),
     { enabled: isEnabled },
   );
 
@@ -188,15 +194,26 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const claimCondition = useQuery(
     ["claimcondition"],
-    () => module?.claimConditions.getActive(),
+    async () => {
+      try {
+        return await module?.claimConditions.getActive()
+      } catch {
+        return undefined;
+      }
+    },
     { enabled: !!module },
   );
-
 
   const claimConditionReasons = useQuery(
     ["ineligiblereasons", { quantity, address }],
     async () => {
-      return module?.claimConditions.getClaimIneligibilityReasons(quantity, address)
+      try {
+        const reasons = await module?.claimConditions.getClaimIneligibilityReasons(quantity, address);
+        loaded.current = true;
+        return reasons;
+      } catch {
+        return null;
+      }
     },
     { enabled: !!module && !!address },
   );
@@ -267,11 +284,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   // Only sold out when available data is loaded
   const isSoldOut = unclaimed.data?.eq(0);
 
-  const isLoading =
-    totalAvailable.data === undefined ||
-    claimed.data === undefined ||
-    claimCondition.data === undefined ||
-    claimConditionReasons.data === undefined;
+  const isLoading = claimConditionReasons.isLoading && !loaded.current;
 
   const canClaim =
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
@@ -509,12 +522,6 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     },
   );
 
-  const claimCondition = useQuery(
-    ["claimcondition"],
-    () => dropModule?.claimConditions.getActive(),
-    { enabled: !!dropModule },
-  );
-
   useEffect(() => {
     if (owned.data?.gt(0) && !switched.current) {
       setActiveTab("inventory");
@@ -539,8 +546,6 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     >
       <Header
         sdk={sdk}
-        expectedChainId={expectedChainId}
-        tokenAddress={claimCondition.data?.currencyAddress}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
         module={dropModule}

@@ -15,6 +15,8 @@ export function parseIneligibility(reasons: ClaimEligibility[]): string {
     return "This drop is not ready to be claimed.";
   } else if (reason === ClaimEligibility.NotEnoughTokens) {
     return "You don't have enough tokens to claim this drop.";
+  } else if (reason === ClaimEligibility.AddressNotAllowed) {
+    return "You are not on the allow list for this drop.";
   }
 
   return reason;
