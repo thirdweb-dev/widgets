@@ -136,7 +136,6 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     { enabled: !!module && isAuctionEnded },
   );
 
-
   const { data: bidBuffer } = useQuery(
     ["bidBuffer"],
     () => module?.getBidBufferBps(),
@@ -266,8 +265,6 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       onError: (err) => {
         const anyErr = err as any;
         let message = "";
-
-        console.log(anyErr.message);
 
         if (anyErr.code === "INSUFFICIENT_FUNDS") {
           message = "Insufficient funds to purchase.";
