@@ -1,11 +1,4 @@
 import {
-  AuctionListing,
-  DirectListing,
-  ListingType,
-  Marketplace,
-  ThirdwebSDK,
-} from "@thirdweb-dev/sdk";
-import {
   Button,
   Center,
   ChakraProvider,
@@ -26,6 +19,13 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
+import {
+  AuctionListing,
+  DirectListing,
+  ListingType,
+  Marketplace,
+  ThirdwebSDK,
+} from "@thirdweb-dev/sdk";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
@@ -125,7 +125,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const { data: auctionWinner } = useQuery(
     ["auctionWinner", listing.id],
     async () => {
-      if (!module) return;
+      if (!module) {
+        return;
+      }
 
       if (isAuctionEnded) {
         return await module.auction.getWinner(listing.id);
@@ -151,7 +153,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
-    const reservePriceBN = listing.reservePriceCurrencyValuePerToken.value.mul(listing.quantity);
+    const reservePriceBN = listing.reservePriceCurrencyValuePerToken.value.mul(
+      listing.quantity,
+    );
 
     const currentBidNumber = ethers.utils.formatUnits(
       BigNumber.from(currentBid?.currencyValue.value || "0")
@@ -209,12 +213,24 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 
   const remainingTime = useMemo(() => {
-    const difference = BigNumber
-      .from(listing.endTimeInEpochSeconds)
-      .sub(BigNumber.from(Math.floor(Date.now() / 1000)));
-    const days = Math.floor(difference.div(BigNumber.from(60 * 60 * 24)).toNumber());
-    const hours = Math.floor((difference.mod(BigNumber.from(60 * 60 * 24))).div(BigNumber.from(60 * 60)).toNumber());
-    const minutes = Math.floor((difference.mod(BigNumber.from(60 * 60))).div(BigNumber.from(60)).toNumber());
+    const difference = BigNumber.from(listing.endTimeInEpochSeconds).sub(
+      BigNumber.from(Math.floor(Date.now() / 1000)),
+    );
+    const days = Math.floor(
+      difference.div(BigNumber.from(60 * 60 * 24)).toNumber(),
+    );
+    const hours = Math.floor(
+      difference
+        .mod(BigNumber.from(60 * 60 * 24))
+        .div(BigNumber.from(60 * 60))
+        .toNumber(),
+    );
+    const minutes = Math.floor(
+      difference
+        .mod(BigNumber.from(60 * 60))
+        .div(BigNumber.from(60))
+        .toNumber(),
+    );
 
     return `${
       days
@@ -272,13 +288,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           anyErr.message.includes("User denied transaction signature")
         ) {
           message = "You denied the transaction";
-        } else if (
-          anyErr.message.includes("Invariant failed:")
-        ) {
+        } else if (anyErr.message.includes("Invariant failed:")) {
           message = anyErr.message.replace("Invariant failed:", "");
-        } else if (
-          anyErr.data.message.includes("insufficient funds")
-        ) {
+        } else if (anyErr.data.message.includes("insufficient funds")) {
           message = "You don't have enough funds to make this bid.";
         }
 
@@ -322,12 +334,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
           anyErr.message.includes("User denied transaction signature")
         ) {
           message = "You denied the transaction";
-        } else if (
-          anyErr.data.message.includes("insufficient funds")
-        ) {
+        } else if (anyErr.data.message.includes("insufficient funds")) {
           message = "You don't have enough funds to buyout this auction.";
         }
-
 
         toast({
           title: "Failed to buyout auction.",
@@ -417,7 +426,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                                   cursor="pointer"
                                   display="inline"
                                 >
-                                  {currentBid?.buyerAddress.slice(0, 6)}...{currentBid?.buyerAddress.slice(-4)}
+                                  {currentBid?.buyerAddress.slice(0, 6)}...
+                                  {currentBid?.buyerAddress.slice(-4)}
                                 </Text>
                               </Tooltip>
                             </>
@@ -540,7 +550,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [buySuccess, setBuySuccess] = useState(false);
 
-  const pricePerToken = listing.buyoutCurrencyValuePerToken.value
+  const pricePerToken = listing.buyoutCurrencyValuePerToken.value;
 
   const quantityLimit = useMemo(() => {
     return BigNumber.from(listing.quantity || 1);
@@ -558,7 +568,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
   const isSoldOut = BigNumber.from(listing.quantity).eq(0);
 
   useEffect(() => {
-    let t = setTimeout(() => setBuySuccess(false), 3000);
+    const t = setTimeout(() => setBuySuccess(false), 3000);
     return () => clearTimeout(t);
   }, [buySuccess]);
 
@@ -571,7 +581,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
       return module.buyoutListing(
         BigNumber.from(listing.id),
         // either the quantity or the limit if it is lower
-        Math.min(quantity, quantityLimit.toNumber())
+        Math.min(quantity, quantityLimit.toNumber()),
       );
     },
     {
@@ -595,12 +605,9 @@ const DirectListing: React.FC<DirectListingProps> = ({
           anyErr.message.includes("User denied transaction signature")
         ) {
           message = "You denied the transaction";
-        } else if (
-          anyErr.data.message.includes("insufficient funds")
-        ) {
+        } else if (anyErr.data.message.includes("insufficient funds")) {
           message = "You don't have enough funds to buy this listing.";
         }
-
 
         toast({
           title: "Failed to purchase from listing",
@@ -661,7 +668,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
           >
             {isSoldOut
               ? "Sold Out"
-              : !!canClaim
+              : canClaim
               ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
                   BigNumber.from(pricePerToken).eq(0)
                     ? " (Free)"
@@ -862,14 +869,13 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || ""; // default to expectedChainId default
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
-  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
-
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
     <>
