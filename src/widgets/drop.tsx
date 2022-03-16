@@ -31,6 +31,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { parseIpfsGateway } from "src/utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -225,7 +226,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const isNotSoldOut = claimed.data?.lt(totalAvailable.data || 0);
 
   useEffect(() => {
-    let t = setTimeout(() => setClaimSuccess(false), 3000);
+    const t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
   }, [claimSuccess]);
 
@@ -567,23 +568,7 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
-  let ipfsGateway = urlParams.get("ipfsGateway") || "";
-  if (ipfsGateway.length === 0) {
-    // handle origin split ipfs gateways
-    if (
-      window.location.origin.includes(".ipfs.") ||
-      window.location.origin.startsWith("https://")
-    ) {
-      // we need to take the right part of the .ipfs. part
-      ipfsGateway = window.location.origin.split(".ipfs.")[1];
-      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
-    } else if (
-      ipfsGateway.startsWith("http") &&
-      window.location.pathname.startsWith("/ipfs/")
-    ) {
-      ipfsGateway = window.location.origin + "/ipfs/";
-    }
-  }
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 

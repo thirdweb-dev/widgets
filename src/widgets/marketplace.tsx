@@ -38,6 +38,7 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
+import { parseIpfsGateway } from "src/utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -124,7 +125,9 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   const { data: auctionWinner } = useQuery(
     ["auctionWinner", listing.id],
     async () => {
-      if (!module) return;
+      if (!module) {
+        return;
+      }
 
       if (isAuctionEnded) {
         return module.getAuctionWinner(listing.id);
@@ -553,7 +556,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
   const isSoldOut = BigNumber.from(listing.quantity).eq(0);
 
   useEffect(() => {
-    let t = setTimeout(() => setBuySuccess(false), 3000);
+    const t = setTimeout(() => setBuySuccess(false), 3000);
     return () => clearTimeout(t);
   }, [buySuccess]);
 
@@ -651,7 +654,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
           >
             {isSoldOut
               ? "Sold Out"
-              : !!canClaim
+              : canClaim
               ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
                   BigNumber.from(pricePerToken).eq(0)
                     ? " (Free)"
@@ -832,28 +835,11 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || ""; // default to expectedChainId default
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
-  let ipfsGateway = urlParams.get("ipfsGateway") || "";
 
-  if (ipfsGateway.length === 0) {
-    // handle origin split ipfs gateways
-    if (
-      window.location.origin.includes(".ipfs.") ||
-      window.location.origin.startsWith("https://")
-    ) {
-      // we need to take the right part of the .ipfs. part
-      ipfsGateway = window.location.origin.split(".ipfs.")[1];
-      ipfsGateway = `https://${ipfsGateway}/ipfs/`;
-    } else if (
-      ipfsGateway.startsWith("http") &&
-      window.location.pathname.startsWith("/ipfs/")
-    ) {
-      ipfsGateway = window.location.origin + "/ipfs/";
-    }
-  }
-
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
   return (
