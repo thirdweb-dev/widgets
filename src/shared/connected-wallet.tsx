@@ -14,6 +14,7 @@ import {
   Stack,
   Text,
   useClipboard,
+  useColorModeValue,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -44,6 +45,9 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
   const [{ data }, disconnect] = useAccount();
   const { onCopy } = useClipboard(data?.address || "");
   const tokenModule = useTokenModule(sdk, tokenAddress);
+  const bg = useColorModeValue("white", "backgroundDark");
+  const textColor = useColorModeValue("heading", "headingLight");
+  const addressColor = useColorModeValue("gray.800", "headingLight");
 
   const { data: balance } = useQuery(
     ["balance", data?.address, tokenAddress],
@@ -109,7 +113,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
           <Button
             variant="outline"
             size="sm"
-            color="gray.800"
+            color={addressColor}
             leftIcon={
               <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
             }
@@ -143,11 +147,13 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
 
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
-        <ModalContent pb={4} bg="gray.50">
+        <ModalContent pb={4} bg={bg}>
           <ModalCloseButton />
 
           <ModalHeader>
-            <Heading size="label.lg">Account Details</Heading>
+            <Heading color={textColor} size="label.lg">
+              Account Details
+            </Heading>
           </ModalHeader>
 
           <ModalBody>
