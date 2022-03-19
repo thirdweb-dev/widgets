@@ -17,6 +17,8 @@ import {
   Stack,
   Tab,
   Text,
+  useColorMode,
+  useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -32,7 +34,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -46,6 +47,7 @@ import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -81,6 +83,8 @@ interface HeaderProps extends ModuleInProps {
   setActiveTab: (tab: Tab) => void;
   tokenId: string;
   expectedChainId: number;
+  showInventory?: boolean;
+  showWallet?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -91,6 +95,8 @@ const Header: React.FC<HeaderProps> = ({
   module,
   expectedChainId,
   tokenId,
+  showInventory,
+  showWallet,
 }) => {
   const address = useAddress();
   const [{ data: network }] = useNetwork();
@@ -145,22 +151,24 @@ const Header: React.FC<HeaderProps> = ({
         >
           Mint{available ? ` (${available})` : ""}
         </Button>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          {...(activeTab === "inventory"
-            ? activeButtonProps
-            : inactiveButtonProps)}
-          variant="unstyled"
-          borderRadius={0}
-          onClick={() => setActiveTab("inventory")}
-        >
-          Inventory
-        </Button>
+        {showInventory && (
+          <Button
+            h="48px"
+            fontSize="subtitle.md"
+            fontWeight="700"
+            borderY="4px solid transparent"
+            {...(activeTab === "inventory"
+              ? activeButtonProps
+              : inactiveButtonProps)}
+            variant="unstyled"
+            borderRadius={0}
+            onClick={() => setActiveTab("inventory")}
+          >
+            Inventory
+          </Button>
+        )}
       </Stack>
-      <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />
+      {showWallet && <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />}
     </Stack>
   );
 };
@@ -170,6 +178,8 @@ interface ClaimPageProps {
   sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
+  description?: string | null;
+  name?: string | null;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
@@ -183,6 +193,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
+  const claimedTextColor = useColorModeValue("green.800", "green.200");
 
   const isEnabled = !!module && !!address && chainId === expectedChainId;
 
@@ -201,7 +212,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["claim-condition", { tokenId }],
     async () => {
       try {
-        return await module?.claimConditions.getActive(tokenId)
+        return await module?.claimConditions.getActive(tokenId);
       } catch {
         return undefined;
       }
@@ -213,11 +224,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["ineligiblereasons", { tokenId, quantity, address }],
     async () => {
       try {
-        const reasons = await module?.claimConditions.getClaimIneligibilityReasons(
-          tokenId,
-          quantity,
-          address,
-        );
+        const reasons =
+          await module?.claimConditions.getClaimIneligibilityReasons(
+            tokenId,
+            quantity,
+            address,
+          );
         loaded.current = true;
         return reasons;
       } catch {
@@ -234,7 +246,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const priceToMint = bnPrice.mul(quantity);
 
-  const isSoldOut = 
+  const isSoldOut =
     activeClaimCondition.data &&
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
@@ -256,7 +268,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       onSuccess: () => {
         queryClient.invalidateQueries();
         toast({
-          title: "Successfuly claimed.",
+          title: "Successfully claimed.",
           status: "success",
           duration: 5000,
           isClosable: true,
@@ -354,7 +366,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         </Button>
       </Flex>
       {activeClaimCondition.data && (
-        <Text size="label.md" color="green.800">
+        <Text size="label.md" color={claimedTextColor}>
           {`${parseHugeNumber(
             activeClaimCondition.data?.maxQuantity.sub(
               activeClaimCondition.data.availableSupply,
@@ -373,7 +385,11 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   sdk,
   expectedChainId,
   tokenId,
+  description,
+  name,
 }) => {
+  const textColor = useColorModeValue("heading", "headingLight");
+
   const tokenMetadata = useQuery(
     ["token-metadata", { tokenId }],
     async () => {
@@ -387,7 +403,9 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
           <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
+          <Heading color={textColor} size="label.sm">
+            Loading...
+          </Heading>
         </Stack>
       </Center>
     );
@@ -419,12 +437,12 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
-          {metaData?.name}
+        <Heading color={textColor} size="display.md" fontWeight="title" as="h1">
+          {name ? name : metaData?.name}
         </Heading>
         {metaData?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metaData.description}
+          <Heading color={textColor} noOfLines={2} as="h2" size="subtitle.md">
+            {description ? description : metaData.description}
           </Heading>
         )}
         <ClaimButton
@@ -443,6 +461,8 @@ const InventoryPage: React.FC<ModuleInProps> = ({
   expectedChainId,
 }) => {
   const address = useAddress();
+  const textColor = useColorModeValue("heading", "headingLight");
+
   const ownedDrops = useQuery(
     "inventory",
     () => module?.getOwned(address || ""),
@@ -454,7 +474,9 @@ const InventoryPage: React.FC<ModuleInProps> = ({
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
           <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
+          <Heading color={textColor} size="label.sm">
+            Loading...
+          </Heading>
         </Stack>
       </Center>
     );
@@ -466,7 +488,7 @@ const InventoryPage: React.FC<ModuleInProps> = ({
     return (
       <Center w="100%" h="100%">
         <Stack spacing={4} direction="column" align="center">
-          <Heading size="label.sm">
+          <Heading color={textColor} size="label.sm">
             Connect your wallet to see your owned drops
           </Heading>
           <ConnectWalletButton expectedChainId={expectedChainId} />
@@ -505,6 +527,10 @@ interface BundleDropWidgetProps {
   relayUrl: string | undefined;
   tokenId: string;
   ipfsGateway?: string;
+  description?: string | null;
+  name?: string | null;
+  showInventory?: boolean;
+  showWallet?: boolean;
 }
 
 const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
@@ -515,8 +541,15 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   tokenId,
   relayUrl,
   ipfsGateway,
+  colorScheme,
+  description,
+  name,
+  showInventory,
+  showWallet,
 }) => {
+  const { setColorMode } = useColorMode();
   const [activeTab, setActiveTab] = useState(startingTab);
+  const bg = useColorModeValue("white", "backgroundDark");
   const switched = useRef(false);
 
   const sdk = useSDKWithSigner({
@@ -558,8 +591,12 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   );
 
   useEffect(() => {
+    setColorMode(colorScheme);
+  }, []);
+
+  useEffect(() => {
     if (owned.data?.gt(0) && !switched.current) {
-      setActiveTab("inventory");
+      showInventory && setActiveTab("inventory");
       switched.current = true;
     }
   }, [owned.data]);
@@ -577,7 +614,7 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
       borderColor="blackAlpha.100"
-      bg="white"
+      bg={bg}
     >
       <Header
         sdk={sdk}
@@ -587,6 +624,8 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
         module={dropModule}
         tokenId={tokenId}
         expectedChainId={expectedChainId}
+        showInventory={showInventory}
+        showWallet={showWallet}
       />
       <Body>
         {activeTab === "claim" ? (
@@ -595,6 +634,8 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
             tokenId={tokenId}
             sdk={sdk}
             expectedChainId={expectedChainId}
+            description={description}
+            name={name}
           />
         ) : (
           <InventoryPage
@@ -611,12 +652,23 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
 const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
+const getBool = (param: string, defaultVal: boolean) => {
+  const paramExists = urlParams.get(param);
+  return paramExists ? JSON.parse(paramExists.toLowerCase()) : defaultVal;
+};
+
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
   const tokenId = urlParams.get("tokenId") || "0";
   const relayUrl = urlParams.get("relayUrl") || "";
+
+  const darkMode = getBool("darkMode", false);
+  const description = urlParams.get("description");
+  const name = urlParams.get("name");
+  const showInventory = getBool("showInventory", true);
+  const showWallet = getBool("showWallet", true);
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -637,11 +689,16 @@ const App: React.FC = () => {
           <Provider autoConnect connectors={connectors}>
             <BundleDropWidget
               rpcUrl={rpcUrl}
+              colorScheme={darkMode ? "dark" : "light"}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
               tokenId={tokenId}
               relayUrl={relayUrl}
               ipfsGateway={ipfsGateway}
+              description={description}
+              name={name}
+              showInventory={showInventory}
+              showWallet={showWallet}
             />
           </Provider>
         </ChakraProvider>

@@ -151,7 +151,7 @@ const themeColors = {
 export const colors = {
   // straight from design
   backgroundLight: "#F5F6F8",
-  backgroundDark: "#11141E",
+  backgroundDark: "#1A202C",
   wordMark: "#262A36",
   heading: "#272E36",
   paragraph: "rgba(39, 46, 54, 0.9)",

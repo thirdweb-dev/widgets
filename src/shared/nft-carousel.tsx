@@ -10,6 +10,7 @@ import {
   Image,
   Stack,
   Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { NFTMetadata } from "@thirdweb-dev/sdk";
 import React, { useCallback, useState } from "react";
@@ -21,6 +22,7 @@ interface NftCarouselProps {
 export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
   const arrayLength = metadata.length;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const textColor = useColorModeValue("heading", "headingLight");
 
   const next = useCallback(() => {
     setCurrentIndex((val) => {
@@ -79,11 +81,17 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
                     title={nft.name}
                   />
                 </AspectRatio>
-                <Heading fontWeight={500} fontSize="18px" size="sm" as="h3">
+                <Heading
+                  color={textColor}
+                  fontWeight={500}
+                  fontSize="18px"
+                  size="sm"
+                  as="h3"
+                >
                   {nft.name}
                 </Heading>
                 {nft.supply && (
-                  <Text>
+                  <Text color={textColor}>
                     <strong>Quantity:</strong> {nft.supply}
                   </Text>
                 )}
