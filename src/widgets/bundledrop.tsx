@@ -32,7 +32,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -46,6 +45,7 @@ import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
@@ -189,8 +189,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const owned = useQuery(
     ["numbers", "owned", { address }],
     async () => {
-      const owned = await module?.getOwned(address || "");
-      return BigNumber.from(owned?.length || 0);
+      const _owned = await module?.getOwned(address || "");
+      return BigNumber.from(_owned?.length || 0);
     },
     {
       enabled: !!module && !!address,
@@ -201,7 +201,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["claim-condition", { tokenId }],
     async () => {
       try {
-        return await module?.claimConditions.getActive(tokenId)
+        return await module?.claimConditions.getActive(tokenId);
       } catch {
         return undefined;
       }
@@ -213,11 +213,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["ineligiblereasons", { tokenId, quantity, address }],
     async () => {
       try {
-        const reasons = await module?.claimConditions.getClaimIneligibilityReasons(
-          tokenId,
-          quantity,
-          address,
-        );
+        const reasons =
+          await module?.claimConditions.getClaimIneligibilityReasons(
+            tokenId,
+            quantity,
+            address,
+          );
         loaded.current = true;
         return reasons;
       } catch {
@@ -234,12 +235,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const priceToMint = bnPrice.mul(quantity);
 
-  const isSoldOut = 
+  const isSoldOut =
     activeClaimCondition.data &&
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
   useEffect(() => {
-    let t = setTimeout(() => setClaimSuccess(false), 3000);
+    const t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
   }, [claimSuccess]);
 
@@ -295,7 +296,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }, [quantityLimit]);
 
   const showQuantityInput =
-    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lte(1000);
+    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lt(1000);
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -549,8 +550,8 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   const owned = useQuery(
     ["numbers", "owned", { address }],
     async () => {
-      const owned = await dropModule?.getOwned(address || "");
-      return BigNumber.from(owned?.length || 0);
+      const _owned = await dropModule?.getOwned(address || "");
+      return BigNumber.from(_owned?.length || 0);
     },
     {
       enabled: !!dropModule && !!address,
@@ -614,13 +615,14 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; //default to expectedChainId default
+  // default to expectedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || "";
   const tokenId = urlParams.get("tokenId") || "0";
   const relayUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
-  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
     <>

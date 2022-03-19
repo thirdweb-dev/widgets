@@ -32,7 +32,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
@@ -46,6 +45,7 @@ import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
+import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
@@ -149,7 +149,10 @@ const Header: React.FC<HeaderProps> = ({
           Inventory{owned.data ? ` (${owned.data})` : ""}
         </Button>
       </Stack>
-      <ConnectedWallet sdk={sdk} tokenAddress={claimCondition?.data?.currencyAddress} />
+      <ConnectedWallet
+        sdk={sdk}
+        tokenAddress={claimCondition?.data?.currencyAddress}
+      />
     </Stack>
   );
 };
@@ -160,10 +163,7 @@ interface ClaimPageProps {
   expectedChainId: number;
 }
 
-const ClaimButton: React.FC<ClaimPageProps> = ({
-  module,
-  expectedChainId,
-}) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
   const [{ data: network }] = useNetwork();
   const address = useAddress();
   const chainId = useMemo(() => network?.chain?.id, [network]);
@@ -204,7 +204,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["claimcondition"],
     async () => {
       try {
-        return await module?.claimConditions.getActive()
+        return await module?.claimConditions.getActive();
       } catch {
         return undefined;
       }
@@ -216,7 +216,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["ineligiblereasons", { quantity, address }],
     async () => {
       try {
-        const reasons = await module?.claimConditions.getClaimIneligibilityReasons(quantity, address);
+        const reasons =
+          await module?.claimConditions.getClaimIneligibilityReasons(
+            quantity,
+            address,
+          );
         loaded.current = true;
         return reasons;
       } catch {
@@ -245,18 +249,18 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }, [quantityLimit]);
 
   useEffect(() => {
-    let t = setTimeout(() => setClaimSuccess(false), 3000);
+    const t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
   }, [claimSuccess]);
 
   const toast = useToast();
 
   const claimMutation = useMutation(
-    (quantity: number) => {
+    (amount: number) => {
       if (!address || !module) {
         throw new Error("No address or module");
       }
-      return module.claim(quantity);
+      return module.claim(amount);
     },
     {
       onSuccess: () => {
@@ -286,8 +290,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           isClosable: true,
         });
       },
-    })
-  }
+    });
+  };
 
   // Only sold out when available data is loaded
   const isSoldOut = unclaimed.data?.eq(0);
@@ -298,9 +302,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
   const showQuantityInput =
-    canClaim &&
-    quantityLimitBigNumber.gt(1) &&
-    quantityLimitBigNumber.lte(1000);
+    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lt(1000);
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -343,7 +345,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {isSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
+            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
                 claimCondition.data?.price.eq(0)
                   ? " (Free)"
                   : claimCondition.data?.currencyMetadata.displayValue
@@ -585,7 +587,7 @@ const App: React.FC = () => {
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
-  let ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
     <>
