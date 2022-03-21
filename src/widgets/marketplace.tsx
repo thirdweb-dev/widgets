@@ -171,7 +171,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.decimals || 18,
     );
 
-    const minimumBidBN = BigNumber.from(currentBid?.currencyValue.value || 0)
+    const _minimumBidBN = BigNumber.from(currentBid?.currencyValue.value || 0)
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
@@ -180,7 +180,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     ).mul(listing.quantity);
 
     return currentBidBN?.gt(reservePriceBN)
-      ? { minimumBidNumber: currentBidNumber, minimumBidBN }
+      ? { minimumBidNumber: currentBidNumber, minimumBidBN: _minimumBidBN }
       : {
           minimumBidNumber: reservePriceNumber,
           minimumBidBN: minimumReservePriceBN,
@@ -190,6 +190,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     currentBid?.currencyValue?.decimals,
     listing.reservePriceCurrencyValuePerToken,
     bidBuffer,
+    listing.quantity,
   ]);
 
   const minimumBidFormatted = useFormatedValue(
@@ -361,7 +362,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     width="100%"
                     borderRightRadius="0"
                     value={bid}
-                    onChange={(valueString, value) => {
+                    onChange={(valueString) => {
                       setBid(valueString || minimumBidNumber);
                     }}
                     min={parseFloat(minimumBidNumber)}
@@ -692,16 +693,6 @@ const BuyPage: React.FC<BuyPageProps> = ({
   expectedChainId,
   listing,
 }) => {
-  const [{ data: network }] = useNetwork();
-
-  if (expectedChainId !== network?.chain?.id) {
-    return (
-      <Center w="100%" h="100%">
-        <ConnectWalletButton expectedChainId={expectedChainId} />
-      </Center>
-    );
-  }
-
   if (listing === null) {
     return (
       <Center w="100%" h="100%">
@@ -816,7 +807,7 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
       return undefined;
     }
     return sdk.getMarketplace(contractAddress);
-  }, [sdk]);
+  }, [sdk, contractAddress]);
 
   const { data: listing } = useQuery(
     ["numbers", "available"],
@@ -869,7 +860,8 @@ const urlParams = new URL(window.location.toString()).searchParams;
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || ""; // default to expectedChainId default
+  // default to expectedChainId default
+  const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayUrl = urlParams.get("relayUrl") || "";
 
