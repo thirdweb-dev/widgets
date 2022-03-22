@@ -246,7 +246,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
       return unclaimedBn;
     }
     return bn;
-  }, [quantityLimit]);
+  }, [quantityLimit, unclaimed.data]);
 
   useEffect(() => {
     const t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -301,9 +301,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
   const canClaim =
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
-  const showQuantityInput =
-    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lte(1000);
-
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
@@ -311,28 +308,30 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-        {showQuantityInput && (
-          <NumberInput
-            inputMode="numeric"
-            value={quantity}
-            onChange={(stringValue, value) => {
-              if (stringValue === "") {
-                setQuantity(0);
-              } else {
-                setQuantity(value);
-              }
-            }}
-            min={1}
-            max={quantityLimitBigNumber.toNumber()}
-            maxW={{ base: "100%", md: "100px" }}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-        )}
+        <NumberInput
+          inputMode="numeric"
+          value={quantity}
+          onChange={(stringValue, value) => {
+            if (stringValue === "") {
+              setQuantity(0);
+            } else {
+              setQuantity(value);
+            }
+          }}
+          min={1}
+          max={
+            quantityLimitBigNumber.lte(10000)
+              ? quantityLimitBigNumber.toNumber()
+              : undefined
+          }
+          maxW={{ base: "100%", md: "100px" }}
+        >
+          <NumberInputField />
+          <NumberInputStepper>
+            <NumberIncrementStepper />
+            <NumberDecrementStepper />
+          </NumberInputStepper>
+        </NumberInput>
         <Button
           fontSize={{ base: "label.md", md: "label.lg" }}
           isLoading={claimMutation.isLoading || isLoading}
@@ -522,7 +521,7 @@ const DropWidget: React.FC<DropWidgetProps> = ({
       return undefined;
     }
     return sdk.getNFTDrop(contractAddress);
-  }, [sdk]);
+  }, [sdk, contractAddress]);
 
   const owned = useQuery(
     ["numbers", "owned", { address }],

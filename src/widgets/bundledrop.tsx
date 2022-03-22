@@ -293,10 +293,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       return unclaimedBn;
     }
     return bn;
-  }, [quantityLimit]);
-
-  const showQuantityInput =
-    quantityLimitBigNumber.gt(1) && quantityLimitBigNumber.lte(1000);
+  }, [quantityLimit, activeClaimCondition]);
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -305,28 +302,30 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-        {showQuantityInput && (
-          <NumberInput
-            inputMode="numeric"
-            value={quantity}
-            onChange={(stringValue, value) => {
-              if (stringValue === "") {
-                setQuantity(0);
-              } else {
-                setQuantity(value);
-              }
-            }}
-            min={1}
-            max={quantityLimitBigNumber.toNumber()}
-            maxW={{ base: "100%", md: "100px" }}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-        )}
+        <NumberInput
+          inputMode="numeric"
+          value={quantity}
+          onChange={(stringValue, value) => {
+            if (stringValue === "") {
+              setQuantity(0);
+            } else {
+              setQuantity(value);
+            }
+          }}
+          min={1}
+          max={
+            quantityLimitBigNumber.lte(10000)
+              ? quantityLimitBigNumber.toNumber()
+              : undefined
+          }
+          maxW={{ base: "100%", md: "100px" }}
+        >
+          <NumberInputField />
+          <NumberInputStepper>
+            <NumberIncrementStepper />
+            <NumberDecrementStepper />
+          </NumberInputStepper>
+        </NumberInput>
         <Button
           isLoading={isLoading || claimMutation.isLoading}
           isDisabled={!canClaim}
@@ -339,7 +338,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {isSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${showQuantityInput ? ` ${quantity}` : ""}${
+            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
                 activeClaimCondition.data?.price.eq(0)
                   ? " (Free)"
                   : activeClaimCondition.data?.currencyMetadata.displayValue
@@ -533,7 +532,7 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
       return undefined;
     }
     return sdk.getEditionDrop(contractAddress);
-  }, [sdk]);
+  }, [sdk, contractAddress]);
 
   const activeClaimCondition = useQuery(
     ["claim-condition"],
