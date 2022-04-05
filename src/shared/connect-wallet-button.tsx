@@ -14,8 +14,8 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React from "react";
-import { IoSwapHorizontalSharp } from "react-icons/io5";
 import { FiInfo } from "react-icons/fi";
+import { IoSwapHorizontalSharp } from "react-icons/io5";
 import { useConnect, useNetwork } from "wagmi";
 import { ChainIDToName, supportedChains } from "./commonRPCUrls";
 
@@ -24,9 +24,9 @@ interface ConnectWalletButtonProps {
 }
 
 const connectorIdToImageUrl: Record<string, string> = {
-  injected: "https://thirdweb.com/logos/metamask-fox.svg",
-  walletConnect: "https://thirdweb.com/logos/walletconnect-logo.svg",
-  walletLink: "https://thirdweb.com/logos/coinbase-wallet-logo.svg",
+  MetaMask: "https://thirdweb.com/logos/metamask-fox.svg",
+  WalletConnect: "https://thirdweb.com/logos/walletconnect-logo.svg",
+  "Coinbase Wallet": "https://thirdweb.com/logos/coinbase-wallet-logo.svg",
 };
 
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
@@ -63,17 +63,19 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
             <Icon as={FiInfo} color={`orange.400`} boxSize={6} />
             <Stack>
               <Text color={`orange.800`}>
-                You are currently connected to the wrong network. Please switch your network to continue.
+                You are currently connected to the wrong network. Please switch
+                your network to continue.
               </Text>
               <Text color={`orange.800`}>
-                If you are using wallet connect or coinbase wallet, you may need to manually switch networks on your app.
+                If you are using WalletConnect or Coinbase Wallet, you may need
+                to manually switch networks on your app.
               </Text>
             </Stack>
           </Stack>
         </Stack>
       );
     }
-    
+
     return (
       <Alert variant="left-accent" status="warning">
         <AlertIcon />
@@ -93,7 +95,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
       </Alert>
     );
   }
-  let isMounted = true;
+  const isMounted = true;
   return (
     <Menu matchWidth>
       <MenuButton
@@ -109,27 +111,29 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
 
       <MenuList>
         <Flex direction={{ base: "column", md: "row" }} gap={2} px={3}>
-          {data.connectors.map((_connector) => (
-            <Button
-              flexGrow={1}
-              size="sm"
-              variant="outline"
-              key={_connector.name}
-              isLoading={loading && data?.connector?.name === _connector?.name}
-              isDisabled={!_connector.ready}
-              onClick={() => connect(_connector)}
-              leftIcon={
-                <Image
-                  maxWidth={6}
-                  src={connectorIdToImageUrl[_connector.id]}
-                  alt={_connector.name}
-                />
-              }
-            >
-              {_connector.name}
-              {isMounted ? !_connector.ready && " (unsupported)" : ""}
-            </Button>
-          ))}
+          {data.connectors.map((_connector) =>
+            _connector.ready ? (
+              <Button
+                flexGrow={1}
+                size="sm"
+                variant="outline"
+                key={_connector.name}
+                isLoading={
+                  loading && data?.connector?.name === _connector?.name
+                }
+                onClick={() => connect(_connector)}
+                leftIcon={
+                  <Image
+                    maxWidth={6}
+                    src={connectorIdToImageUrl[_connector.name]}
+                    alt={_connector.name}
+                  />
+                }
+              >
+                {_connector.name}
+              </Button>
+            ) : null,
+          )}
         </Flex>
       </MenuList>
     </Menu>
