@@ -517,7 +517,6 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
   ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
-  const switched = useRef(false);
 
   const sdk = useSDKWithSigner({
     expectedChainId,
@@ -525,7 +524,6 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
     relayUrl,
     ipfsGateway,
   });
-  const address = useAddress();
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -545,24 +543,6 @@ const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
     },
     { enabled: !!dropModule && tokenId.length > 0 },
   );
-
-  const owned = useQuery(
-    ["numbers", "owned", { address }],
-    async () => {
-      const _owned = await dropModule?.getOwned(address || "");
-      return BigNumber.from(_owned?.length || 0);
-    },
-    {
-      enabled: !!dropModule && !!address,
-    },
-  );
-
-  useEffect(() => {
-    if (owned.data?.gt(0) && !switched.current) {
-      setActiveTab("inventory");
-      switched.current = true;
-    }
-  }, [owned.data]);
 
   return (
     <Flex

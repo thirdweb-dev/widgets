@@ -507,14 +507,12 @@ const DropWidget: React.FC<DropWidgetProps> = ({
   ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
-  const address = useAddress();
   const sdk = useSDKWithSigner({
     rpcUrl,
     relayUrl,
     expectedChainId,
     ipfsGateway,
   });
-  const switched = useRef(false);
 
   const dropModule = useMemo(() => {
     if (!sdk || !contractAddress) {
@@ -522,21 +520,6 @@ const DropWidget: React.FC<DropWidgetProps> = ({
     }
     return sdk.getNFTDrop(contractAddress);
   }, [sdk, contractAddress]);
-
-  const owned = useQuery(
-    ["numbers", "owned", { address }],
-    () => dropModule?.balanceOf(address || ""),
-    {
-      enabled: !!dropModule && !!address,
-    },
-  );
-
-  useEffect(() => {
-    if (owned.data?.gt(0) && !switched.current) {
-      setActiveTab("inventory");
-      switched.current = true;
-    }
-  }, [owned.data]);
 
   return (
     <Flex
