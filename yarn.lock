@@ -1970,15 +1970,15 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@thirdweb-dev/contracts@2.1.7":
-  version "2.1.7"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.1.7.tgz#433afa8541e0d696a93bc8654e67eccd6c9f88d3"
-  integrity sha512-QR4LtpopyCSdIhH4rdmXCrbeli0VaZ/hvkysetZqLRBAsuDjchqIS17vkAWwKQ903sK73RnZuEVQ4HAFkxzfqg==
+"@thirdweb-dev/contracts@2.2.1-8":
+  version "2.2.1-8"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.2.1-8.tgz#840850c42a69eb78462d9c140c9828df79a8ffc5"
+  integrity sha512-9Lvgm7yHN0ExQg13ESm4Pzm0kOmpl9iLpt93/arRO7PbeRjWxrhV5hfGxS4+MvXaP69yQEk+uIPaKlKBaqVaxg==
 
-"@thirdweb-dev/sdk@^2.0.12":
-  version "2.0.27"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.0.27.tgz#f91354739bb1adb46697da485e9aaff0ff546c34"
-  integrity sha512-XZnPY/+ouheRDa76ALzHPrY1bQHu27wX3HlF6nWI2rZn5htGjiKEMhKIP92UGdyCwYOzUTX7kcpFlipok3OpDg==
+"@thirdweb-dev/sdk@^2.0.37":
+  version "2.0.37"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.0.37.tgz#4d666adc71e0d3dd442035a76b978b9ae39d4549"
+  integrity sha512-ThKeEbmKLqeWEImYrAxTLyTxH5wlgVSzyjUBzuAUi/lzorywFizii1YdpUM1VJ02YOzpvcNo72DiT0gQwbh+wA==
   dependencies:
     "@ethersproject/bignumber" "^5.6.0"
     "@ethersproject/bytes" "^5.6.1"
@@ -1986,7 +1986,7 @@
     "@ethersproject/contracts" "^5.6.0"
     "@ethersproject/providers" "^5.6.1"
     "@ethersproject/units" "^5.6.0"
-    "@thirdweb-dev/contracts" "2.1.7"
+    "@thirdweb-dev/contracts" "2.2.1-8"
     "@web-std/file" "^3.0.0"
     cross-fetch "^3.1.5"
     deep-equal "^2.0.5"
