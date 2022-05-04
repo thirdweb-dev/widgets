@@ -32,9 +32,8 @@ const connectorIdToImageUrl: Record<string, string> = {
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
   expectedChainId,
 }) => {
-  const [{ data: networkData, error: networkError }, switchNetwork] =
-    useNetwork();
-  const [{ data, error: connectError, loading }, connect] = useConnect();
+  const [{ data: networkData }, switchNetwork] = useNetwork();
+  const [{ data, loading }, connect] = useConnect();
 
   if (networkData.chain && expectedChainId !== networkData?.chain?.id) {
     if (switchNetwork) {
@@ -95,7 +94,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
       </Alert>
     );
   }
-  const isMounted = true;
+
   return (
     <Menu matchWidth>
       <MenuButton
@@ -111,29 +110,35 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
 
       <MenuList>
         <Flex direction={{ base: "column", md: "row" }} gap={2} px={3}>
-          {data.connectors.map((_connector) =>
-            _connector.ready ? (
-              <Button
-                flexGrow={1}
-                size="sm"
-                variant="outline"
-                key={_connector.name}
-                isLoading={
-                  loading && data?.connector?.name === _connector?.name
-                }
-                onClick={() => connect(_connector)}
-                leftIcon={
-                  <Image
-                    maxWidth={6}
-                    src={connectorIdToImageUrl[_connector.name]}
-                    alt={_connector.name}
-                  />
-                }
-              >
-                {_connector.name}
-              </Button>
-            ) : null,
-          )}
+          {data.connectors
+            .filter((c) => c.ready)
+            .map((_connector) => {
+              if (!_connector.ready) {
+                return null;
+              }
+
+              return (
+                <Button
+                  flexGrow={1}
+                  size="sm"
+                  variant="outline"
+                  key={_connector.name}
+                  isLoading={
+                    loading && data?.connector?.name === _connector?.name
+                  }
+                  onClick={() => connect(_connector)}
+                  leftIcon={
+                    <Image
+                      maxWidth={6}
+                      src={connectorIdToImageUrl[_connector.name]}
+                      alt={_connector.name}
+                    />
+                  }
+                >
+                  {_connector.name}
+                </Button>
+              );
+            })}
         </Flex>
       </MenuList>
     </Menu>
