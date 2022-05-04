@@ -48,7 +48,9 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
   const { data: balance } = useQuery(
     ["balance", data?.address, tokenAddress],
     async () => {
-      if (!tokenAddress || !data?.address) return;
+      if (!tokenAddress || !data?.address) {
+        return;
+      }
 
       const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
       if (
@@ -77,7 +79,9 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
 
   const switchWallet = async () => {
     const provider = data?.connector?.getProvider();
-    if (!provider?.isMetaMask || !provider.request) return;
+    if (!provider?.isMetaMask || !provider.request) {
+      return;
+    }
 
     await provider.request({
       method: "wallet_requestPermissions",
