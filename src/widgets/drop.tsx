@@ -83,8 +83,8 @@ const Header: React.FC<HeaderProps> = ({
     color: "gray.500",
   };
 
-  const available = useQuery(
-    ["numbers", "available"],
+  const unclaimed = useQuery(
+    ["numbers", "unclaimed"],
     () => module?.totalUnclaimedSupply(),
     { enabled: !!module },
   );
@@ -131,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius={0}
           onClick={() => setActiveTab("claim")}
         >
-          Mint{available.data ? ` (${available.data})` : ""}
+          Mint{unclaimed.data ? ` (${unclaimed.data})` : ""}
         </Button>
         <Button
           h="48px"
