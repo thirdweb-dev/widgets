@@ -21,7 +21,6 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { NFTDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -84,8 +83,8 @@ const Header: React.FC<HeaderProps> = ({
     color: "gray.500",
   };
 
-  const available = useQuery(
-    ["numbers", "available"],
+  const unclaimed = useQuery(
+    ["numbers", "unclaimed"],
     () => module?.totalUnclaimedSupply(),
     { enabled: !!module },
   );
@@ -132,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius={0}
           onClick={() => setActiveTab("claim")}
         >
-          Mint{available.data ? ` (${available.data})` : ""}
+          Mint{unclaimed.data ? ` (${unclaimed.data})` : ""}
         </Button>
         <Button
           h="48px"
@@ -188,15 +187,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
     },
   );
 
-  const totalAvailable = useQuery(
-    ["numbers", "total"],
-    () => module?.totalSupply(),
-    { enabled: isEnabled },
-  );
-
   const unclaimed = useQuery(
-    ["numbers", "available"],
-    () => module?.totalUnclaimedSupply(),
+    ["numbers", "unclaimed"],
+    async () => module?.totalUnclaimedSupply(),
     { enabled: isEnabled },
   );
 
@@ -237,16 +230,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
   const priceToMint = bnPrice.mul(quantity);
 
   const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
-
-  const quantityLimitBigNumber = useMemo(() => {
-    const bn = BigNumber.from(quantityLimit);
-    const unclaimedBn = BigNumber.from(unclaimed.data || 0);
-
-    if (unclaimedBn.lt(bn)) {
-      return unclaimedBn;
-    }
-    return bn;
-  }, [quantityLimit, unclaimed.data]);
 
   useEffect(() => {
     const t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -319,11 +302,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
             }
           }}
           min={1}
-          max={
-            quantityLimitBigNumber.lte(10000)
-              ? quantityLimitBigNumber.toNumber()
-              : undefined
-          }
+          max={Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -359,9 +338,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
             : "Minting Unavailable"}
         </Button>
       </Flex>
-      {claimed.data && totalAvailable.data && (
+      {claimed.data && (
         <Text size="label.md" color="green.800">
-          {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
+          {`${claimed.data?.toString()} / ${claimed.data
+            .add(unclaimed.data || 0)
+            .toString()} claimed`}
         </Text>
       )}
     </Stack>
