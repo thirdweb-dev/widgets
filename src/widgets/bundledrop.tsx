@@ -356,12 +356,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
           {`${parseHugeNumber(
-            activeClaimCondition.data?.maxQuantity.sub(
-              activeClaimCondition.data.availableSupply,
-            ),
-          )} / ${parseHugeNumber(
-            activeClaimCondition.data?.maxQuantity,
-          )} claimed`}
+            Number(activeClaimCondition.data?.maxQuantity) -
+              Number(activeClaimCondition.data.availableSupply),
+          )} ${
+            activeClaimCondition.data?.maxQuantity !== "unlimited" &&
+            `/ ${activeClaimCondition.data?.maxQuantity}`
+          } claimed`}
         </Text>
       )}
     </Stack>
