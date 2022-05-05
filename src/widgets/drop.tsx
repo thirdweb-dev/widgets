@@ -187,15 +187,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
     },
   );
 
-  const totalAvailable = useQuery(
-    ["numbers", "total"],
-    () => module?.totalSupply(),
-    { enabled: isEnabled },
-  );
-
   const unclaimed = useQuery(
-    ["numbers", "available"],
-    () => module?.totalUnclaimedSupply(),
+    ["numbers", "unclaimed"],
+    async () => module?.totalUnclaimedSupply(),
     { enabled: isEnabled },
   );
 
@@ -344,9 +338,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
             : "Minting Unavailable"}
         </Button>
       </Flex>
-      {claimed.data && totalAvailable.data && (
+      {claimed.data && (
         <Text size="label.md" color="green.800">
-          {`${claimed.data?.toString()} / ${totalAvailable.data?.toString()} claimed`}
+          {`${claimed.data?.toString()} / ${claimed.data
+            .add(unclaimed.data || 0)
+            .toString()} claimed`}
         </Text>
       )}
     </Stack>
