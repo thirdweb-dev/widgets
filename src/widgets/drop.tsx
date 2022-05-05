@@ -21,7 +21,6 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { NFTDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -238,16 +237,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
 
   const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
 
-  const quantityLimitBigNumber = useMemo(() => {
-    const bn = BigNumber.from(quantityLimit);
-    const unclaimedBn = BigNumber.from(unclaimed.data || 0);
-
-    if (unclaimedBn.lt(bn)) {
-      return unclaimedBn;
-    }
-    return bn;
-  }, [quantityLimit, unclaimed.data]);
-
   useEffect(() => {
     const t = setTimeout(() => setClaimSuccess(false), 3000);
     return () => clearTimeout(t);
@@ -319,11 +308,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
             }
           }}
           min={1}
-          max={
-            quantityLimitBigNumber.lte(10000)
-              ? quantityLimitBigNumber.toNumber()
-              : undefined
-          }
+          max={Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
