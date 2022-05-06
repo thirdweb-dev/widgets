@@ -1,19 +1,13 @@
 import {
   Button,
   ButtonProps,
-  Center,
   ChakraProvider,
   Flex,
-  Grid,
-  Heading,
-  Icon,
-  Image,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  Spinner,
   Stack,
   Tab,
   Text,
@@ -21,7 +15,6 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { EditionDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -36,9 +29,7 @@ import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
-import { NftCarousel } from "../shared/nft-carousel";
 import { parseError } from "../shared/parseError";
-import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useAddress } from "../shared/useAddress";
@@ -46,15 +37,6 @@ import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-
-interface DropWidgetProps {
-  startingTab?: "claim" | "inventory";
-  colorScheme?: "light" | "dark";
-  rpcUrl?: string;
-  contractAddress: string;
-  expectedChainId: number;
-  tokenId: string;
-}
 
 type Tab = "claim" | "inventory";
 
@@ -132,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius={0}
           onClick={() => setActiveTab("claim")}
         >
-          Mint{available ? ` (${available})` : ""}
+          Mint{available !== "unlimited" ? ` (${available})` : ""}
         </Button>
         <Button
           h="48px"
@@ -179,7 +161,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["numbers", "owned", { address }],
     async () => {
       const _owned = await module?.getOwned(address || "");
-      return BigNumber.from(_owned?.length || 0);
+      return _owned?.length || 0;
     },
     {
       enabled: !!module && !!address,
@@ -272,18 +254,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const quantityLimit =
     activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
 
-  const quantityLimitBigNumber = useMemo(() => {
-    const bn = BigNumber.from(quantityLimit);
-    const unclaimedBn = BigNumber.from(
-      activeClaimCondition.data?.availableSupply || 0,
-    );
-
-    if (unclaimedBn.lt(bn)) {
-      return unclaimedBn;
-    }
-    return bn;
-  }, [quantityLimit, activeClaimCondition]);
-
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
@@ -302,11 +272,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={
-            quantityLimitBigNumber.lte(10000)
-              ? quantityLimitBigNumber.toNumber()
-              : undefined
-          }
+          min={1}
+          max={Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -358,75 +325,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 };
 
 const ClaimPage: React.FC<ClaimPageProps> = ({
-  module,
-  sdk,
-  expectedChainId,
-  tokenId,
-}) => {
-  const tokenMetadata = useQuery(
-    ["token-metadata", { tokenId }],
-    async () => {
-      return module?.get(tokenId);
-    },
-    { enabled: !!module && tokenId.length > 0 },
-  );
-
-  if (tokenMetadata.isLoading) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  const metaData = tokenMetadata.data?.metadata;
-
-  return (
-    <Center w="100%" h="100%">
-      <Flex direction="column" align="center" gap={4} w="100%">
-        <Grid
-          bg="#F2F0FF"
-          border="1px solid rgba(0,0,0,.1)"
-          borderRadius="20px"
-          w="178px"
-          h="178px"
-          placeContent="center"
-          overflow="hidden"
-        >
-          {metaData?.image ? (
-            <Image
-              objectFit="contain"
-              w="100%"
-              h="100%"
-              src={metaData?.image}
-              alt={metaData?.name}
-            />
-          ) : (
-            <Icon maxW="100%" maxH="100%" as={DropSvg} />
-          )}
-        </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
-          {metaData?.name}
-        </Heading>
-        {metaData?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metaData.description}
-          </Heading>
-        )}
-        <ClaimButton
-          module={module}
-          tokenId={tokenId}
-          expectedChainId={expectedChainId}
-          sdk={sdk}
-        />
-      </Flex>
-    </Center>
-  );
-};
-
 const InventoryPage: React.FC<ModuleInProps> = ({
   module,
   expectedChainId,
