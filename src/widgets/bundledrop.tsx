@@ -1,13 +1,19 @@
 import {
   Button,
   ButtonProps,
+  Center,
   ChakraProvider,
   Flex,
+  Grid,
+  Heading,
+  Icon,
+  Image,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
+  Spinner,
   Stack,
   Tab,
   Text,
@@ -29,7 +35,9 @@ import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
+import { NftCarousel } from "../shared/nft-carousel";
 import { parseError } from "../shared/parseError";
+import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useAddress } from "../shared/useAddress";
@@ -272,7 +280,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          min={1}
           max={Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
@@ -325,6 +332,75 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 };
 
 const ClaimPage: React.FC<ClaimPageProps> = ({
+  module,
+  sdk,
+  expectedChainId,
+  tokenId,
+}) => {
+  const tokenMetadata = useQuery(
+    ["token-metadata", { tokenId }],
+    async () => {
+      return module?.get(tokenId);
+    },
+    { enabled: !!module && tokenId.length > 0 },
+  );
+
+  if (tokenMetadata.isLoading) {
+    return (
+      <Center w="100%" h="100%">
+        <Stack direction="row" align="center">
+          <Spinner />
+          <Heading size="label.sm">Loading...</Heading>
+        </Stack>
+      </Center>
+    );
+  }
+
+  const metaData = tokenMetadata.data?.metadata;
+
+  return (
+    <Center w="100%" h="100%">
+      <Flex direction="column" align="center" gap={4} w="100%">
+        <Grid
+          bg="#F2F0FF"
+          border="1px solid rgba(0,0,0,.1)"
+          borderRadius="20px"
+          w="178px"
+          h="178px"
+          placeContent="center"
+          overflow="hidden"
+        >
+          {metaData?.image ? (
+            <Image
+              objectFit="contain"
+              w="100%"
+              h="100%"
+              src={metaData?.image}
+              alt={metaData?.name}
+            />
+          ) : (
+            <Icon maxW="100%" maxH="100%" as={DropSvg} />
+          )}
+        </Grid>
+        <Heading size="display.md" fontWeight="title" as="h1">
+          {metaData?.name}
+        </Heading>
+        {metaData?.description && (
+          <Heading noOfLines={2} as="h2" size="subtitle.md">
+            {metaData.description}
+          </Heading>
+        )}
+        <ClaimButton
+          module={module}
+          tokenId={tokenId}
+          expectedChainId={expectedChainId}
+          sdk={sdk}
+        />
+      </Flex>
+    </Center>
+  );
+};
+
 const InventoryPage: React.FC<ModuleInProps> = ({
   module,
   expectedChainId,
