@@ -47,6 +47,13 @@ import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
+type Tab = "claim" | "inventory";
+
+interface ModuleInProps {
+  module?: EditionDrop;
+  expectedChainId: number;
+}
+
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
   const bn = BigNumber.from(totalAvailable);
   if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
@@ -57,23 +64,6 @@ function parseHugeNumber(totalAvailable: BigNumberish = 0) {
     notation: bn.gte(1_00_000) ? "compact" : undefined,
   }).format(number);
 }
-
-interface DropWidgetProps {
-  startingTab?: "claim" | "inventory";
-  colorScheme?: "light" | "dark";
-  rpcUrl?: string;
-  contractAddress: string;
-  expectedChainId: number;
-  tokenId: string;
-}
-
-type Tab = "claim" | "inventory";
-
-interface ModuleInProps {
-  module?: EditionDrop;
-  expectedChainId: number;
-}
-
 interface HeaderProps extends ModuleInProps {
   sdk?: ThirdwebSDK;
   tokenAddress?: string;
@@ -190,7 +180,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["numbers", "owned", { address }],
     async () => {
       const _owned = await module?.getOwned(address || "");
-      return BigNumber.from(_owned?.length || 0);
+      return _owned?.length || 0;
     },
     {
       enabled: !!module && !!address,
@@ -283,18 +273,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const quantityLimit =
     activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
 
-  const quantityLimitBigNumber = useMemo(() => {
-    const bn = BigNumber.from(quantityLimit);
-    const unclaimedBn = BigNumber.from(
-      activeClaimCondition.data?.availableSupply || 0,
-    );
-
-    if (unclaimedBn.lt(bn)) {
-      return unclaimedBn;
-    }
-    return bn;
-  }, [quantityLimit, activeClaimCondition]);
-
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
@@ -313,11 +291,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={
-            quantityLimitBigNumber.lte(10000)
-              ? quantityLimitBigNumber.toNumber()
-              : undefined
-          }
+          max={Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -356,11 +330,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
           {`${
-            Number(activeClaimCondition.data?.maxQuantity) -
-            Number(activeClaimCondition.data.availableSupply)
+            (Number(activeClaimCondition.data?.maxQuantity) || 0) -
+            (Number(
+              parseHugeNumber(activeClaimCondition.data.availableSupply),
+            ) || 0)
           } ${
-            activeClaimCondition.data?.maxQuantity !== "unlimited" &&
-            `/ ${activeClaimCondition.data?.maxQuantity}`
+            activeClaimCondition.data?.maxQuantity !== "unlimited"
+              ? `/ ${activeClaimCondition.data?.maxQuantity || 0}`
+              : ""
           } claimed`}
         </Text>
       )}
