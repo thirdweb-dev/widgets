@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { EditionDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -46,17 +46,6 @@ import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-
-function parseHugeNumber(totalAvailable: BigNumberish = 0) {
-  const bn = BigNumber.from(totalAvailable);
-  if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
-    return "Unlimited";
-  }
-  const number = bn.toNumber();
-  return new Intl.NumberFormat(undefined, {
-    notation: bn.gte(1_00_000) ? "compact" : undefined,
-  }).format(number);
-}
 
 interface DropWidgetProps {
   startingTab?: "claim" | "inventory";
@@ -119,7 +108,7 @@ const Header: React.FC<HeaderProps> = ({
     { enabled: isEnabled && tokenId.length > 0 },
   );
 
-  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
+  const available = activeClaimCondition.data?.availableSupply;
 
   return (
     <Stack
