@@ -54,6 +54,16 @@ interface ModuleInProps {
   expectedChainId: number;
 }
 
+function parseHugeNumber(totalAvailable: BigNumberish = 0) {
+  const bn = BigNumber.from(totalAvailable);
+  if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
+    return "Unlimited";
+  }
+  const number = bn.toNumber();
+  return new Intl.NumberFormat(undefined, {
+    notation: bn.gte(1_00_000) ? "compact" : undefined,
+  }).format(number);
+}
 interface HeaderProps extends ModuleInProps {
   sdk?: ThirdwebSDK;
   tokenAddress?: string;
@@ -98,17 +108,6 @@ const Header: React.FC<HeaderProps> = ({
     },
     { enabled: isEnabled && tokenId.length > 0 },
   );
-
-  function parseHugeNumber(totalAvailable: BigNumberish = 0) {
-    const bn = BigNumber.from(totalAvailable);
-    if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
-      return "Unlimited";
-    }
-    const number = bn.toNumber();
-    return new Intl.NumberFormat(undefined, {
-      notation: bn.gte(1_00_000) ? "compact" : undefined,
-    }).format(number);
-  }
 
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
@@ -332,10 +331,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         <Text size="label.md" color="green.800">
           {`${
             (Number(activeClaimCondition.data?.maxQuantity) || 0) -
-            (Number(activeClaimCondition.data.availableSupply) || 0)
+            Number(
+              parseHugeNumber(activeClaimCondition.data.availableSupply || 0),
+            )
           } ${
-            activeClaimCondition.data?.maxQuantity !== "unlimited" &&
-            `/ ${activeClaimCondition.data?.maxQuantity || 0}`
+            activeClaimCondition.data?.maxQuantity !== "unlimited"
+              ? `/ ${activeClaimCondition.data?.maxQuantity || 0}`
+              : ""
           } claimed`}
         </Text>
       )}
