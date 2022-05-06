@@ -55,6 +55,10 @@ interface ModuleInProps {
 }
 
 function parseHugeNumber(totalAvailable: BigNumberish = 0) {
+  if (totalAvailable === "unlimited") {
+    return "Unlimited";
+  }
+
   const bn = BigNumber.from(totalAvailable);
   if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
     return "Unlimited";
