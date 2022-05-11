@@ -330,7 +330,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? parseIneligibility(claimConditionReasons.data, owned.data)
+            ? parseIneligibility(
+                claimConditionReasons.data,
+                owned.data?.toNumber(),
+              )
             : "Minting Unavailable"}
         </Button>
       </Flex>
