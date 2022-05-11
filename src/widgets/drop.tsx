@@ -295,11 +295,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
           inputMode="numeric"
           value={quantity}
           onChange={(stringValue, value) => {
-            if (stringValue === "") {
-              setQuantity(0);
-            } else {
-              setQuantity(value);
-            }
+            setQuantity(value);
           }}
           min={1}
           max={Number(quantityLimit)}
