@@ -7,7 +7,7 @@ export const ChainIDToRPCMap: Record<number, string> = {
   137: "https://polygon-rpc.com",
   250: "https://rpc.ftm.tools",
   43114: "https://api.avax.network/ext/bc/C/rpc",
-  80001: "https://rpc-mumbai.maticvigil.com",
+  80001: "https://matic-mumbai.chainstacklabs.com",
 };
 
 export const ChainIDToNativeSymbol: Record<number, string> = {
@@ -28,7 +28,7 @@ export const ChainIDToName: Record<number, string> = {
   250: "Fantom",
   43114: "Avalanche",
   80001: "Mumbai",
-}
+};
 
 export enum ChainId {
   Mainnet = 1,
@@ -64,4 +64,3 @@ export const SUPPORTED_CHAIN_IDS = [
 export const supportedChains = defaultChains
   .concat(defaultL2Chains)
   .filter((c) => SUPPORTED_CHAIN_IDS.includes(c.id));
-

@@ -229,7 +229,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
   );
   const priceToMint = bnPrice.mul(quantity);
 
-  const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction || 1;
+  const quantityLimit = claimCondition?.data?.quantityLimitPerTransaction;
 
   useEffect(() => {
     const t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -296,13 +296,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
           value={quantity}
           onChange={(stringValue, value) => {
             if (stringValue === "") {
-              setQuantity(0);
+              setQuantity(1);
             } else {
               setQuantity(value);
             }
           }}
           min={1}
-          max={Number(quantityLimit)}
+          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -334,7 +334,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? parseIneligibility(claimConditionReasons.data, owned.data)
+            ? parseIneligibility(
+                claimConditionReasons.data,
+                owned.data?.toNumber(),
+              )
             : "Minting Unavailable"}
         </Button>
       </Flex>

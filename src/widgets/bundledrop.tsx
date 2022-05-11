@@ -182,10 +182,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
-    async () => {
-      const _owned = await module?.getOwned(address || "");
-      return _owned?.length || 0;
-    },
+    () => module?.balanceOf(address || "", tokenId),
     {
       enabled: !!module && !!address,
     },
@@ -274,8 +271,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const canClaim =
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
-  const quantityLimit =
-    activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
+  const quantityLimit = activeClaimCondition?.data?.quantityLimitPerTransaction;
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -289,13 +285,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           value={quantity}
           onChange={(stringValue, value) => {
             if (stringValue === "") {
-              setQuantity(0);
+              setQuantity(1);
             } else {
               setQuantity(value);
             }
           }}
           min={1}
-          max={Number(quantityLimit)}
+          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -327,7 +323,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimConditionReasons.data?.length
-            ? parseIneligibility(claimConditionReasons.data, owned.data)
+            ? parseIneligibility(
+                claimConditionReasons.data,
+                owned.data?.toNumber(),
+              )
             : "Minting Unavailable"}
         </Button>
       </Flex>
