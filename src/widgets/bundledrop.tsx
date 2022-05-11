@@ -271,8 +271,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const canClaim =
     !isSoldOut && !!address && !claimConditionReasons.data?.length;
 
-  const quantityLimit =
-    activeClaimCondition?.data?.quantityLimitPerTransaction || 1;
+  const quantityLimit = activeClaimCondition?.data?.quantityLimitPerTransaction;
 
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
@@ -288,7 +287,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             setQuantity(value);
           }}
           min={1}
-          max={Number(quantityLimit)}
+          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
