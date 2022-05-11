@@ -284,7 +284,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           inputMode="numeric"
           value={quantity}
           onChange={(stringValue, value) => {
-            setQuantity(value);
+            if (stringValue === "") {
+              setQuantity(1);
+            } else {
+              setQuantity(value);
+            }
           }}
           min={1}
           max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
