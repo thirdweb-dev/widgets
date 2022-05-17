@@ -22,6 +22,7 @@ import {
 import { css, Global } from "@emotion/react";
 import {
   ThirdwebProvider,
+  useAddress,
   useChainId,
   useEditionDrop,
 } from "@thirdweb-dev/react";
@@ -45,7 +46,6 @@ import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";

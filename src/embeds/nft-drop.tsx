@@ -20,10 +20,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { ThirdwebProvider, useChainId } from "@thirdweb-dev/react";
+import {
+  ThirdwebProvider,
+  useAddress,
+  useChainId,
+  useNFTDrop,
+} from "@thirdweb-dev/react";
 import { NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -40,9 +45,7 @@ import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
-import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
@@ -462,35 +465,17 @@ const Body: React.FC = ({ children }) => {
 interface NFTDropEmbedProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
-  rpcUrl?: string;
-  relayUrl?: string;
   contractAddress: string;
   expectedChainId: number;
-  ipfsGateway?: string;
 }
 
 const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   startingTab = "claim",
-  rpcUrl,
-  relayUrl,
   contractAddress,
   expectedChainId,
-  ipfsGateway,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
-  const sdk = useSDKWithSigner({
-    rpcUrl,
-    relayUrl,
-    expectedChainId,
-    ipfsGateway,
-  });
-
-  const dropContract = useMemo(() => {
-    if (!sdk || !contractAddress) {
-      return undefined;
-    }
-    return sdk.getNFTDrop(contractAddress);
-  }, [sdk, contractAddress]);
+  const nftDrop = useNFTDrop(contractAddress);
 
   return (
     <Flex
@@ -510,16 +495,13 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       <Header
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
-        contract={dropContract}
+        contract={nftDrop}
       />
       <Body>
         {activeTab === "claim" ? (
-          <ClaimPage
-            contract={dropContract}
-            expectedChainId={expectedChainId}
-          />
+          <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
         ) : (
-          <InventoryPage contract={dropContract} />
+          <InventoryPage contract={nftDrop} />
         )}
       </Body>
       <Footer />
