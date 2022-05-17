@@ -13,10 +13,11 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { useNetwork } from "@thirdweb-dev/react";
 import React from "react";
 import { FiInfo } from "react-icons/fi";
 import { IoSwapHorizontalSharp } from "react-icons/io5";
-import { useConnect, useNetwork } from "wagmi";
+import { useConnect } from "wagmi";
 import { ChainIDToName, supportedChains } from "./commonRPCUrls";
 
 interface ConnectWalletButtonProps {
@@ -33,10 +34,16 @@ const connectorIdToImageUrl: Record<string, string> = {
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
   expectedChainId,
 }) => {
-  const [{ data: networkData }, switchNetwork] = useNetwork();
+  const [
+    {
+      data: { chain: activeChain },
+    },
+    switchNetwork,
+  ] = useNetwork();
+
   const [{ data, loading }, connect] = useConnect();
 
-  if (networkData.chain && expectedChainId !== networkData?.chain?.id) {
+  if (activeChain && expectedChainId !== activeChain.id) {
     if (switchNetwork) {
       return (
         <Stack w="100%">

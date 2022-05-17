@@ -29,6 +29,7 @@ import {
 import {
   AuctionListing,
   DirectListing,
+  IpfsStorage,
   ListingType,
   Marketplace,
 } from "@thirdweb-dev/sdk";
@@ -51,7 +52,6 @@ import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useFormattedValue } from "../shared/tokenHooks";
-import { useConnectors } from "../shared/useConnectors";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface MarketplaceEmbedProps {
@@ -840,8 +840,6 @@ const App: React.FC = () => {
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
 
-  const connectors = useConnectors(expectedChainId, rpcUrl);
-
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
@@ -863,8 +861,8 @@ const App: React.FC = () => {
                 openzeppelin: { relayerUrl },
               },
             }}
-            /* chainRpc={{ expectedChainId: rpcUrl }} */
-            /* ipfsGateway={ipfsGateway} */
+            storageInterface={new IpfsStorage(ipfsGateway)}
+            chainRpc={{ [expectedChainId]: rpcUrl }}
           >
             <MarketplaceEmbed
               contractAddress={contractAddress}

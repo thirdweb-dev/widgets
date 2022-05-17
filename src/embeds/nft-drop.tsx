@@ -26,7 +26,7 @@ import {
   useChainId,
   useNFTDrop,
 } from "@thirdweb-dev/react";
-import { NFTDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -45,7 +45,6 @@ import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useConnectors } from "../shared/useConnectors";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
@@ -518,8 +517,6 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
 
-  const connectors = useConnectors(expectedChainId, rpcUrl);
-
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   return (
@@ -541,8 +538,8 @@ const App: React.FC = () => {
                 openzeppelin: { relayerUrl },
               },
             }}
-            /* chainRpc={{ expectedChainId: rpcUrl }} */
-            /* ipfsGateway={ipfsGateway} */
+            storageInterface={new IpfsStorage(ipfsGateway)}
+            chainRpc={{ [expectedChainId]: rpcUrl }}
           >
             <NFTDropEmbed
               contractAddress={contractAddress}
