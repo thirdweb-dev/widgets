@@ -20,10 +20,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
+import {
+  ThirdwebProvider,
+  useChainId,
+  useEditionDrop,
+} from "@thirdweb-dev/react";
 import { EditionDrop, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -32,7 +37,6 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -43,14 +47,13 @@ import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { useAddress } from "../shared/useAddress";
 import { useConnectors } from "../shared/useConnectors";
-import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 type Tab = "claim" | "inventory";
 
-interface ModuleInProps {
-  module?: EditionDrop;
+interface ContractInProps {
+  contract?: EditionDrop;
   expectedChainId: number;
 }
 
@@ -68,7 +71,7 @@ function parseHugeNumber(totalAvailable: BigNumberish = 0) {
     notation: bn.gte(1_00_000) ? "compact" : undefined,
   }).format(number);
 }
-interface HeaderProps extends ModuleInProps {
+interface HeaderProps extends ContractInProps {
   sdk?: ThirdwebSDK;
   tokenAddress?: string;
   activeTab: Tab;
@@ -82,15 +85,14 @@ const Header: React.FC<HeaderProps> = ({
   tokenAddress,
   activeTab,
   setActiveTab,
-  module,
+  contract,
   expectedChainId,
   tokenId,
 }) => {
   const address = useAddress();
-  const [{ data: network }] = useNetwork();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
+  const chainId = useChainId();
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId;
+  const isEnabled = !!contract && !!address && chainId === expectedChainId;
 
   const activeButtonProps: ButtonProps = {
     borderBottom: "4px solid",
@@ -105,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({
     ["claim-condition", { tokenId }],
     async () => {
       try {
-        return module?.claimConditions.getActive(tokenId);
+        return contract?.claimConditions.getActive(tokenId);
       } catch {
         return undefined;
       }
@@ -160,31 +162,30 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 interface ClaimPageProps {
-  module?: EditionDrop;
+  contract?: EditionDrop;
   sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
-  module,
+  contract,
   expectedChainId,
   tokenId,
 }) => {
   const address = useAddress();
-  const [{ data: network }] = useNetwork();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
+  const chainId = useChainId();
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
 
-  const isEnabled = !!module && !!address && chainId === expectedChainId;
+  const isEnabled = !!contract && !!address && chainId === expectedChainId;
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
-    () => module?.balanceOf(address || "", tokenId),
+    () => contract?.balanceOf(address || "", tokenId),
     {
-      enabled: !!module && !!address,
+      enabled: !!contract && !!address,
     },
   );
 
@@ -192,7 +193,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     ["claim-condition", { tokenId }],
     async () => {
       try {
-        return await module?.claimConditions.getActive(tokenId);
+        return await contract?.claimConditions.getActive(tokenId);
       } catch {
         return undefined;
       }
@@ -205,7 +206,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     async () => {
       try {
         const reasons =
-          await module?.claimConditions.getClaimIneligibilityReasons(
+          await contract?.claimConditions.getClaimIneligibilityReasons(
             tokenId,
             quantity,
             address,
@@ -216,7 +217,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         return undefined;
       }
     },
-    { enabled: !!module && !!address },
+    { enabled: !!contract && !!address },
   );
 
   const bnPrice = parseUnits(
@@ -239,10 +240,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const claimMutation = useMutation(
     () => {
-      if (!address || !module) {
-        throw new Error("No address or module");
+      if (!address || !contract) {
+        throw new Error("No address or contract");
       }
-      return module.claim(tokenId, quantity);
+      return contract.claim(tokenId, quantity);
     },
     {
       onSuccess: () => {
@@ -345,7 +346,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 };
 
 const ClaimPage: React.FC<ClaimPageProps> = ({
-  module,
+  contract,
   sdk,
   expectedChainId,
   tokenId,
@@ -353,9 +354,9 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   const tokenMetadata = useQuery(
     ["token-metadata", { tokenId }],
     async () => {
-      return module?.get(tokenId);
+      return contract?.get(tokenId);
     },
-    { enabled: !!module && tokenId.length > 0 },
+    { enabled: !!contract && tokenId.length > 0 },
   );
 
   if (tokenMetadata.isLoading) {
@@ -404,7 +405,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           </Heading>
         )}
         <ClaimButton
-          module={module}
+          contract={contract}
           tokenId={tokenId}
           expectedChainId={expectedChainId}
           sdk={sdk}
@@ -414,15 +415,15 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   );
 };
 
-const InventoryPage: React.FC<ModuleInProps> = ({
-  module,
+const InventoryPage: React.FC<ContractInProps> = ({
+  contract,
   expectedChainId,
 }) => {
   const address = useAddress();
   const ownedDrops = useQuery(
     "inventory",
-    () => module?.getOwned(address || ""),
-    { enabled: !!module && !!address },
+    () => contract?.getOwned(address || ""),
+    { enabled: !!contract && !!address },
   );
 
   if (ownedDrops.isLoading) {
@@ -475,49 +476,31 @@ const Body: React.FC = ({ children }) => {
 interface EditionDropEmbedProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
-  rpcUrl?: string;
   contractAddress: string;
-  expectedChainId: number;
-  relayUrl: string | undefined;
   tokenId: string;
-  ipfsGateway?: string;
+  expectedChainId: number;
 }
 
 const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   startingTab = "claim",
-  rpcUrl,
   contractAddress,
-  expectedChainId,
   tokenId,
-  relayUrl,
-  ipfsGateway,
+  expectedChainId,
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
 
-  const sdk = useSDKWithSigner({
-    expectedChainId,
-    rpcUrl,
-    relayUrl,
-    ipfsGateway,
-  });
-
-  const dropModule = useMemo(() => {
-    if (!sdk || !contractAddress) {
-      return undefined;
-    }
-    return sdk.getEditionDrop(contractAddress);
-  }, [sdk, contractAddress]);
+  const editionDrop = useEditionDrop(contractAddress);
 
   const activeClaimCondition = useQuery(
     ["claim-condition"],
     async () => {
       try {
-        return await dropModule?.claimConditions.getActive(tokenId);
+        return await editionDrop?.claimConditions.getActive(tokenId);
       } catch {
         return undefined;
       }
     },
-    { enabled: !!dropModule && tokenId.length > 0 },
+    { enabled: !!editionDrop && tokenId.length > 0 },
   );
 
   return (
@@ -536,25 +519,23 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       bg="white"
     >
       <Header
-        sdk={sdk}
         tokenAddress={activeClaimCondition.data?.currencyAddress}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
-        module={dropModule}
+        contract={editionDrop}
         tokenId={tokenId}
         expectedChainId={expectedChainId}
       />
       <Body>
         {activeTab === "claim" ? (
           <ClaimPage
-            module={dropModule}
+            contract={editionDrop}
             tokenId={tokenId}
-            sdk={sdk}
             expectedChainId={expectedChainId}
           />
         ) : (
           <InventoryPage
-            module={dropModule}
+            contract={editionDrop}
             expectedChainId={expectedChainId}
           />
         )}
@@ -573,7 +554,7 @@ const App: React.FC = () => {
   // default to expectedChainId default
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const tokenId = urlParams.get("tokenId") || "0";
-  const relayUrl = urlParams.get("relayUrl") || "";
+  const relayerUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -591,16 +572,23 @@ const App: React.FC = () => {
       />
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
-          <Provider autoConnect connectors={connectors}>
+          ChainRpc
+          <ThirdwebProvider
+            desiredChainId={expectedChainId}
+            sdkOptions={{
+              gasless: {
+                openzeppelin: { relayerUrl },
+              },
+            }}
+            /* chainRpc={{ expectedChainId: rpcUrl }} */
+            /* ipfsGateway={ipfsGateway} */
+          >
             <EditionDropEmbed
-              rpcUrl={rpcUrl}
               contractAddress={contractAddress}
-              expectedChainId={expectedChainId}
               tokenId={tokenId}
-              relayUrl={relayUrl}
-              ipfsGateway={ipfsGateway}
+              expectedChainId={expectedChainId}
             />
-          </Provider>
+          </ThirdwebProvider>
         </ChakraProvider>
       </QueryClientProvider>
     </>
