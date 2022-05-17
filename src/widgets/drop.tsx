@@ -343,9 +343,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ module, expectedChainId }) => {
       </Flex>
       {claimed.data && (
         <Text size="label.md" color="green.800">
-          {`${claimed.data?.toString()} / ${claimed.data
-            .add(unclaimed.data || 0)
-            .toString()} claimed`}
+          {`${claimed.data?.toString()} / ${(
+            claimed.data?.add(unclaimed.data || 0) || 0
+          ).toString()} claimed`}
         </Text>
       )}
     </Stack>
