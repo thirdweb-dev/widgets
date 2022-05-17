@@ -1,8 +1,8 @@
 import { useMemo } from "react";
+import { CoinbaseWalletConnector } from "wagmi/connectors/coinbaseWallet";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
-import { WalletLinkConnector } from "wagmi/connectors/walletLink";
-import { ChainIDToRPCMap, supportedChains } from "../shared/commonRPCUrls";
+import { ChainIDToRPCMap, supportedChains } from "./commonRPCUrls";
 
 export function useConnectors(expectedChainId: number, rpcUrl?: string) {
   return useMemo(
@@ -24,7 +24,7 @@ export function useConnectors(expectedChainId: number, rpcUrl?: string) {
           },
         },
       }),
-      new WalletLinkConnector({
+      new CoinbaseWalletConnector({
         chains: supportedChains.filter((c) => c.id === expectedChainId),
         options: {
           appName: "thirdweb - embed",
