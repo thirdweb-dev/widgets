@@ -277,6 +277,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
 
+  const maxQuantity = activeClaimCondition.data?.maxQuantity;
+  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
+
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
@@ -332,15 +335,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       </Flex>
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
-          {`${
-            (Number(activeClaimCondition.data?.maxQuantity) || 0) -
-            (Number(
-              parseHugeNumber(activeClaimCondition.data.availableSupply),
-            ) || 0)
-          } ${
-            activeClaimCondition.data?.maxQuantity !== "unlimited"
-              ? `/ ${activeClaimCondition.data?.maxQuantity || 0}`
-              : ""
+          {`${currentMintSupply || 0} ${
+            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
           } claimed`}
         </Text>
       )}

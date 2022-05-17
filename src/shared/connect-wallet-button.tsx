@@ -27,6 +27,7 @@ const connectorIdToImageUrl: Record<string, string> = {
   MetaMask: "https://thirdweb.com/logos/metamask-fox.svg",
   WalletConnect: "https://thirdweb.com/logos/walletconnect-logo.svg",
   "Coinbase Wallet": "https://thirdweb.com/logos/coinbase-wallet-logo.svg",
+  Injected: "https://thirdweb.com//logos/wallet.png",
 };
 
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
@@ -130,12 +131,18 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
                   leftIcon={
                     <Image
                       maxWidth={6}
-                      src={connectorIdToImageUrl[_connector.name]}
+                      src={
+                        _connector.name !== "Injected"
+                          ? connectorIdToImageUrl[_connector.name]
+                          : connectorIdToImageUrl["Injected"]
+                      }
                       alt={_connector.name}
                     />
                   }
                 >
-                  {_connector.name}
+                  {_connector.name === "Injected"
+                    ? "Mobile Wallet"
+                    : _connector.name}
                 </Button>
               );
             })}
