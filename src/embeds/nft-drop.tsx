@@ -24,7 +24,9 @@ import {
   ThirdwebProvider,
   useAddress,
   useChainId,
+  useClaimedNftSupply,
   useNFTDrop,
+  useUnclaimedNftSupply,
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
@@ -66,27 +68,22 @@ interface HeaderProps extends ContractInProps {
   setActiveTab: (tab: Tab) => void;
 }
 
+const activeButtonProps: ButtonProps = {
+  borderBottom: "4px solid",
+  borderBottomColor: "blue.500",
+};
+
+const inactiveButtonProps: ButtonProps = {
+  color: "gray.500",
+};
+
 const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   contract,
 }) => {
   const address = useAddress();
-
-  const activeButtonProps: ButtonProps = {
-    borderBottom: "4px solid",
-    borderBottomColor: "blue.500",
-  };
-
-  const inactiveButtonProps: ButtonProps = {
-    color: "gray.500",
-  };
-
-  const unclaimed = useQuery(
-    ["numbers", "unclaimed"],
-    () => contract?.totalUnclaimedSupply(),
-    { enabled: !!contract },
-  );
+  const unclaimed = useUnclaimedNftSupply(contract);
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
@@ -166,15 +163,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [claimSuccess, setClaimSuccess] = useState(false);
   const loaded = useRef(false);
+  const claimed = useClaimedNftSupply(contract);
+  const unclaimed = useUnclaimedNftSupply(contract);
 
   // Enable all queries
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-
-  const claimed = useQuery(
-    ["numbers", "claimed"],
-    async () => contract?.totalClaimedSupply(),
-    { enabled: isEnabled },
-  );
 
   const owned = useQuery(
     ["numbers", "owned", { address }],
@@ -182,12 +175,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     {
       enabled: !!contract && !!address,
     },
-  );
-
-  const unclaimed = useQuery(
-    ["numbers", "unclaimed"],
-    async () => contract?.totalUnclaimedSupply(),
-    { enabled: isEnabled },
   );
 
   const claimCondition = useQuery(
