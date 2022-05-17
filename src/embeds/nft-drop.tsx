@@ -28,7 +28,7 @@ import {
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import {
@@ -519,6 +519,18 @@ const App: React.FC = () => {
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
+  const sdkOptions = useMemo(
+    () =>
+      relayerUrl
+        ? {
+            gasless: {
+              openzeppelin: { relayerUrl },
+            },
+          }
+        : undefined,
+    [relayerUrl],
+  );
+
   return (
     <>
       <Global
@@ -533,11 +545,7 @@ const App: React.FC = () => {
         <ChakraProvider theme={chakraTheme}>
           <ThirdwebProvider
             desiredChainId={expectedChainId}
-            sdkOptions={{
-              gasless: {
-                openzeppelin: { relayerUrl },
-              },
-            }}
+            sdkOptions={sdkOptions}
             storageInterface={new IpfsStorage(ipfsGateway)}
             chainRpc={{ [expectedChainId]: rpcUrl }}
           >

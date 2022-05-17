@@ -842,6 +842,18 @@ const App: React.FC = () => {
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
+  const sdkOptions = useMemo(
+    () =>
+      relayerUrl
+        ? {
+            gasless: {
+              openzeppelin: { relayerUrl },
+            },
+          }
+        : undefined,
+    [relayerUrl],
+  );
+
   return (
     <>
       <Global
@@ -856,11 +868,7 @@ const App: React.FC = () => {
         <ChakraProvider theme={chakraTheme}>
           <ThirdwebProvider
             desiredChainId={expectedChainId}
-            sdkOptions={{
-              gasless: {
-                openzeppelin: { relayerUrl },
-              },
-            }}
+            sdkOptions={sdkOptions}
             storageInterface={new IpfsStorage(ipfsGateway)}
             chainRpc={{ [expectedChainId]: rpcUrl }}
           >
