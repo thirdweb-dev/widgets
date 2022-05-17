@@ -20,11 +20,17 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import {
+  ThirdwebProvider,
+  useAddress,
+  useChainId,
+  useMarketplace,
+  useToken,
+} from "@thirdweb-dev/react";
+import {
   AuctionListing,
   DirectListing,
   ListingType,
   Marketplace,
-  ThirdwebSDK,
 } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
@@ -38,17 +44,14 @@ import {
   useMutation,
   useQuery,
 } from "react-query";
-import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue, useTokenModule } from "../shared/tokenHooks";
-import { useAddress } from "../shared/useAddress";
+import { useFormatedValue } from "../shared/tokenHooks";
 import { useConnectors } from "../shared/useConnectors";
-import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface MarketplaceEmbedProps {
@@ -59,8 +62,7 @@ interface MarketplaceEmbedProps {
 }
 
 interface BuyPageProps {
-  module?: Marketplace;
-  sdk?: ThirdwebSDK;
+  contract?: Marketplace;
   expectedChainId: number;
   listing: DirectListing | AuctionListing;
 }
@@ -73,12 +75,11 @@ interface DirectListingProps extends BuyPageProps {
   listing: DirectListing;
 }
 
-interface IHeader {
-  sdk?: ThirdwebSDK;
+interface HeaderProps {
   tokenAddress?: string;
 }
 
-const Header: React.FC<IHeader> = (props) => {
+const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
   return (
     <Stack
       as="header"
@@ -91,22 +92,20 @@ const Header: React.FC<IHeader> = (props) => {
       align="center"
       justify="flex-end"
     >
-      <ConnectedWallet {...props} />
+      <ConnectedWallet tokenAddress={tokenAddress} />
     </Stack>
   );
 };
 
 const AuctionListing: React.FC<AuctionListingProps> = ({
-  module,
-  sdk,
+  contract,
   expectedChainId,
   listing,
 }) => {
   const toast = useToast();
   const address = useAddress();
-  const [{ data: network }] = useNetwork();
-  const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
-  const chainId = useMemo(() => network?.chain?.id, [network]);
+  const token = useToken(listing.currencyContractAddress);
+  const chainId = useChainId();
   const [bid, setBid] = useState("0");
 
   const isAuctionEnded = useMemo(() => {
@@ -118,30 +117,30 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
   const { data: currentBid } = useQuery(
     ["currentBid", listing.id],
-    () => module?.auction.getWinningBid(listing.id),
-    { enabled: !!module },
+    () => contract?.auction.getWinningBid(listing.id),
+    { enabled: !!contract },
   );
 
   const { data: auctionWinner } = useQuery(
     ["auctionWinner", listing.id],
     async () => {
-      if (!module) {
+      if (!contract) {
         return;
       }
 
       if (isAuctionEnded) {
-        return await module.auction.getWinner(listing.id);
+        return await contract.auction.getWinner(listing.id);
       }
 
       return undefined;
     },
-    { enabled: !!module && isAuctionEnded },
+    { enabled: !!contract && isAuctionEnded },
   );
 
   const { data: bidBuffer } = useQuery(
     ["bidBuffer"],
-    () => module?.getBidBufferBps(),
-    { enabled: !!module },
+    () => contract?.getBidBufferBps(),
+    { enabled: !!contract },
   );
 
   const { minimumBidNumber, minimumBidBN } = useMemo(() => {
@@ -195,13 +194,13 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
   const minimumBidFormatted = useFormatedValue(
     minimumBidBN,
-    tokenModule,
+    token,
     expectedChainId,
   );
 
   const currentBidFormatted = useFormatedValue(
     currentBid?.currencyValue.value,
-    tokenModule,
+    token,
     expectedChainId,
   );
 
@@ -209,7 +208,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       listing.quantity,
     ),
-    tokenModule,
+    token,
     expectedChainId,
   );
 
@@ -262,11 +261,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
   const bidMutation = useMutation(
     async () => {
-      if (!module) {
-        throw new Error("No module");
+      if (!contract) {
+        throw new Error("No contract");
       }
 
-      return module.auction.makeBid(listing.id, bid.toString());
+      return contract.auction.makeBid(listing.id, bid.toString());
     },
     {
       onSuccess: () => {
@@ -308,11 +307,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 
   const buyMutation = useMutation(
     () => {
-      if (!module) {
-        throw new Error("No module");
+      if (!contract) {
+        throw new Error("No contract");
       }
 
-      return module.buyoutListing(listing.id);
+      return contract.buyoutListing(listing.id);
     },
     {
       onSuccess: () => {
@@ -539,15 +538,13 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
 };
 
 const DirectListing: React.FC<DirectListingProps> = ({
-  module,
-  sdk,
+  contract,
   expectedChainId,
   listing,
 }) => {
-  const [{ data: network }] = useNetwork();
   const address = useAddress();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
-  const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
+  const chainId = useChainId();
+  const token = useToken(listing.currencyContractAddress);
   const [quantity, setQuantity] = useState(1);
   const [buySuccess, setBuySuccess] = useState(false);
 
@@ -561,7 +558,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       BigNumber.from(quantity),
     ),
-    tokenModule,
+    token,
     expectedChainId,
   );
 
@@ -575,11 +572,11 @@ const DirectListing: React.FC<DirectListingProps> = ({
 
   const buyMutation = useMutation(
     () => {
-      if (!address || !module) {
-        throw new Error("No address or module");
+      if (!address || !contract) {
+        throw new Error("No address or contract");
       }
 
-      return module.buyoutListing(
+      return contract.buyoutListing(
         BigNumber.from(listing.id),
         // either the quantity or the limit if it is lower
         Math.min(quantity, quantityLimit.toNumber()),
@@ -688,8 +685,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
 };
 
 const BuyPage: React.FC<BuyPageProps> = ({
-  module,
-  sdk,
+  contract,
   expectedChainId,
   listing,
 }) => {
@@ -751,16 +747,14 @@ const BuyPage: React.FC<BuyPageProps> = ({
         )}
         {listing?.type === ListingType.Direct ? (
           <DirectListing
-            module={module}
+            contract={contract}
             expectedChainId={expectedChainId}
-            sdk={sdk}
             listing={listing}
           />
         ) : (
           <AuctionListing
-            module={module}
+            contract={contract}
             expectedChainId={expectedChainId}
-            sdk={sdk}
             listing={listing}
           />
         )}
@@ -779,41 +773,23 @@ const Body: React.FC = ({ children }) => {
 
 interface MarketplaceEmbedProps {
   colorScheme?: "light" | "dark";
-  rpcUrl?: string;
-  relayUrl?: string;
   contractAddress: string;
   expectedChainId: number;
   listingId: string;
-  ipfsGateway?: string;
 }
 
 const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
-  rpcUrl,
-  relayUrl,
   contractAddress,
   expectedChainId,
   listingId,
-  ipfsGateway,
 }) => {
-  const sdk = useSDKWithSigner({
-    rpcUrl,
-    relayUrl,
-    expectedChainId,
-    ipfsGateway,
-  });
-
-  const marketplaceModule = useMemo(() => {
-    if (!sdk || !contractAddress) {
-      return undefined;
-    }
-    return sdk.getMarketplace(contractAddress);
-  }, [sdk, contractAddress]);
+  const marketplace = useMarketplace(contractAddress);
 
   const { data: listing } = useQuery(
     ["numbers", "available"],
     async () => {
       try {
-        return await marketplaceModule?.getListing(listingId);
+        return await marketplace?.getListing(listingId);
       } catch (err: any) {
         if (err.message.includes("Could not find listing")) {
           return null;
@@ -822,7 +798,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
         throw err;
       }
     },
-    { enabled: !!marketplaceModule && !!listingId },
+    { enabled: !!marketplace && !!listingId },
   );
 
   return (
@@ -840,11 +816,10 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header sdk={sdk} tokenAddress={listing?.currencyContractAddress} />
+      <Header tokenAddress={listing?.currencyContractAddress} />
       <Body>
         <BuyPage
-          module={marketplaceModule}
-          sdk={sdk}
+          contract={marketplace}
           expectedChainId={expectedChainId}
           listing={listing as DirectListing | AuctionListing}
         />
@@ -863,7 +838,7 @@ const App: React.FC = () => {
   // default to expectedChainId default
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
-  const relayUrl = urlParams.get("relayUrl") || "";
+  const relayerUrl = urlParams.get("relayUrl") || "";
 
   const connectors = useConnectors(expectedChainId, rpcUrl);
 
@@ -881,16 +856,22 @@ const App: React.FC = () => {
       />
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
-          <Provider autoConnect connectors={connectors}>
+          <ThirdwebProvider
+            desiredChainId={expectedChainId}
+            sdkOptions={{
+              gasless: {
+                openzeppelin: { relayerUrl },
+              },
+            }}
+            /* chainRpc={{ expectedChainId: rpcUrl }} */
+            /* ipfsGateway={ipfsGateway} */
+          >
             <MarketplaceEmbed
-              rpcUrl={rpcUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
               listingId={listingId}
-              relayUrl={relayUrl}
-              ipfsGateway={ipfsGateway}
             />
-          </Provider>
+          </ThirdwebProvider>
         </ChakraProvider>
       </QueryClientProvider>
     </>
