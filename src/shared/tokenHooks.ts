@@ -17,7 +17,7 @@ export function isAddressZero(address: string): boolean {
   );
 }
 
-export function useTokenUnitConversion(tokenModule?: Token) {
+export function useTokenUnitConversion(tokenContract?: Token) {
   const format = useCallback(
     async (value: BigNumberish, chainId?: number) => {
       value = BigNumber.from(value);
@@ -26,17 +26,17 @@ export function useTokenUnitConversion(tokenModule?: Token) {
         : "";
 
       // invalid token address
-      if (isAddressZero(tokenModule?.getAddress() || "")) {
+      if (isAddressZero(tokenContract?.getAddress() || "")) {
         // default to 18 decimals
 
         return formatUnits(value.toString(), 18) + nativeCurrency;
       }
 
       try {
-        const moduleData = await tokenModule?.get();
-        if (moduleData?.decimals) {
-          return `${formatUnits(value.toString(), moduleData.decimals)} ${
-            moduleData.symbol
+        const contractData = await tokenContract?.get();
+        if (contractData?.decimals) {
+          return `${formatUnits(value.toString(), contractData.decimals)} ${
+            contractData.symbol
           }`;
         }
         return formatUnits(value.toString(), 18) + nativeCurrency;
@@ -44,19 +44,19 @@ export function useTokenUnitConversion(tokenModule?: Token) {
         return formatUnits(value.toString(), 18) + nativeCurrency;
       }
     },
-    [tokenModule],
+    [tokenContract],
   );
 
   return { format };
 }
 
-export function useFormatedValue(
+export function useFormattedValue(
   value?: BigNumberish,
-  tokenModule?: Token,
+  tokenContract?: Token,
   chainId?: number,
 ) {
   const [formatted, setFormatted] = useState<string | undefined>();
-  const { format } = useTokenUnitConversion(tokenModule);
+  const { format } = useTokenUnitConversion(tokenContract);
   useEffect(() => {
     if (!value) {
       return;

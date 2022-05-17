@@ -50,7 +50,7 @@ import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue } from "../shared/tokenHooks";
+import { useFormattedValue } from "../shared/tokenHooks";
 import { useConnectors } from "../shared/useConnectors";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
@@ -192,19 +192,19 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     listing.quantity,
   ]);
 
-  const minimumBidFormatted = useFormatedValue(
+  const minimumBidFormatted = useFormattedValue(
     minimumBidBN,
     token,
     expectedChainId,
   );
 
-  const currentBidFormatted = useFormatedValue(
+  const currentBidFormatted = useFormattedValue(
     currentBid?.currencyValue.value,
     token,
     expectedChainId,
   );
 
-  const buyoutPrice = useFormatedValue(
+  const buyoutPrice = useFormattedValue(
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       listing.quantity,
     ),
@@ -554,7 +554,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
     return BigNumber.from(listing.quantity || 1);
   }, [listing.quantity]);
 
-  const formatedPrice = useFormatedValue(
+  const formatedPrice = useFormattedValue(
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       BigNumber.from(quantity),
     ),
