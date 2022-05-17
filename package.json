@@ -1,5 +1,5 @@
 {
-  "name": "thirdweb-widgets",
+  "name": "thirdweb-embeds",
   "version": "2.0.0",
   "description": "",
   "scripts": {
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nftlabs/widgets.git"
+    "url": "git+https://github.com/thirdweb-dev/widgets.git"
   },
   "author": "Non-Fungible Labs, Inc",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/nftlabs/widgets/issues"
+    "url": "https://github.com/thirdweb-dev/widgets/issues"
   },
-  "homepage": "https://github.com/nftlabs/widgets#readme",
+  "homepage": "https://github.com/thirdweb-dev/widgets#readme",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "devDependencies": {
     "@chakra-ui/cli": "^1.5.3",

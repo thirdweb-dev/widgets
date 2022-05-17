@@ -51,7 +51,7 @@ import { useConnectors } from "../shared/useConnectors";
 import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface MarketplaceWidgetProps {
+interface MarketplaceEmbedProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
@@ -777,7 +777,7 @@ const Body: React.FC = ({ children }) => {
   );
 };
 
-interface MarketplaceWidgetProps {
+interface MarketplaceEmbedProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   relayUrl?: string;
@@ -787,7 +787,7 @@ interface MarketplaceWidgetProps {
   ipfsGateway?: string;
 }
 
-const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
+const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   rpcUrl,
   relayUrl,
   contractAddress,
@@ -882,7 +882,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <Provider autoConnect connectors={connectors}>
-            <MarketplaceWidget
+            <MarketplaceEmbed
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}

@@ -52,7 +52,7 @@ jobs:
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.3
         with:
-          pin-name: Thirdweb Widgets ${{ needs.bump_version.outputs.new_tag }}
+          pin-name: thirdweb embeds ${{ needs.bump_version.outputs.new_tag }}
           path: './dist'
           pinata-api-key: ${{ secrets.PINATA_API_KEY }}
           pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
