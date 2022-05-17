@@ -81,7 +81,6 @@ interface HeaderProps extends ContractInProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  sdk,
   tokenAddress,
   activeTab,
   setActiveTab,
@@ -156,7 +155,7 @@ const Header: React.FC<HeaderProps> = ({
           Inventory
         </Button>
       </Stack>
-      <ConnectedWallet sdk={sdk} tokenAddress={tokenAddress} />
+      <ConnectedWallet tokenAddress={tokenAddress} />
     </Stack>
   );
 };

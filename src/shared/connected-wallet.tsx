@@ -17,17 +17,16 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { useAddress, useDisconnect, useToken } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import React from "react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { useQuery } from "react-query";
 import { useAccount } from "wagmi";
-import { isAddressZero, useTokenModule } from "./tokenHooks";
+import { isAddressZero } from "./tokenHooks";
 
-interface IConnectedWallet {
-  sdk?: ThirdwebSDK;
+interface ConnectedWalletProps {
   tokenAddress?: string;
 }
 
@@ -35,20 +34,21 @@ function shortenAddress(str: string) {
   return `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
 }
 
-export const ConnectedWallet: React.FC<IConnectedWallet> = ({
-  sdk,
+export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
   tokenAddress,
 }) => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false });
-  const [{ data }, disconnect] = useAccount();
-  const { onCopy } = useClipboard(data?.address || "");
-  const tokenModule = useTokenModule(sdk, tokenAddress);
+  const [{ data }] = useAccount();
+  const address = useAddress();
+  const disconnect = useDisconnect();
+  const { onCopy } = useClipboard(address || "");
+  const token = useToken(tokenAddress);
 
   const { data: balance } = useQuery(
-    ["balance", data?.address, tokenAddress],
+    ["balance", address, tokenAddress],
     async () => {
-      if (!tokenAddress || !data?.address) {
+      if (!tokenAddress || !address) {
         return;
       }
 
@@ -57,23 +57,13 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
         isAddressZero(tokenAddress) ||
         tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
       ) {
-        /*
-        const balance = await baseProvider.getBalance(data?.address);
-
-        return {
-          value: balance,
-          displayValue: ethers.utils.formatEther(balance).slice(0, 6),
-          symbol: ChainIDToNativeSymbol[network?.chain?.id || 0],
-        };
-        */
-
         return null;
       }
 
-      return await tokenModule?.balanceOf(data.address);
+      return await token?.balanceOf(address);
     },
     {
-      enabled: !!data?.address && !!tokenModule,
+      enabled: !!address && !!token,
     },
   );
 
@@ -108,7 +98,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
 
   return (
     <Flex align="center" gap={2}>
-      {data?.address && (
+      {address && (
         <>
           <Button
             variant="outline"
@@ -119,7 +109,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
             }
             onClick={onOpen}
           >
-            {shortenAddress(data.address)}
+            {shortenAddress(address)}
           </Button>
           {balance && (
             <Stack
@@ -176,7 +166,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
                     width="120px"
                     onClick={copyAddress}
                   >
-                    {shortenAddress(data?.address || "")}
+                    {shortenAddress(address || "")}
                   </Button>
                   {data?.connector?.getProvider()?.isMetaMask && (
                     <Button size="sm" onClick={switchWallet}>
