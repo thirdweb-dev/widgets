@@ -3,7 +3,7 @@ import { Token } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
 import { useCallback, useEffect, useState } from "react";
-import { ChainIDToNativeSymbol } from "./commonRPCUrls";
+import { ChainIDToNativeSymbol } from "./rpcUtils";
 
 export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 

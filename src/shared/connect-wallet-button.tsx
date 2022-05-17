@@ -18,7 +18,7 @@ import React from "react";
 import { FiInfo } from "react-icons/fi";
 import { IoSwapHorizontalSharp } from "react-icons/io5";
 import { useConnect } from "wagmi";
-import { ChainIDToName, supportedChains } from "./commonRPCUrls";
+import { ChainIDToName, supportedChains } from "./rpcUtils";
 
 interface ConnectWalletButtonProps {
   expectedChainId: number;
