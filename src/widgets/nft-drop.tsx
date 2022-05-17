@@ -46,7 +46,7 @@ import { useSDKWithSigner } from "../shared/useSdkWithSigner";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface DropWidgetProps {
+interface NFTDropEmbedProps {
   startingTab?: "claim" | "inventory";
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
@@ -472,7 +472,7 @@ const Body: React.FC = ({ children }) => {
   );
 };
 
-interface DropWidgetProps {
+interface NFTDropEmbedProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
@@ -482,7 +482,7 @@ interface DropWidgetProps {
   ipfsGateway?: string;
 }
 
-const DropWidget: React.FC<DropWidgetProps> = ({
+const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   startingTab = "claim",
   rpcUrl,
   relayUrl,
@@ -568,7 +568,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <Provider autoConnect connectors={connectors}>
-            <DropWidget
+            <NFTDropEmbed
               rpcUrl={rpcUrl}
               relayUrl={relayUrl}
               contractAddress={contractAddress}

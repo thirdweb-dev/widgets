@@ -472,7 +472,7 @@ const Body: React.FC = ({ children }) => {
   );
 };
 
-interface BundleDropWidgetProps {
+interface EditionDropEmbedProps {
   startingTab?: Tab;
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
@@ -483,7 +483,7 @@ interface BundleDropWidgetProps {
   ipfsGateway?: string;
 }
 
-const BundleDropWidget: React.FC<BundleDropWidgetProps> = ({
+const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   startingTab = "claim",
   rpcUrl,
   contractAddress,
@@ -592,7 +592,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={chakraTheme}>
           <Provider autoConnect connectors={connectors}>
-            <BundleDropWidget
+            <EditionDropEmbed
               rpcUrl={rpcUrl}
               contractAddress={contractAddress}
               expectedChainId={expectedChainId}
