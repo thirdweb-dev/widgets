@@ -45,7 +45,7 @@ import {
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
-import { NftCarousel } from "../shared/nft-carousel";
+import { NFTCarousel } from "../shared/nft-carousel";
 import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -406,7 +406,7 @@ const InventoryPage: React.FC<ContractInProps> = ({
     );
   }
 
-  return <NftCarousel metadata={ownedDropsMetadata} />;
+  return <NFTCarousel metadata={ownedDropsMetadata} />;
 };
 
 const Body: React.FC = ({ children }) => {

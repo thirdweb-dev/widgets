@@ -1,28 +1,26 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   AspectRatio,
-  Box,
-  BoxProps,
   Center,
   Flex,
   Heading,
   IconButton,
-  Image,
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { ThirdwebNftMedia } from "@thirdweb-dev/react";
 import { NFTMetadata } from "@thirdweb-dev/sdk";
 import React, { useCallback, useState } from "react";
-import { isExtensionVideoFile } from "../utils/isExtensionVideoFile";
-interface NftCarouselProps {
+
+interface NFTCarouselProps {
   metadata: NFTMetadata[];
 }
 
-export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
+export const NFTCarousel: React.FC<NFTCarouselProps> = ({ metadata }) => {
   const arrayLength = metadata.length;
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const next = useCallback(() => {
+  const onNext = useCallback(() => {
     setCurrentIndex((val) => {
       let next = val + 1;
       if (next >= arrayLength) {
@@ -31,7 +29,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
       return next;
     });
   }, [arrayLength]);
-  const prev = useCallback(() => {
+  const onPrev = useCallback(() => {
     setCurrentIndex((val) => {
       let prev = val - 1;
       if (prev < 0) {
@@ -47,7 +45,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
         <IconButton
           aria-label="previous"
           icon={<ChevronLeftIcon />}
-          onClick={prev}
+          onClick={onPrev}
           borderRadius="full"
           variant="outline"
           size="sm"
@@ -61,7 +59,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
                 align="center"
                 w="100%"
                 position="absolute"
-                left={"calc(100% * " + idx + ")"}
+                left={`calc(100% * ${idx})`}
                 transform={`translateX(${currentIndex * -100}%)`}
                 transition="transform .333s ease"
               >
@@ -73,11 +71,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
                   border="1px solid rgba(0, 0, 0, 0.1)"
                   bg="#F2F0FF"
                 >
-                  <NFTImageOrVideo
-                    animation_url={nft.animation_url}
-                    image={nft.image}
-                    title={nft.name}
-                  />
+                  <ThirdwebNftMedia metadata={nft} />
                 </AspectRatio>
                 <Heading fontWeight={500} fontSize="18px" size="sm" as="h3">
                   {nft.name}
@@ -94,7 +88,7 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
         <IconButton
           aria-label="next"
           icon={<ChevronRightIcon />}
-          onClick={next}
+          onClick={onNext}
           borderRadius="full"
           variant="outline"
           size="sm"
@@ -102,45 +96,4 @@ export const NftCarousel: React.FC<NftCarouselProps> = ({ metadata }) => {
       </Stack>
     </Center>
   );
-};
-
-interface NFTImageOrVideoProps extends BoxProps {
-  animation_url?: string;
-  image?: string;
-  title?: string;
-}
-
-export const NFTImageOrVideo: React.FC<NFTImageOrVideoProps> = ({
-  animation_url,
-  image,
-  title,
-  children,
-  ...restBoxProps
-}) => {
-  if (animation_url && isExtensionVideoFile(animation_url)) {
-    return (
-      <Box
-        as="video"
-        //@ts-ignore
-        objectFit="contain!important"
-        autoPlay
-        loop
-        playsInline
-        muted
-        src={animation_url}
-        poster={image}
-        {...restBoxProps}
-      />
-    );
-  } else {
-    return (
-      <Image
-        //@ts-ignore
-        objectFit="contain!important"
-        src={image}
-        alt={title || "NFT"}
-        {...restBoxProps}
-      />
-    );
-  }
 };

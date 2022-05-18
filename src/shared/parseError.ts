@@ -11,12 +11,12 @@ export const parseError = (err: any) => {
   }
 
   if (err.data.message.includes("execution reverted:")) {
-    return err.data.message.replace("execution reverted:", "")
+    return err.data.message.replace("execution reverted:", "");
   }
 
   if (err.data.message) {
     return err.data.message;
   }
-    
+
   return undefined;
-}
+};
