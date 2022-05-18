@@ -434,7 +434,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   const [activeTab, setActiveTab] = useState(startingTab);
 
   const editionDrop = useEditionDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition([editionDrop, tokenId]);
+  const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
 
   return (
     <Flex
