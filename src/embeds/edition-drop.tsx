@@ -84,14 +84,12 @@ const inactiveButtonProps: ButtonProps = {
   color: "gray.500",
 };
 interface HeaderProps extends ContractInProps {
-  tokenAddress?: string;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   tokenId: string;
 }
 
 const Header: React.FC<HeaderProps> = ({
-  tokenAddress,
   activeTab,
   setActiveTab,
   contract,
@@ -140,7 +138,9 @@ const Header: React.FC<HeaderProps> = ({
           Inventory
         </Button>
       </Stack>
-      <ConnectedWallet tokenAddress={tokenAddress} />
+      <ConnectedWallet
+        tokenAddress={activeClaimCondition?.data?.currencyAddress}
+      />
     </Stack>
   );
 };
