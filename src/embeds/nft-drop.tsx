@@ -1,6 +1,5 @@
 import {
   Button,
-  ButtonProps,
   Center,
   ChakraProvider,
   Flex,
@@ -40,8 +39,8 @@ import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
+import { Header } from "../shared/header";
 import { NFTCarousel } from "../shared/nft-carousel";
 import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
@@ -62,78 +61,6 @@ type Tab = "claim" | "inventory";
 interface ContractInProps {
   contract?: NFTDrop;
 }
-
-interface HeaderProps extends ContractInProps {
-  activeTab: Tab;
-  setActiveTab: (tab: Tab) => void;
-}
-
-const activeButtonProps: ButtonProps = {
-  borderBottom: "4px solid",
-  borderBottomColor: "blue.500",
-};
-
-const inactiveButtonProps: ButtonProps = {
-  color: "gray.500",
-};
-
-const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  setActiveTab,
-  contract,
-}) => {
-  const address = useAddress();
-  const owned = useNFTBalance(contract, address);
-  const activeClaimCondition = useActiveClaimCondition(contract);
-  const unclaimedSupply = useUnclaimedNFTSupply(contract);
-
-  return (
-    <Stack
-      as="header"
-      px="28px"
-      direction="row"
-      spacing="20px"
-      w="100%"
-      flexGrow={0}
-      borderBottom="1px solid rgba(0,0,0,.1)"
-      justify="space-between"
-    >
-      <Stack direction="row" spacing={5}>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          {...(activeTab === "claim" ? activeButtonProps : inactiveButtonProps)}
-          variant="unstyled"
-          borderRadius={0}
-          onClick={() => setActiveTab("claim")}
-        >
-          Mint
-          {unclaimedSupply.data ? ` (${unclaimedSupply.data.toString()})` : ""}
-        </Button>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          {...(activeTab === "inventory"
-            ? activeButtonProps
-            : inactiveButtonProps)}
-          variant="unstyled"
-          borderRadius={0}
-          onClick={() => setActiveTab("inventory")}
-        >
-          Inventory{owned.data ? ` (${owned.data})` : ""}
-        </Button>
-      </Stack>
-      <ConnectedWallet
-        tokenAddress={activeClaimCondition?.data?.currencyAddress}
-      />
-    </Stack>
-  );
-};
-
 interface ClaimPageProps {
   contract?: NFTDrop;
   expectedChainId: number;
@@ -409,6 +336,9 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(startingTab);
   const nftDrop = useNFTDrop(contractAddress);
+  const activeClaimCondition = useActiveClaimCondition(nftDrop);
+  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+  const unclaimedSupply = useUnclaimedNFTSupply(nftDrop);
 
   return (
     <Flex
@@ -428,7 +358,9 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       <Header
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
-        contract={nftDrop}
+        tokenAddress={tokenAddress}
+        available={unclaimedSupply?.data?.toString()}
+        expectedChainId={expectedChainId}
       />
       <Body>
         {activeTab === "claim" ? (

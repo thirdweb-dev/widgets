@@ -1,6 +1,5 @@
 import {
   Button,
-  ButtonProps,
   Center,
   ChakraProvider,
   Flex,
@@ -54,50 +53,6 @@ interface TokenDropEmbedProps {
   contractAddress: string;
   expectedChainId: number;
 }
-
-interface ContractInProps {
-  contract?: TokenDrop;
-}
-
-const activeButtonProps: ButtonProps = {
-  borderBottom: "4px solid",
-  borderBottomColor: "blue.500",
-};
-
-const Header: React.FC<ContractInProps> = ({ contract }) => {
-  const activeClaimCondition = useActiveClaimCondition(contract);
-
-  return (
-    <Stack
-      as="header"
-      px="28px"
-      direction="row"
-      spacing="20px"
-      w="100%"
-      flexGrow={0}
-      borderBottom="1px solid rgba(0,0,0,.1)"
-      justify="space-between"
-    >
-      <Stack direction="row" spacing={5}>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          variant="unstyled"
-          borderRadius={0}
-          {...activeButtonProps}
-        >
-          Mint
-        </Button>
-      </Stack>
-      <ConnectedWallet
-        tokenAddress={activeClaimCondition?.data?.currencyAddress}
-      />
-    </Stack>
-  );
-};
-
 interface ClaimPageProps {
   contract?: TokenDrop;
   expectedChainId: number;
@@ -324,7 +279,9 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   contractAddress,
   expectedChainId,
 }) => {
-  const nftDrop = useTokenDrop(contractAddress);
+  const tokenDrop = useTokenDrop(contractAddress);
+  const activeClaimCondition = useActiveClaimCondition(tokenDrop);
+  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   return (
     <Flex
@@ -341,9 +298,21 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header contract={nftDrop} />
+      <Stack
+        as="header"
+        px="28px"
+        direction="row"
+        spacing="20px"
+        w="100%"
+        flexGrow={0}
+        borderBottom="1px solid rgba(0,0,0,.1)"
+        justify="flex-end"
+        py={2}
+      >
+        <ConnectedWallet tokenAddress={tokenAddress} />
+      </Stack>
       <Body>
-        <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
+        <ClaimPage contract={tokenDrop} expectedChainId={expectedChainId} />
       </Body>
       <Footer />
     </Flex>

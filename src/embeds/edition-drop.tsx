@@ -1,6 +1,5 @@
 import {
   Button,
-  ButtonProps,
   Center,
   ChakraProvider,
   Flex,
@@ -31,7 +30,6 @@ import {
   useEditionToken,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
-import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -43,13 +41,14 @@ import {
   useQuery,
 } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
+import { Header } from "../shared/header";
 import { NFTCarousel } from "../shared/nft-carousel";
 import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
+import { parseHugeNumber } from "../utils/parseHugeNumber";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
@@ -59,91 +58,6 @@ interface ContractInProps {
   contract?: EditionDrop;
   expectedChainId: number;
 }
-
-function parseHugeNumber(totalAvailable: BigNumberish = 0) {
-  if (totalAvailable === "unlimited") {
-    return "Unlimited";
-  }
-
-  const bn = BigNumber.from(totalAvailable);
-  if (bn.gte(Number.MAX_SAFE_INTEGER - 1)) {
-    return "Unlimited";
-  }
-  const number = bn.toNumber();
-  return new Intl.NumberFormat(undefined, {
-    notation: bn.gte(1_00_000) ? "compact" : undefined,
-  }).format(number);
-}
-
-const activeButtonProps: ButtonProps = {
-  borderBottom: "4px solid",
-  borderBottomColor: "blue.500",
-};
-
-const inactiveButtonProps: ButtonProps = {
-  color: "gray.500",
-};
-interface HeaderProps extends ContractInProps {
-  activeTab: Tab;
-  setActiveTab: (tab: Tab) => void;
-  tokenId: string;
-}
-
-const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  setActiveTab,
-  contract,
-  tokenId,
-}) => {
-  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
-
-  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
-
-  return (
-    <Stack
-      as="header"
-      px="28px"
-      direction="row"
-      spacing="20px"
-      w="100%"
-      flexGrow={0}
-      borderBottom="1px solid rgba(0,0,0,.1)"
-      justify="space-between"
-    >
-      <Stack direction="row" spacing={5}>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          {...(activeTab === "claim" ? activeButtonProps : inactiveButtonProps)}
-          variant="unstyled"
-          borderRadius={0}
-          onClick={() => setActiveTab("claim")}
-        >
-          Mint{available ? ` (${available})` : ""}
-        </Button>
-        <Button
-          h="48px"
-          fontSize="subtitle.md"
-          fontWeight="700"
-          borderY="4px solid transparent"
-          {...(activeTab === "inventory"
-            ? activeButtonProps
-            : inactiveButtonProps)}
-          variant="unstyled"
-          borderRadius={0}
-          onClick={() => setActiveTab("inventory")}
-        >
-          Inventory
-        </Button>
-      </Stack>
-      <ConnectedWallet
-        tokenAddress={activeClaimCondition?.data?.currencyAddress}
-      />
-    </Stack>
-  );
-};
 
 interface ClaimPageProps {
   contract?: EditionDrop;
@@ -435,6 +349,8 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 
   const editionDrop = useEditionDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
+  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
   return (
     <Flex
@@ -454,9 +370,9 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       <Header
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
-        contract={editionDrop}
-        tokenId={tokenId}
+        tokenAddress={tokenAddress}
         expectedChainId={expectedChainId}
+        available={available}
       />
       <Body>
         {activeTab === "claim" ? (
