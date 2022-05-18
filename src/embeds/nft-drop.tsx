@@ -25,23 +25,20 @@ import {
   useActiveClaimCondition,
   useAddress,
   useChainId,
+  useClaimedNFTSupply,
   useClaimIneligibilityReasons,
   useContractMetadata,
   useNFTBalance,
   useNFTDrop,
   useOwnedNFTs,
+  useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
+import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -88,11 +85,7 @@ const Header: React.FC<HeaderProps> = ({
   const address = useAddress();
   const owned = useNFTBalance(contract, address);
   const activeClaimCondition = useActiveClaimCondition([contract]);
-  const unclaimed = useQuery(
-    ["numbers", "unclaimed"],
-    () => contract?.totalUnclaimedSupply(),
-    { enabled: !!contract },
-  );
+  const unclaimedSupply = useUnclaimedNFTSupply(contract);
 
   return (
     <Stack
@@ -116,7 +109,8 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius={0}
           onClick={() => setActiveTab("claim")}
         >
-          Mint{unclaimed.data ? ` (${unclaimed.data})` : ""}
+          Mint
+          {unclaimedSupply.data ? ` (${unclaimedSupply.data.toString()})` : ""}
         </Button>
         <Button
           h="48px"
@@ -160,21 +154,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     contract,
     { quantity, walletAddress: address },
   ]);
+  const unclaimedSupply = useUnclaimedNFTSupply(contract);
+  const claimedSupply = useClaimedNFTSupply(contract);
 
   // Enable all queries
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-
-  const claimed = useQuery(
-    ["numbers", "claimed"],
-    async () => contract?.totalClaimedSupply(),
-    { enabled: isEnabled },
-  );
-
-  const unclaimed = useQuery(
-    ["numbers", "unclaimed"],
-    async () => contract?.totalUnclaimedSupply(),
-    { enabled: isEnabled },
-  );
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -230,7 +214,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   };
 
   // Only sold out when available data is loaded
-  const isSoldOut = unclaimed.data?.eq(0);
+  const isSoldOut = unclaimedSupply.data?.eq(0);
 
   const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
 
@@ -294,10 +278,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             : "Minting Unavailable"}
         </Button>
       </Flex>
-      {claimed.data && (
+      {claimedSupply.data && (
         <Text size="label.md" color="green.800">
-          {`${claimed.data?.toString()} / ${(
-            claimed.data?.add(unclaimed.data || 0) || 0
+          {`${claimedSupply.data?.toString()} / ${(
+            claimedSupply.data?.add(unclaimedSupply.data || 0) || 0
           ).toString()} claimed`}
         </Text>
       )}

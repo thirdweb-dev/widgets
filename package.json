@@ -51,7 +51,7 @@
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "@thirdweb-dev/react": "^2.2.8-0",
-    "@thirdweb-dev/sdk": "^2.2.4-0",
+    "@thirdweb-dev/sdk": "^2.2.10",
     "ethers": "^5.5.2",
     "flat": "^5.0.2",
     "framer-motion": "^6",
