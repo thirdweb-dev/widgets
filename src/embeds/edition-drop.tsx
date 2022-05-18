@@ -452,7 +452,6 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       bg="white"
     >
       <Header
-        tokenAddress={activeClaimCondition.data?.currencyAddress}
         activeTab={activeTab}
         setActiveTab={(tab) => setActiveTab(tab)}
         contract={editionDrop}
