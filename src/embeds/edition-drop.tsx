@@ -26,9 +26,9 @@ import {
   useAddress,
   useChainId,
   useClaimIneligibilityReasons,
-  usEdition,
   useEditionBalance,
   useEditionDrop,
+  useEditionToken,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
@@ -97,7 +97,7 @@ const Header: React.FC<HeaderProps> = ({
   contract,
   tokenId,
 }) => {
-  const activeClaimCondition = useActiveClaimCondition([contract, tokenId]);
+  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
 
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
@@ -161,13 +161,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
-  const activeClaimCondition = useActiveClaimCondition([contract, tokenId]);
+  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
 
-  const claimIneligibilityReasons = useClaimIneligibilityReasons([
+  const claimIneligibilityReasons = useClaimIneligibilityReasons(
     contract,
     { quantity, walletAddress: address },
     tokenId,
-  ]);
+  );
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
   const owned = useEditionBalance(contract, tokenId, address);
@@ -302,7 +302,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   expectedChainId,
   tokenId,
 }) => {
-  const tokenMetadata = usEdition(contract, tokenId);
+  const tokenMetadata = useEditionToken(contract, tokenId);
 
   if (tokenMetadata.isLoading) {
     return (

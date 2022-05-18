@@ -84,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const address = useAddress();
   const owned = useNFTBalance(contract, address);
-  const activeClaimCondition = useActiveClaimCondition([contract]);
+  const activeClaimCondition = useActiveClaimCondition(contract);
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
 
   return (
@@ -149,11 +149,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const loaded = useRef(false);
   const owned = useNFTBalance(contract, address);
-  const activeClaimCondition = useActiveClaimCondition([contract]);
-  const claimIneligibilityReasons = useClaimIneligibilityReasons([
-    contract,
-    { quantity, walletAddress: address },
-  ]);
+  const activeClaimCondition = useActiveClaimCondition(contract);
+  const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
+    quantity,
+    walletAddress: address,
+  });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
 
