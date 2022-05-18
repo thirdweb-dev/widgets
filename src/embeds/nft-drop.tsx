@@ -480,7 +480,9 @@ const App: React.FC = () => {
           <ThirdwebProvider
             desiredChainId={expectedChainId}
             sdkOptions={sdkOptions}
-            storageInterface={new IpfsStorage(ipfsGateway)}
+            storageInterface={
+              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            }
             chainRpc={{ [expectedChainId]: rpcUrl }}
           >
             <NFTDropEmbed

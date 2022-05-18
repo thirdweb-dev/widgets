@@ -27,6 +27,7 @@ import {
   useChainId,
   useClaimIneligibilityReasons,
   usEdition,
+  useEditionBalance,
   useEditionDrop,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
@@ -169,14 +170,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   ]);
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-
-  const owned = useQuery(
-    ["numbers", "owned", { address }],
-    () => contract?.balanceOf(address || "", tokenId),
-    {
-      enabled: !!contract && !!address,
-    },
-  );
+  const owned = useEditionBalance(contract, tokenId, address);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -536,7 +530,9 @@ const App: React.FC = () => {
           <ThirdwebProvider
             desiredChainId={expectedChainId}
             sdkOptions={sdkOptions}
-            storageInterface={new IpfsStorage(ipfsGateway)}
+            storageInterface={
+              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            }
             chainRpc={{ [expectedChainId]: rpcUrl }}
           >
             <EditionDropEmbed
