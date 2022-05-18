@@ -22,11 +22,14 @@ import {
 import { css, Global } from "@emotion/react";
 import {
   ThirdwebProvider,
+  useActiveClaimCondition,
   useAddress,
   useChainId,
+  useClaimIneligibilityReasons,
+  usEdition,
   useEditionDrop,
 } from "@thirdweb-dev/react";
-import { EditionDrop, IpfsStorage, ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -70,13 +73,20 @@ function parseHugeNumber(totalAvailable: BigNumberish = 0) {
     notation: bn.gte(1_00_000) ? "compact" : undefined,
   }).format(number);
 }
+
+const activeButtonProps: ButtonProps = {
+  borderBottom: "4px solid",
+  borderBottomColor: "blue.500",
+};
+
+const inactiveButtonProps: ButtonProps = {
+  color: "gray.500",
+};
 interface HeaderProps extends ContractInProps {
-  sdk?: ThirdwebSDK;
   tokenAddress?: string;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   tokenId: string;
-  expectedChainId: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -84,34 +94,9 @@ const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   contract,
-  expectedChainId,
   tokenId,
 }) => {
-  const address = useAddress();
-  const chainId = useChainId();
-
-  const isEnabled = !!contract && !!address && chainId === expectedChainId;
-
-  const activeButtonProps: ButtonProps = {
-    borderBottom: "4px solid",
-    borderBottomColor: "blue.500",
-  };
-
-  const inactiveButtonProps: ButtonProps = {
-    color: "gray.500",
-  };
-
-  const activeClaimCondition = useQuery(
-    ["claim-condition", { tokenId }],
-    async () => {
-      try {
-        return contract?.claimConditions.getActive(tokenId);
-      } catch {
-        return undefined;
-      }
-    },
-    { enabled: isEnabled && tokenId.length > 0 },
-  );
+  const activeClaimCondition = useActiveClaimCondition([contract, tokenId]);
 
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
@@ -161,7 +146,6 @@ const Header: React.FC<HeaderProps> = ({
 
 interface ClaimPageProps {
   contract?: EditionDrop;
-  sdk?: ThirdwebSDK;
   expectedChainId: number;
   tokenId: string;
 }
@@ -176,6 +160,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
+  const activeClaimCondition = useActiveClaimCondition([contract, tokenId]);
+
+  const claimIneligibilityReasons = useClaimIneligibilityReasons([
+    contract,
+    { quantity, walletAddress: address },
+    tokenId,
+  ]);
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
 
@@ -185,37 +176,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     {
       enabled: !!contract && !!address,
     },
-  );
-
-  const activeClaimCondition = useQuery(
-    ["claim-condition", { tokenId }],
-    async () => {
-      try {
-        return await contract?.claimConditions.getActive(tokenId);
-      } catch {
-        return undefined;
-      }
-    },
-    { enabled: isEnabled && tokenId.length > 0 },
-  );
-
-  const claimConditionReasons = useQuery(
-    ["ineligiblereasons", { tokenId, quantity, address }],
-    async () => {
-      try {
-        const reasons =
-          await contract?.claimConditions.getClaimIneligibilityReasons(
-            tokenId,
-            quantity,
-            address,
-          );
-        loaded.current = true;
-        return reasons;
-      } catch {
-        return undefined;
-      }
-    },
-    { enabled: !!contract && !!address },
   );
 
   const bnPrice = parseUnits(
@@ -265,10 +225,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
   );
 
-  const isLoading = claimConditionReasons.isLoading && !loaded.current;
+  const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
 
   const canClaim =
-    !isSoldOut && !!address && !claimConditionReasons.data?.length;
+    !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
   const quantityLimit = activeClaimCondition?.data?.quantityLimitPerTransaction;
 
@@ -324,9 +284,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                     )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
                   : ""
               }`
-            : claimConditionReasons.data?.length
+            : claimIneligibilityReasons.data?.length
             ? parseIneligibility(
-                claimConditionReasons.data,
+                claimIneligibilityReasons.data,
                 owned.data?.toNumber(),
               )
             : "Minting Unavailable"}
@@ -345,17 +305,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
 const ClaimPage: React.FC<ClaimPageProps> = ({
   contract,
-  sdk,
   expectedChainId,
   tokenId,
 }) => {
-  const tokenMetadata = useQuery(
-    ["token-metadata", { tokenId }],
-    async () => {
-      return contract?.get(tokenId);
-    },
-    { enabled: !!contract && tokenId.length > 0 },
-  );
+  const tokenMetadata = usEdition(contract, tokenId);
 
   if (tokenMetadata.isLoading) {
     return (
@@ -368,7 +321,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
     );
   }
 
-  const metaData = tokenMetadata.data?.metadata;
+  const metadata = tokenMetadata.data?.metadata;
 
   return (
     <Center w="100%" h="100%">
@@ -382,31 +335,30 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {metaData?.image ? (
+          {metadata?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={metaData?.image}
-              alt={metaData?.name}
+              src={metadata?.image}
+              alt={metadata?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {metaData?.name}
+          {metadata?.name}
         </Heading>
-        {metaData?.description && (
+        {metadata?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metaData.description}
+            {metadata.description}
           </Heading>
         )}
         <ClaimButton
           contract={contract}
           tokenId={tokenId}
           expectedChainId={expectedChainId}
-          sdk={sdk}
         />
       </Flex>
     </Center>
