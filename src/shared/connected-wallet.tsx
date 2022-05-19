@@ -17,14 +17,17 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useAddress, useDisconnect, useToken } from "@thirdweb-dev/react";
+import {
+  useAddress,
+  useDisconnect,
+  useToken,
+  useTokenBalance,
+} from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import React from "react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
-import { useQuery } from "react-query";
 import { useAccount } from "wagmi";
-import { isAddressZero } from "./tokenHooks";
 
 interface ConnectedWalletProps {
   tokenAddress?: string;
@@ -44,28 +47,7 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
   const disconnect = useDisconnect();
   const { onCopy } = useClipboard(address || "");
   const token = useToken(tokenAddress);
-
-  const { data: balance } = useQuery(
-    ["balance", address, tokenAddress],
-    async () => {
-      if (!tokenAddress || !address) {
-        return;
-      }
-
-      const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-      if (
-        isAddressZero(tokenAddress) ||
-        tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
-      ) {
-        return null;
-      }
-
-      return await token?.balanceOf(address);
-    },
-    {
-      enabled: !!address && !!token,
-    },
-  );
+  const { data: balance } = useTokenBalance(token, address);
 
   const switchWallet = async () => {
     const provider = data?.connector?.getProvider();

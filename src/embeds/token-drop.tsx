@@ -25,6 +25,7 @@ import {
   useChainId,
   useClaimIneligibilityReasons,
   useContractMetadata,
+  useTokenBalance,
   useTokenDrop,
 } from "@thirdweb-dev/react";
 import { IpfsStorage, TokenDrop } from "@thirdweb-dev/sdk";
@@ -32,12 +33,7 @@ import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
+import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -75,13 +71,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   });
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-  const owned = useQuery(
-    ["numbers", "owned", { address }],
-    () => contract?.balanceOf(address || ""),
-    {
-      enabled: !!contract && !!address,
-    },
-  );
+  const owned = useTokenBalance(contract, address);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",

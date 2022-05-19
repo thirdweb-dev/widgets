@@ -25,21 +25,17 @@ import {
   useAddress,
   useChainId,
   useClaimIneligibilityReasons,
-  useEditionBalance,
   useEditionDrop,
-  useEditionToken,
+  useNFT,
+  useNFTBalance,
+  useOwnedNFTs,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
+import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
@@ -84,7 +80,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-  const owned = useEditionBalance(contract, tokenId, address);
+  const owned = useNFTBalance(contract, tokenId, address);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -216,7 +212,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   expectedChainId,
   tokenId,
 }) => {
-  const tokenMetadata = useEditionToken(contract, tokenId);
+  const tokenMetadata = useNFT(contract, tokenId);
 
   if (tokenMetadata.isLoading) {
     return (
@@ -278,11 +274,7 @@ const InventoryPage: React.FC<ContractInProps> = ({
   expectedChainId,
 }) => {
   const address = useAddress();
-  const ownedDrops = useQuery(
-    "inventory",
-    () => contract?.getOwned(address || ""),
-    { enabled: !!contract && !!address },
-  );
+  const ownedDrops = useOwnedNFTs(contract, address);
 
   if (ownedDrops.isLoading) {
     return (
