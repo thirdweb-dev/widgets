@@ -22,9 +22,13 @@ import { css, Global } from "@emotion/react";
 import {
   ThirdwebProvider,
   useAddress,
+  useAuctionWinner,
+  useBidBuffer,
   useChainId,
+  useListing,
   useMarketplace,
   useToken,
+  useWiningBid,
 } from "@thirdweb-dev/react";
 import {
   AuctionListing,
@@ -39,12 +43,7 @@ import ReactDOM from "react-dom";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
+import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -115,40 +114,16 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     return endTime.sub(currentTime).lte(0);
   }, [listing.endTimeInEpochSeconds]);
 
-  const { data: currentBid } = useQuery(
-    ["currentBid", listing.id],
-    () => contract?.auction.getWinningBid(listing.id),
-    { enabled: !!contract },
-  );
-
-  const { data: auctionWinner } = useQuery(
-    ["auctionWinner", listing.id],
-    async () => {
-      if (!contract) {
-        return;
-      }
-
-      if (isAuctionEnded) {
-        return await contract.auction.getWinner(listing.id);
-      }
-
-      return undefined;
-    },
-    { enabled: !!contract && isAuctionEnded },
-  );
-
-  const { data: bidBuffer } = useQuery(
-    ["bidBuffer"],
-    () => contract?.getBidBufferBps(),
-    { enabled: !!contract },
-  );
+  const { data: winningBid } = useWiningBid(contract, listing.id);
+  const { data: auctionWinner } = useAuctionWinner(contract, listing.id);
+  const { data: bidBuffer } = useBidBuffer(contract);
 
   const { minimumBidNumber, minimumBidBN } = useMemo(() => {
     if (!bidBuffer) {
       return { minimumBidNumber: "0", minimumBidBN: BigNumber.from(0) };
     }
 
-    const currentBidBN = currentBid?.currencyValue.value
+    const winningBidBN = winningBid?.currencyValue.value
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
@@ -156,11 +131,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.quantity,
     );
 
-    const currentBidNumber = ethers.utils.formatUnits(
-      BigNumber.from(currentBid?.currencyValue.value || "0")
+    const winningBidNumber = ethers.utils.formatUnits(
+      BigNumber.from(winningBid?.currencyValue.value || "0")
         .mul(BigNumber.from(10000).add(bidBuffer))
         .div(BigNumber.from(10000)),
-      currentBid?.currencyValue.decimals || 18,
+      winningBid?.currencyValue.decimals || 18,
     );
 
     const reservePriceNumber = ethers.utils.formatUnits(
@@ -170,7 +145,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.decimals || 18,
     );
 
-    const _minimumBidBN = BigNumber.from(currentBid?.currencyValue.value || 0)
+    const _minimumBidBN = BigNumber.from(winningBid?.currencyValue.value || 0)
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
@@ -178,15 +153,15 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.value || 0,
     ).mul(listing.quantity);
 
-    return currentBidBN?.gt(reservePriceBN)
-      ? { minimumBidNumber: currentBidNumber, minimumBidBN: _minimumBidBN }
+    return winningBidBN?.gt(reservePriceBN)
+      ? { minimumBidNumber: winningBidNumber, minimumBidBN: _minimumBidBN }
       : {
           minimumBidNumber: reservePriceNumber,
           minimumBidBN: minimumReservePriceBN,
         };
   }, [
-    currentBid?.currencyValue?.value,
-    currentBid?.currencyValue?.decimals,
+    winningBid?.currencyValue?.value,
+    winningBid?.currencyValue?.decimals,
     listing.reservePriceCurrencyValuePerToken,
     bidBuffer,
     listing.quantity,
@@ -198,8 +173,8 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     expectedChainId,
   );
 
-  const currentBidFormatted = useFormattedValue(
-    currentBid?.currencyValue.value,
+  const winningBidFormatted = useFormattedValue(
+    winningBid?.currencyValue.value,
     token,
     expectedChainId,
   );
@@ -411,30 +386,30 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   borderWidth="1px"
                   spacing={0}
                 >
-                  {currentBidFormatted ? (
+                  {winningBidFormatted ? (
                     <Text>
-                      {currentBid?.buyerAddress && (
+                      {winningBid?.buyerAddress && (
                         <>
-                          {currentBid?.buyerAddress === address ? (
+                          {winningBid?.buyerAddress === address ? (
                             `You are currently the highest bidder `
                           ) : (
                             <>
                               The highest bidder is currently{" "}
-                              <Tooltip label={currentBid?.buyerAddress}>
+                              <Tooltip label={winningBid?.buyerAddress}>
                                 <Text
                                   fontWeight="bold"
                                   cursor="pointer"
                                   display="inline"
                                 >
-                                  {currentBid?.buyerAddress.slice(0, 6)}...
-                                  {currentBid?.buyerAddress.slice(-4)}
+                                  {winningBid?.buyerAddress.slice(0, 6)}...
+                                  {winningBid?.buyerAddress.slice(-4)}
                                 </Text>
                               </Tooltip>
                             </>
                           )}
                         </>
                       )}{" "}
-                      with a bid of <strong>{currentBidFormatted}</strong>.
+                      with a bid of <strong>{winningBidFormatted}</strong>.
                     </Text>
                   ) : (
                     <Text color="gray.600" display="inline">
@@ -785,21 +760,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
 }) => {
   const marketplace = useMarketplace(contractAddress);
 
-  const { data: listing } = useQuery(
-    ["numbers", "available"],
-    async () => {
-      try {
-        return await marketplace?.getListing(listingId);
-      } catch (err: any) {
-        if (err.message.includes("Could not find listing")) {
-          return null;
-        }
-
-        throw err;
-      }
-    },
-    { enabled: !!marketplace && !!listingId },
-  );
+  const { data: listing } = useListing(marketplace, listingId);
 
   return (
     <Flex
