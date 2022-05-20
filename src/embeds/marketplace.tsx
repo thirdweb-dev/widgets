@@ -28,7 +28,7 @@ import {
   useListing,
   useMarketplace,
   useToken,
-  useWiningBid,
+  useWinningBid,
 } from "@thirdweb-dev/react";
 import {
   AuctionListing,
@@ -114,7 +114,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     return endTime.sub(currentTime).lte(0);
   }, [listing.endTimeInEpochSeconds]);
 
-  const { data: winningBid } = useWiningBid(contract, listing.id);
+  const { data: winningBid } = useWinningBid(contract, listing.id);
   const { data: auctionWinner } = useAuctionWinner(contract, listing.id);
   const { data: bidBuffer } = useBidBuffer(contract);
 
