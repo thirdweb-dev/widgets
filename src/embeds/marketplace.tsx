@@ -24,8 +24,10 @@ import {
   useAddress,
   useAuctionWinner,
   useBidBuffer,
+  useBuyoutListing,
   useChainId,
   useListing,
+  useMakeBid,
   useMarketplace,
   useToken,
   useWinningBid,
@@ -43,7 +45,6 @@ import ReactDOM from "react-dom";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
-import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -96,7 +97,7 @@ const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
   );
 };
 
-const AuctionListing: React.FC<AuctionListingProps> = ({
+const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   contract,
   expectedChainId,
   listing,
@@ -234,70 +235,61 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     setBid(minimumBidNumber);
   }, [minimumBidNumber]);
 
-  const bidMutation = useMutation(
-    async () => {
-      if (!contract) {
-        throw new Error("No contract");
-      }
+  const makeBidMutation = useMakeBid(contract);
 
-      return contract.auction.makeBid(listing.id, bid.toString());
-    },
-    {
+  const makeBid = async () => {
+    makeBidMutation.mutate(
+      { listingId: listing.id, bid: bid.toString() },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully placed a bid on this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          const anyErr = err as any;
+          let message = "";
+
+          if (anyErr.code === "INSUFFICIENT_FUNDS") {
+            message = "Insufficient funds to purchase.";
+          } else if (
+            anyErr.message.includes("User denied transaction signature")
+          ) {
+            message = "You denied the transaction";
+          } else if (anyErr.message.includes("Invariant failed:")) {
+            message = anyErr.message.replace("Invariant failed:", "");
+          } else if (anyErr.data.message.includes("insufficient funds")) {
+            message = "You don't have enough funds to make this bid.";
+          }
+
+          toast({
+            title: "Failed to place a bid on this auction",
+            description: message,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
+      },
+    );
+  };
+
+  const buyoutListingMutation = useBuyoutListing(contract);
+
+  const buyoutListing = async () => {
+    buyoutListingMutation.mutate(listing.id, {
       onSuccess: () => {
         toast({
           title: "Success",
-          description: "You have successfully placed a bid on this listing",
+          description: "You have successfully purchased from this listing",
           status: "success",
           duration: 5000,
           isClosable: true,
         });
-        queryClient.invalidateQueries();
-      },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.message.includes("Invariant failed:")) {
-          message = anyErr.message.replace("Invariant failed:", "");
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to make this bid.";
-        }
-
-        toast({
-          title: "Failed to place a bid on this auction",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    },
-  );
-
-  const buyMutation = useMutation(
-    () => {
-      if (!contract) {
-        throw new Error("No contract");
-      }
-
-      return contract.buyoutListing(listing.id);
-    },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully purchased this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries();
       },
       onError: (err) => {
         const anyErr = err as any;
@@ -310,19 +302,19 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
         ) {
           message = "You denied the transaction";
         } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to buyout this auction.";
+          message = "You don't have enough funds to buy this listing.";
         }
 
         toast({
-          title: "Failed to buyout auction.",
+          title: "Failed to purchase from listing",
           description: message,
           status: "error",
           duration: 9000,
           isClosable: true,
         });
       },
-    },
-  );
+    });
+  };
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -347,10 +339,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     minW="120px"
                     borderLeftRadius="0"
                     fontSize={{ base: "label.md", md: "label.lg" }}
-                    isLoading={bidMutation.isLoading}
+                    isLoading={makeBidMutation.isLoading}
                     leftIcon={<RiAuctionLine />}
                     colorScheme="blue"
-                    onClick={() => bidMutation.mutate()}
+                    onClick={makeBid}
                     isDisabled={parseFloat(bid) < parseFloat(minimumBidNumber)}
                   >
                     Bid
@@ -368,10 +360,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                       minW="160px"
                       variant="outline"
                       fontSize={{ base: "label.md", md: "label.lg" }}
-                      isLoading={buyMutation.isLoading}
+                      isLoading={buyoutListingMutation.isLoading}
                       leftIcon={<IoDiamondOutline />}
                       colorScheme="blue"
-                      onClick={() => buyMutation.mutate()}
+                      onClick={buyoutListing}
                     >
                       Buyout Auction ({buyoutPrice})
                     </Button>
@@ -512,7 +504,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 };
 
-const DirectListing: React.FC<DirectListingProps> = ({
+const DirectListingComponent: React.FC<DirectListingProps> = ({
   contract,
   expectedChainId,
   listing,
@@ -545,19 +537,10 @@ const DirectListing: React.FC<DirectListingProps> = ({
     return () => clearTimeout(t);
   }, [buySuccess]);
 
-  const buyMutation = useMutation(
-    () => {
-      if (!address || !contract) {
-        throw new Error("No address or contract");
-      }
+  const buyoutListingMutation = useBuyoutListing(contract);
 
-      return contract.buyoutListing(
-        BigNumber.from(listing.id),
-        // either the quantity or the limit if it is lower
-        Math.min(quantity, quantityLimit.toNumber()),
-      );
-    },
-    {
+  const buyoutListing = async () => {
+    buyoutListingMutation.mutate(listing.id, {
       onSuccess: () => {
         toast({
           title: "Success",
@@ -566,7 +549,6 @@ const DirectListing: React.FC<DirectListingProps> = ({
           duration: 5000,
           isClosable: true,
         });
-        queryClient.invalidateQueries();
       },
       onError: (err) => {
         const anyErr = err as any;
@@ -590,8 +572,8 @@ const DirectListing: React.FC<DirectListingProps> = ({
           isClosable: true,
         });
       },
-    },
-  );
+    });
+  };
 
   const canClaim = !isSoldOut && !!address;
 
@@ -632,10 +614,10 @@ const DirectListing: React.FC<DirectListingProps> = ({
           )}
           <Button
             fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={buyMutation.isLoading}
+            isLoading={buyoutListingMutation.isLoading}
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
-            onClick={() => buyMutation.mutate()}
+            onClick={buyoutListing}
             isFullWidth
             colorScheme="blue"
           >
@@ -721,13 +703,13 @@ const BuyPage: React.FC<BuyPageProps> = ({
           </Heading>
         )}
         {listing?.type === ListingType.Direct ? (
-          <DirectListing
+          <DirectListingComponent
             contract={contract}
             expectedChainId={expectedChainId}
             listing={listing}
           />
         ) : (
-          <AuctionListing
+          <AuctionListingComponent
             contract={contract}
             expectedChainId={expectedChainId}
             listing={listing}
@@ -790,7 +772,6 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   );
 };
 
-const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -825,24 +806,22 @@ const App: React.FC = () => {
           }
         `}
       />
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={chakraTheme}>
-          <ThirdwebProvider
-            desiredChainId={expectedChainId}
-            sdkOptions={sdkOptions}
-            storageInterface={
-              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-            }
-            chainRpc={{ [expectedChainId]: rpcUrl }}
-          >
-            <MarketplaceEmbed
-              contractAddress={contractAddress}
-              expectedChainId={expectedChainId}
-              listingId={listingId}
-            />
-          </ThirdwebProvider>
-        </ChakraProvider>
-      </QueryClientProvider>
+      <ChakraProvider theme={chakraTheme}>
+        <ThirdwebProvider
+          desiredChainId={expectedChainId}
+          sdkOptions={sdkOptions}
+          storageInterface={
+            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+          }
+          chainRpc={{ [expectedChainId]: rpcUrl }}
+        >
+          <MarketplaceEmbed
+            contractAddress={contractAddress}
+            expectedChainId={expectedChainId}
+            listingId={listingId}
+          />
+        </ThirdwebProvider>
+      </ChakraProvider>
     </>
   );
 };
