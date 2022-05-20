@@ -529,7 +529,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
     return BigNumber.from(listing.quantity || 1);
   }, [listing.quantity]);
 
-  const formatedPrice = useFormattedValue(
+  const formattedPrice = useFormattedValue(
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       BigNumber.from(quantity),
     ),
@@ -645,8 +645,8 @@ const DirectListing: React.FC<DirectListingProps> = ({
               ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
                   BigNumber.from(pricePerToken).eq(0)
                     ? " (Free)"
-                    : formatedPrice
-                    ? ` (${formatedPrice})`
+                    : formattedPrice
+                    ? ` (${formattedPrice})`
                     : ""
                 }`
               : "Purchase Unavailable"}
