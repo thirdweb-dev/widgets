@@ -7,11 +7,6 @@ import {
   Heading,
   Icon,
   Image,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Spinner,
   Stack,
   Text,
@@ -34,6 +29,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
 import { QueryClient, QueryClientProvider, useMutation } from "react-query";
+import { QuantityInput } from "src/shared/quantity-input";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
@@ -61,7 +57,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const address = useAddress();
   const chainId = useChainId();
   const [claimSuccess, setClaimSuccess] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("1");
   const loaded = useRef(false);
   const activeClaimCondition = useActiveClaimCondition(contract);
 
@@ -100,7 +96,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries();
         toast({
           title: "Successfuly claimed.",
           status: "success",
@@ -137,26 +132,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   return (
     <Stack spacing={4} align="center" w="100%">
       <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
-        <NumberInput
-          inputMode="numeric"
-          value={quantity}
-          onChange={(stringValue, value) => {
-            if (stringValue === "") {
-              setQuantity(1);
-            } else {
-              setQuantity(value);
-            }
-          }}
-          min={1}
-          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
-          maxW={{ base: "100%", md: "100px" }}
-        >
-          <NumberInputField />
-          <NumberInputStepper>
-            <NumberIncrementStepper />
-            <NumberDecrementStepper />
-          </NumberInputStepper>
-        </NumberInput>
+        <QuantityInput
+          isRequired
+          decimals={18}
+          value={quantity || "1"}
+          onChange={(value) => setQuantity(value)}
+        />
         <Button
           isLoading={isLoading || claimMutation.isLoading}
           isDisabled={!canClaim}
@@ -169,7 +150,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {isSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+            ? `Mint ${quantity}${
                 activeClaimCondition.data?.price.eq(0)
                   ? " (Free)"
                   : activeClaimCondition.data?.currencyMetadata.displayValue
