@@ -24,7 +24,7 @@ import {
   useAddress,
   useAuctionWinner,
   useBidBuffer,
-  useBuyoutListing,
+  useBuyNow,
   useChainId,
   useListing,
   useMakeBid,
@@ -278,42 +278,45 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
     );
   };
 
-  const buyoutListingMutation = useBuyoutListing(contract);
+  const buyNowMutation = useBuyNow(contract);
 
-  const buyoutListing = async () => {
-    buyoutListingMutation.mutate(listing.id, {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully purchased from this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
+  const buyNow = async () => {
+    buyNowMutation.mutate(
+      { id: listing.id, type: listing.type },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully purchased from this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          const anyErr = err as any;
+          let message = "";
+
+          if (anyErr.code === "INSUFFICIENT_FUNDS") {
+            message = "Insufficient funds to purchase.";
+          } else if (
+            anyErr.message.includes("User denied transaction signature")
+          ) {
+            message = "You denied the transaction";
+          } else if (anyErr.data.message.includes("insufficient funds")) {
+            message = "You don't have enough funds to buy this listing.";
+          }
+
+          toast({
+            title: "Failed to purchase from listing",
+            description: message,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to buy this listing.";
-        }
-
-        toast({
-          title: "Failed to purchase from listing",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    });
+    );
   };
 
   return (
@@ -360,10 +363,10 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                       minW="160px"
                       variant="outline"
                       fontSize={{ base: "label.md", md: "label.lg" }}
-                      isLoading={buyoutListingMutation.isLoading}
+                      isLoading={buyNowMutation.isLoading}
                       leftIcon={<IoDiamondOutline />}
                       colorScheme="blue"
-                      onClick={buyoutListing}
+                      onClick={buyNow}
                     >
                       Buyout Auction ({buyoutPrice})
                     </Button>
@@ -537,42 +540,45 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
     return () => clearTimeout(t);
   }, [buySuccess]);
 
-  const buyoutListingMutation = useBuyoutListing(contract);
+  const buyNowMutation = useBuyNow(contract);
 
-  const buyoutListing = async () => {
-    buyoutListingMutation.mutate(listing.id, {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully purchased from this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
+  const buyNow = async () => {
+    buyNowMutation.mutate(
+      { id: listing.id, type: listing.type, buyAmount: quantity },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully purchased from this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          const anyErr = err as any;
+          let message = "";
+
+          if (anyErr.code === "INSUFFICIENT_FUNDS") {
+            message = "Insufficient funds to purchase.";
+          } else if (
+            anyErr.message.includes("User denied transaction signature")
+          ) {
+            message = "You denied the transaction";
+          } else if (anyErr.data.message.includes("insufficient funds")) {
+            message = "You don't have enough funds to buy this listing.";
+          }
+
+          toast({
+            title: "Failed to purchase from listing",
+            description: message,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to buy this listing.";
-        }
-
-        toast({
-          title: "Failed to purchase from listing",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    });
+    );
   };
 
   const canClaim = !isSoldOut && !!address;
@@ -614,10 +620,10 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
           )}
           <Button
             fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={buyoutListingMutation.isLoading}
+            isLoading={buyNowMutation.isLoading}
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
-            onClick={buyoutListing}
+            onClick={buyNow}
             isFullWidth
             colorScheme="blue"
           >

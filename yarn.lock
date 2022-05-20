@@ -2050,10 +2050,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.3.6.tgz#704841cd8f00b682056bd84fdc33e89e6bb9e18e"
   integrity sha512-TUWo1vV6kEDZGfLRv9wJFxAkncc2lLCfPUN2YJp/4Ggqlm4ZdeELW2Y4cV+H8DMeiMO4ROLKNa2PUUHTQH2SJg==
 
-"@thirdweb-dev/react@^2.3.3":
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.3.3.tgz#65f4551498582d22286de982f211bbc3a8641fc2"
-  integrity sha512-vcWvZqg14K4XySRIj+4flrbHTX6co7pIFp5U+dF1NRGyIli3EmHpcPymDze7WqEWpszvIOXbg89NR0trcnVuYw==
+"@thirdweb-dev/react@^2.3.5":
+  version "2.3.5"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.3.5.tgz#96edf4c17e68fc827b5fcddab4dcbd3f1048bfbc"
+  integrity sha512-UzVxIpJLUg6bAXtnjxoYAwHMrGJy96CH5dPzw/GNmmjlfK6nCgunSYdFAdIfArdAGP2wIAh8Q5wzTzuLz3+HfA==
   dependencies:
     detect-browser "^5.3.0"
     mime "^3.0.0"
