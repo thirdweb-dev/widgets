@@ -26,6 +26,7 @@ import {
   useChainId,
   useClaimedNFTSupply,
   useClaimIneligibilityReasons,
+  useClaimNFT,
   useContractMetadata,
   useNFTBalance,
   useNFTDrop,
@@ -37,7 +38,6 @@ import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
-import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
@@ -75,6 +75,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [claimSuccess, setClaimSuccess] = useState(false);
   const loaded = useRef(false);
+  const toast = useToast();
+
   const owned = useNFTBalance(contract, address);
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
@@ -83,6 +85,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
+  const claimMutation = useClaimNFT(contract);
 
   // Enable all queries
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
@@ -100,44 +103,30 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     return () => clearTimeout(t);
   }, [claimSuccess]);
 
-  const toast = useToast();
-
-  const claimMutation = useMutation(
-    (amount: number) => {
-      if (!address || !contract) {
-        throw new Error("No address or contract");
-      }
-      return contract.claim(amount);
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries();
-      },
-    },
-  );
-
   const claim = async () => {
-    claimMutation.mutate(quantity, {
-      onSuccess: () => {
-        queryClient.invalidateQueries();
-        toast({
-          title: "Successfuly claimed.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
+    claimMutation.mutate(
+      { to: address as string, quantity },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Successfuly claimed.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          console.log(err);
+          toast({
+            title: "Failed to claim drop.",
+            description: parseError(err),
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        console.log(err);
-        toast({
-          title: "Failed to claim drop.",
-          description: parseError(err),
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    });
+    );
   };
 
   // Only sold out when available data is loaded
@@ -374,7 +363,6 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   );
 };
 
-const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -407,23 +395,21 @@ const App: React.FC = () => {
           }
         `}
       />
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={chakraTheme}>
-          <ThirdwebProvider
-            desiredChainId={expectedChainId}
-            sdkOptions={sdkOptions}
-            storageInterface={
-              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-            }
-            chainRpc={{ [expectedChainId]: rpcUrl }}
-          >
-            <NFTDropEmbed
-              contractAddress={contractAddress}
-              expectedChainId={expectedChainId}
-            />
-          </ThirdwebProvider>
-        </ChakraProvider>
-      </QueryClientProvider>
+      <ChakraProvider theme={chakraTheme}>
+        <ThirdwebProvider
+          desiredChainId={expectedChainId}
+          sdkOptions={sdkOptions}
+          storageInterface={
+            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+          }
+          chainRpc={{ [expectedChainId]: rpcUrl }}
+        >
+          <NFTDropEmbed
+            contractAddress={contractAddress}
+            expectedChainId={expectedChainId}
+          />
+        </ThirdwebProvider>
+      </ChakraProvider>
     </>
   );
 };

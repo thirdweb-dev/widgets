@@ -25,6 +25,7 @@ import {
   useAddress,
   useChainId,
   useClaimIneligibilityReasons,
+  useClaimNFT,
   useEditionDrop,
   useNFT,
   useNFTBalance,
@@ -35,7 +36,6 @@ import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { IoDiamondOutline } from "react-icons/io5";
-import { QueryClient, QueryClientProvider, useMutation } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
@@ -71,13 +71,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
-  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
 
+  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
     contract,
     { quantity, walletAddress: address },
     tokenId,
   );
+  const claimMutation = useClaimNFT(contract);
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
   const owned = useNFTBalance(contract, tokenId, address);
@@ -100,34 +101,31 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const toast = useToast();
 
-  const claimMutation = useMutation(
-    () => {
-      if (!address || !contract) {
-        throw new Error("No address or contract");
-      }
-      return contract.claim(tokenId, quantity);
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries();
-        toast({
-          title: "Successfuly claimed.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
+  const claim = async () => {
+    claimMutation.mutate(
+      { to: address as string, tokenId, quantity },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Successfuly claimed.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          console.log(err);
+          toast({
+            title: "Failed to claim drop.",
+            description: parseError(err),
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        toast({
-          title: "Minting failed",
-          description: parseError(err),
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    },
-  );
+    );
+  };
 
   const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
 
@@ -170,7 +168,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           isLoading={isLoading || claimMutation.isLoading}
           isDisabled={!canClaim}
           leftIcon={<IoDiamondOutline />}
-          onClick={() => claimMutation.mutate()}
+          onClick={claim}
           isFullWidth
           colorScheme="blue"
           fontSize={{ base: "label.md", md: "label.lg" }}
@@ -385,7 +383,6 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   );
 };
 
-const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -420,25 +417,23 @@ const App: React.FC = () => {
           }
         `}
       />
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={chakraTheme}>
-          ChainRpc
-          <ThirdwebProvider
-            desiredChainId={expectedChainId}
-            sdkOptions={sdkOptions}
-            storageInterface={
-              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-            }
-            chainRpc={{ [expectedChainId]: rpcUrl }}
-          >
-            <EditionDropEmbed
-              contractAddress={contractAddress}
-              tokenId={tokenId}
-              expectedChainId={expectedChainId}
-            />
-          </ThirdwebProvider>
-        </ChakraProvider>
-      </QueryClientProvider>
+      <ChakraProvider theme={chakraTheme}>
+        ChainRpc
+        <ThirdwebProvider
+          desiredChainId={expectedChainId}
+          sdkOptions={sdkOptions}
+          storageInterface={
+            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+          }
+          chainRpc={{ [expectedChainId]: rpcUrl }}
+        >
+          <EditionDropEmbed
+            contractAddress={contractAddress}
+            tokenId={tokenId}
+            expectedChainId={expectedChainId}
+          />
+        </ThirdwebProvider>
+      </ChakraProvider>
     </>
   );
 };
