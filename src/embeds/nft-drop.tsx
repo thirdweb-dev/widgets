@@ -36,18 +36,26 @@ import {
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { NFTCarousel } from "../shared/nft-carousel";
-import { parseError } from "../shared/parseError";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+
+interface Error {
+  code: number;
+  message: string;
+  data: {
+    code: number;
+    message: string;
+  };
+}
 
 interface NFTDropEmbedProps {
   startingTab?: "claim" | "inventory";
@@ -116,10 +124,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           });
         },
         onError: (err) => {
-          console.log(err);
+          console.error(err);
           toast({
             title: "Failed to claim drop.",
-            description: parseError(err),
             status: "error",
             duration: 9000,
             isClosable: true,
@@ -170,7 +177,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           isDisabled={!canClaim}
           leftIcon={<IoDiamondOutline />}
           onClick={claim}
-          isFullWidth
+          w="100%"
           colorScheme="blue"
         >
           {isSoldOut
@@ -303,7 +310,11 @@ const InventoryPage: React.FC<ContractInProps> = ({ contract }) => {
   return <NFTCarousel metadata={ownedDropsMetadata} />;
 };
 
-const Body: React.FC = ({ children }) => {
+interface BodyProps {
+  children?: React.ReactNode;
+}
+
+const Body: React.FC<BodyProps> = ({ children }) => {
   return (
     <Flex as="main" px="28px" w="100%" flexGrow={1}>
       {children}
@@ -414,4 +425,6 @@ const App: React.FC = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const container = document.getElementById("root") as Element;
+const root = createRoot(container);
+root.render(<App />);

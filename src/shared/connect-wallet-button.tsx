@@ -47,7 +47,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
       return (
         <Stack w="100%">
           <Button
-            isFullWidth
+            w="full"
             colorScheme="orange"
             borderRadius="md"
             leftIcon={<IoSwapHorizontalSharp />}
@@ -109,7 +109,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
         as={Button}
         colorScheme="blue"
         borderRadius="md"
-        isFullWidth
+        w="full"
         rightIcon={<ChevronDownIcon />}
       >
         Connect Wallet

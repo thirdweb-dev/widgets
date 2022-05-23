@@ -41,7 +41,7 @@ import {
 } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
@@ -251,24 +251,9 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
           });
         },
         onError: (err) => {
-          const anyErr = err as any;
-          let message = "";
-
-          if (anyErr.code === "INSUFFICIENT_FUNDS") {
-            message = "Insufficient funds to purchase.";
-          } else if (
-            anyErr.message.includes("User denied transaction signature")
-          ) {
-            message = "You denied the transaction";
-          } else if (anyErr.message.includes("Invariant failed:")) {
-            message = anyErr.message.replace("Invariant failed:", "");
-          } else if (anyErr.data.message.includes("insufficient funds")) {
-            message = "You don't have enough funds to make this bid.";
-          }
-
+          console.error(err);
           toast({
             title: "Failed to place a bid on this auction",
-            description: message,
             status: "error",
             duration: 9000,
             isClosable: true,
@@ -294,22 +279,9 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
           });
         },
         onError: (err) => {
-          const anyErr = err as any;
-          let message = "";
-
-          if (anyErr.code === "INSUFFICIENT_FUNDS") {
-            message = "Insufficient funds to purchase.";
-          } else if (
-            anyErr.message.includes("User denied transaction signature")
-          ) {
-            message = "You denied the transaction";
-          } else if (anyErr.data.message.includes("insufficient funds")) {
-            message = "You don't have enough funds to buy this listing.";
-          }
-
+          console.error(err);
           toast({
             title: "Failed to purchase from listing",
-            description: message,
             status: "error",
             duration: 9000,
             isClosable: true,
@@ -556,22 +528,9 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
           });
         },
         onError: (err) => {
-          const anyErr = err as any;
-          let message = "";
-
-          if (anyErr.code === "INSUFFICIENT_FUNDS") {
-            message = "Insufficient funds to purchase.";
-          } else if (
-            anyErr.message.includes("User denied transaction signature")
-          ) {
-            message = "You denied the transaction";
-          } else if (anyErr.data.message.includes("insufficient funds")) {
-            message = "You don't have enough funds to buy this listing.";
-          }
-
+          console.error(err);
           toast({
             title: "Failed to purchase from listing",
-            description: message,
             status: "error",
             duration: 9000,
             isClosable: true,
@@ -624,7 +583,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
             onClick={buyNow}
-            isFullWidth
+            w="full"
             colorScheme="blue"
           >
             {isSoldOut
@@ -726,7 +685,11 @@ const BuyPage: React.FC<BuyPageProps> = ({
   );
 };
 
-const Body: React.FC = ({ children }) => {
+interface BodyProps {
+  children?: React.ReactNode;
+}
+
+const Body: React.FC<BodyProps> = ({ children }) => {
   return (
     <Flex as="main" px="28px" w="100%" flexGrow={1}>
       {children}
@@ -832,4 +795,6 @@ const App: React.FC = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const container = document.getElementById("root") as Element;
+const root = createRoot(container);
+root.render(<App />);
