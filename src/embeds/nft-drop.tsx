@@ -48,15 +48,6 @@ import { fontsizeCss } from "../shared/theme/typography";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface Error {
-  code: number;
-  message: string;
-  data: {
-    code: number;
-    message: string;
-  };
-}
-
 interface NFTDropEmbedProps {
   startingTab?: "claim" | "inventory";
   colorScheme?: "light" | "dark";
@@ -103,8 +94,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     activeClaimCondition.data?.currencyMetadata.decimals,
   );
   const priceToMint = bnPrice.mul(quantity);
-
-  const quantityLimit = activeClaimCondition?.data?.quantityLimitPerTransaction;
 
   useEffect(() => {
     const t = setTimeout(() => setClaimSuccess(false), 3000);
@@ -162,7 +151,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
+          max={1000}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -197,6 +186,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             ? parseIneligibility(
                 claimIneligibilityReasons.data,
                 owned.data?.toNumber(),
+                quantity,
               )
             : "Minting Unavailable"}
         </Button>

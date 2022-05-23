@@ -134,8 +134,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const canClaim =
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
-  const quantityLimit = activeClaimCondition?.data?.quantityLimitPerTransaction;
-
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
@@ -157,7 +155,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={quantityLimit === "unlimited" ? 1000 : Number(quantityLimit)}
+          max={1000}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -192,6 +190,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             ? parseIneligibility(
                 claimIneligibilityReasons.data,
                 owned.data?.toNumber(),
+                quantity,
               )
             : "Minting Unavailable"}
         </Button>

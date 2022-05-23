@@ -3,6 +3,7 @@ import { ClaimEligibility } from "@thirdweb-dev/sdk";
 export function parseIneligibility(
   reasons: ClaimEligibility[],
   numOwned = 0,
+  quantity = 0,
 ): string {
   if (!reasons.length) {
     return "";
@@ -21,9 +22,11 @@ export function parseIneligibility(
   } else if (reason === ClaimEligibility.AddressNotAllowed) {
     if (Number(numOwned) > 0) {
       return "You have already claimed this drop.";
+    } else if (quantity > 1) {
+      return `You are not allowed to claim ${quantity} NFTs.`;
     }
 
-    return "You are not on the allow list for this drop.";
+    return "You are not on the allowlist for this drop.";
   }
 
   return reason;
