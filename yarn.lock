@@ -2045,15 +2045,15 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@thirdweb-dev/contracts@2.3.6":
-  version "2.3.6"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.3.6.tgz#704841cd8f00b682056bd84fdc33e89e6bb9e18e"
-  integrity sha512-TUWo1vV6kEDZGfLRv9wJFxAkncc2lLCfPUN2YJp/4Ggqlm4ZdeELW2Y4cV+H8DMeiMO4ROLKNa2PUUHTQH2SJg==
+"@thirdweb-dev/contracts@2.3.8":
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.3.8.tgz#7c565b4d4f1917bbbc76dc48c9f6bffc8c6eabdd"
+  integrity sha512-cSVwIzPSYaS8gFlkq4r+G9UyVwr/62uE+p6SzrZFXYCbeCJwJTml3VnrVEptJ7g8RukL4Lh6uwQ6IPtgMTY4cQ==
 
-"@thirdweb-dev/react@^2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.3.5.tgz#96edf4c17e68fc827b5fcddab4dcbd3f1048bfbc"
-  integrity sha512-UzVxIpJLUg6bAXtnjxoYAwHMrGJy96CH5dPzw/GNmmjlfK6nCgunSYdFAdIfArdAGP2wIAh8Q5wzTzuLz3+HfA==
+"@thirdweb-dev/react@^2.3.6":
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.3.6.tgz#ade74a3af9692b11835c88004ce211ec217f8f8e"
+  integrity sha512-Ud5co5NvwPsftoh7XBHaeZRspVP2OjEfWBtlwdqXY6cLdvoHeFkHPH9HMzBSZ8JSWSC8NvT/a1dhC2nhSnQjzg==
   dependencies:
     detect-browser "^5.3.0"
     mime "^3.0.0"
@@ -2062,12 +2062,12 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^2.2.10":
-  version "2.2.10"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.2.10.tgz#d7f4a99263e12bc44bf4bf52be28e62f6eade7cd"
-  integrity sha512-w5NMWtmlWuzWMcUZUMwQy1MWAmkbBD7oEqCYC07a/uipUcZnS5NQ0+6XZPuRp1/2FNjxeInyeS9ZGwJISfaJxg==
+"@thirdweb-dev/sdk@^2.2.15":
+  version "2.2.15"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.2.15.tgz#fb6caa4b07b7c22a53cfaf913aa63b25982142b7"
+  integrity sha512-uhG3gXCTCpX/riF5kgCJNS28vaHSf4VSP5vh1w1zInwndjWQs0VdGA45m+N3AhA8IAvihLuMbeYwGEQOBBaGgQ==
   dependencies:
-    "@thirdweb-dev/contracts" "2.3.6"
+    "@thirdweb-dev/contracts" "2.3.8"
     "@web-std/file" "^3.0.0"
     cross-fetch "^3.1.5"
     deep-equal "^2.0.5"
