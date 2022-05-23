@@ -28,7 +28,6 @@ import {
   useClaimIneligibilityReasons,
   useClaimNFT,
   useContractMetadata,
-  useNFTBalance,
   useNFTDrop,
   useOwnedNFTs,
   useUnclaimedNFTSupply,
@@ -76,7 +75,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const loaded = useRef(false);
   const toast = useToast();
 
-  const owned = useNFTBalance(contract, address);
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
@@ -183,11 +181,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(
-                claimIneligibilityReasons.data,
-                owned.data?.toNumber(),
-                quantity,
-              )
+            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
             : "Minting Unavailable"}
         </Button>
       </Flex>
@@ -353,11 +347,12 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
         expectedChainId={expectedChainId}
       />
       <Body>
-        {activeTab === "claim" ? (
+        <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
+        {/*         {activeTab === "claim" ? (
           <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
         ) : (
           <InventoryPage contract={nftDrop} />
-        )}
+        )} */}
       </Body>
       <Footer />
     </Flex>

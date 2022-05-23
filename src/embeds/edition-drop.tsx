@@ -28,7 +28,6 @@ import {
   useClaimNFT,
   useEditionDrop,
   useNFT,
-  useNFTBalance,
   useOwnedNFTs,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
@@ -80,7 +79,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const claimMutation = useClaimNFT(contract);
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-  const owned = useNFTBalance(contract, tokenId, address);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -99,10 +97,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }, [claimSuccess]);
 
   const toast = useToast();
-
-  useEffect(() => {
-    toast({ title: "hey", status: "success" });
-  }, [toast]);
 
   const claim = async () => {
     claimMutation.mutate(
@@ -187,11 +181,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(
-                claimIneligibilityReasons.data,
-                owned.data?.toNumber(),
-                quantity,
-              )
+            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
             : "Minting Unavailable"}
         </Button>
       </Flex>
@@ -344,6 +334,8 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 
   const editionDrop = useEditionDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
+  console.log(tokenId);
+  console.log(activeClaimCondition);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 

@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Stack, Tab } from "@chakra-ui/react";
+import { ButtonProps, Stack, Tab } from "@chakra-ui/react";
 import React from "react";
 import { ConnectedWallet } from "./connected-wallet";
 
@@ -37,9 +37,10 @@ export const Header: React.FC<HeaderProps> = ({
       flexGrow={0}
       borderBottom="1px solid rgba(0,0,0,.1)"
       justify="space-between"
+      py={2}
     >
       <Stack direction="row" spacing={5}>
-        <Button
+        {/*         <Button
           h="48px"
           fontSize="subtitle.md"
           fontWeight="700"
@@ -50,8 +51,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActiveTab("claim")}
         >
           Mint{available ? ` (${available})` : ""}
-        </Button>
-        <Button
+        </Button> */}
+        {/*         <Button
           h="48px"
           fontSize="subtitle.md"
           fontWeight="700"
@@ -64,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActiveTab("inventory")}
         >
           Inventory
-        </Button>
+        </Button> */}
       </Stack>
       <ConnectedWallet tokenAddress={tokenAddress} />
     </Stack>

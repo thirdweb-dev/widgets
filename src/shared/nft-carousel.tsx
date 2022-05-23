@@ -78,7 +78,9 @@ export const NFTCarousel: React.FC<NFTCarouselProps> = ({ metadata }) => {
                 </Heading>
                 {nft.supply && (
                   <Text>
-                    <strong>Quantity:</strong> {nft.supply}
+                    <>
+                      <strong>Quantity:</strong> {nft.supply}
+                    </>
                   </Text>
                 )}
               </Stack>
