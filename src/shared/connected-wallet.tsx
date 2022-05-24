@@ -17,17 +17,13 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { ethers } from "ethers";
+import { useAddress, useBalance, useDisconnect } from "@thirdweb-dev/react";
 import React from "react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
-import { useQuery } from "react-query";
 import { useAccount } from "wagmi";
-import { isAddressZero, useTokenModule } from "./tokenHooks";
 
-interface IConnectedWallet {
-  sdk?: ThirdwebSDK;
+interface ConnectedWalletProps {
   tokenAddress?: string;
 }
 
@@ -35,47 +31,16 @@ function shortenAddress(str: string) {
   return `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
 }
 
-export const ConnectedWallet: React.FC<IConnectedWallet> = ({
-  sdk,
+export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
   tokenAddress,
 }) => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false });
-  const [{ data }, disconnect] = useAccount();
-  const { onCopy } = useClipboard(data?.address || "");
-  const tokenModule = useTokenModule(sdk, tokenAddress);
-
-  const { data: balance } = useQuery(
-    ["balance", data?.address, tokenAddress],
-    async () => {
-      if (!tokenAddress || !data?.address) {
-        return;
-      }
-
-      const otherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-      if (
-        isAddressZero(tokenAddress) ||
-        tokenAddress.toLowerCase() === otherAddressZero.toLowerCase()
-      ) {
-        /*
-        const balance = await baseProvider.getBalance(data?.address);
-
-        return {
-          value: balance,
-          displayValue: ethers.utils.formatEther(balance).slice(0, 6),
-          symbol: ChainIDToNativeSymbol[network?.chain?.id || 0],
-        };
-        */
-
-        return null;
-      }
-
-      return await tokenModule?.balanceOf(data.address);
-    },
-    {
-      enabled: !!data?.address && !!tokenModule,
-    },
-  );
+  const [{ data }] = useAccount();
+  const address = useAddress();
+  const disconnect = useDisconnect();
+  const { onCopy } = useClipboard(address || "");
+  const { data: balance } = useBalance(tokenAddress);
 
   const switchWallet = async () => {
     const provider = data?.connector?.getProvider();
@@ -87,7 +52,6 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
       method: "wallet_requestPermissions",
       params: [{ eth_accounts: {} }],
     });
-
     onClose();
   };
 
@@ -108,19 +72,8 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
 
   return (
     <Flex align="center" gap={2}>
-      {data?.address && (
+      {address && (
         <>
-          <Button
-            variant="outline"
-            size="sm"
-            color="gray.800"
-            leftIcon={
-              <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
-            }
-            onClick={onOpen}
-          >
-            {shortenAddress(data.address)}
-          </Button>
           {balance && (
             <Stack
               direction="row"
@@ -134,14 +87,21 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
             >
               <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
               <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
-                {ethers.utils.formatUnits(
-                  balance.value,
-                  balance.decimals || 18,
-                )}{" "}
-                {balance.symbol}
+                {balance.displayValue.slice(0, 6)} {balance.symbol}
               </Text>
             </Stack>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            color="gray.800"
+            leftIcon={
+              <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
+            }
+            onClick={onOpen}
+          >
+            {shortenAddress(address)}
+          </Button>
         </>
       )}
 
@@ -176,7 +136,7 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
                     width="120px"
                     onClick={copyAddress}
                   >
-                    {shortenAddress(data?.address || "")}
+                    {shortenAddress(address || "")}
                   </Button>
                   {data?.connector?.getProvider()?.isMetaMask && (
                     <Button size="sm" onClick={switchWallet}>
@@ -192,37 +152,6 @@ export const ConnectedWallet: React.FC<IConnectedWallet> = ({
                   </Button>
                 </ButtonGroup>
               </Stack>
-
-              {balance && (
-                <Stack display={{ base: "flex", md: "none" }}>
-                  <Text size="label.md">Balance</Text>
-                  <Flex>
-                    <Flex
-                      direction="row"
-                      height="32px"
-                      px="10px"
-                      borderRadius="md"
-                      borderColor="gray.200"
-                      borderWidth="1px"
-                      align="center"
-                      gap={1}
-                    >
-                      <Icon
-                        as={RiMoneyDollarCircleLine}
-                        boxSize={4}
-                        color="gray.500"
-                      />
-                      <Text fontSize="sm" fontWeight="semibold">
-                        {ethers.utils.formatUnits(
-                          balance.value,
-                          balance.decimals || 18,
-                        )}{" "}
-                        {balance.symbol}
-                      </Text>
-                    </Flex>
-                  </Flex>
-                </Stack>
-              )}
             </Flex>
           </ModalBody>
         </ModalContent>

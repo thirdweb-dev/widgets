@@ -52,7 +52,7 @@ jobs:
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.3
         with:
-          pin-name: Thirdweb Widgets ${{ needs.bump_version.outputs.new_tag }}
+          pin-name: thirdweb embeds ${{ needs.bump_version.outputs.new_tag }}
           path: './dist'
           pinata-api-key: ${{ secrets.PINATA_API_KEY }}
           pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
@@ -78,7 +78,7 @@ jobs:
     needs: release
     strategy:
       matrix:
-        filename: ['marketplace.html', 'bundledrop.html', 'drop.html']
+        filename: ['marketplace.html', 'edition-drop.html', 'nft-drop.html']
         gateway: ['ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'ipfs.thirdweb.com']
     steps:
       - name: Warming ${{ matrix.gateway }} - ${{ matrix.filename }}

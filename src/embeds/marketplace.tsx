@@ -20,38 +20,41 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import {
+  ThirdwebProvider,
+  useAddress,
+  useAuctionWinner,
+  useBidBuffer,
+  useBuyNow,
+  useChainId,
+  useListing,
+  useMakeBid,
+  useMarketplace,
+  useToken,
+  useWinningBid,
+} from "@thirdweb-dev/react";
+import {
   AuctionListing,
   DirectListing,
+  IpfsStorage,
   ListingType,
   Marketplace,
-  ThirdwebSDK,
 } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
-import { Provider, useNetwork } from "wagmi";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { useFormatedValue, useTokenModule } from "../shared/tokenHooks";
-import { useAddress } from "../shared/useAddress";
-import { useConnectors } from "../shared/useConnectors";
-import { useSDKWithSigner } from "../shared/useSdkWithSigner";
+import { useFormattedValue } from "../shared/tokenHooks";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface MarketplaceWidgetProps {
+interface MarketplaceEmbedProps {
   colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
@@ -59,8 +62,7 @@ interface MarketplaceWidgetProps {
 }
 
 interface BuyPageProps {
-  module?: Marketplace;
-  sdk?: ThirdwebSDK;
+  contract?: Marketplace;
   expectedChainId: number;
   listing: DirectListing | AuctionListing;
 }
@@ -73,12 +75,11 @@ interface DirectListingProps extends BuyPageProps {
   listing: DirectListing;
 }
 
-interface IHeader {
-  sdk?: ThirdwebSDK;
+interface HeaderProps {
   tokenAddress?: string;
 }
 
-const Header: React.FC<IHeader> = (props) => {
+const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
   return (
     <Stack
       as="header"
@@ -91,22 +92,20 @@ const Header: React.FC<IHeader> = (props) => {
       align="center"
       justify="flex-end"
     >
-      <ConnectedWallet {...props} />
+      <ConnectedWallet tokenAddress={tokenAddress} />
     </Stack>
   );
 };
 
-const AuctionListing: React.FC<AuctionListingProps> = ({
-  module,
-  sdk,
+const AuctionListingComponent: React.FC<AuctionListingProps> = ({
+  contract,
   expectedChainId,
   listing,
 }) => {
   const toast = useToast();
   const address = useAddress();
-  const [{ data: network }] = useNetwork();
-  const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
-  const chainId = useMemo(() => network?.chain?.id, [network]);
+  const token = useToken(listing.currencyContractAddress);
+  const chainId = useChainId();
   const [bid, setBid] = useState("0");
 
   const isAuctionEnded = useMemo(() => {
@@ -116,40 +115,16 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     return endTime.sub(currentTime).lte(0);
   }, [listing.endTimeInEpochSeconds]);
 
-  const { data: currentBid } = useQuery(
-    ["currentBid", listing.id],
-    () => module?.auction.getWinningBid(listing.id),
-    { enabled: !!module },
-  );
-
-  const { data: auctionWinner } = useQuery(
-    ["auctionWinner", listing.id],
-    async () => {
-      if (!module) {
-        return;
-      }
-
-      if (isAuctionEnded) {
-        return await module.auction.getWinner(listing.id);
-      }
-
-      return undefined;
-    },
-    { enabled: !!module && isAuctionEnded },
-  );
-
-  const { data: bidBuffer } = useQuery(
-    ["bidBuffer"],
-    () => module?.getBidBufferBps(),
-    { enabled: !!module },
-  );
+  const { data: winningBid } = useWinningBid(contract, listing.id);
+  const { data: auctionWinner } = useAuctionWinner(contract, listing.id);
+  const { data: bidBuffer } = useBidBuffer(contract);
 
   const { minimumBidNumber, minimumBidBN } = useMemo(() => {
     if (!bidBuffer) {
       return { minimumBidNumber: "0", minimumBidBN: BigNumber.from(0) };
     }
 
-    const currentBidBN = currentBid?.currencyValue.value
+    const winningBidBN = winningBid?.currencyValue.value
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
@@ -157,11 +132,11 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.quantity,
     );
 
-    const currentBidNumber = ethers.utils.formatUnits(
-      BigNumber.from(currentBid?.currencyValue.value || "0")
+    const winningBidNumber = ethers.utils.formatUnits(
+      BigNumber.from(winningBid?.currencyValue.value || "0")
         .mul(BigNumber.from(10000).add(bidBuffer))
         .div(BigNumber.from(10000)),
-      currentBid?.currencyValue.decimals || 18,
+      winningBid?.currencyValue.decimals || 18,
     );
 
     const reservePriceNumber = ethers.utils.formatUnits(
@@ -171,7 +146,7 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.decimals || 18,
     );
 
-    const _minimumBidBN = BigNumber.from(currentBid?.currencyValue.value || 0)
+    const _minimumBidBN = BigNumber.from(winningBid?.currencyValue.value || 0)
       .mul(BigNumber.from(10000).add(bidBuffer))
       .div(BigNumber.from(10000));
 
@@ -179,37 +154,37 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
       listing.reservePriceCurrencyValuePerToken.value || 0,
     ).mul(listing.quantity);
 
-    return currentBidBN?.gt(reservePriceBN)
-      ? { minimumBidNumber: currentBidNumber, minimumBidBN: _minimumBidBN }
+    return winningBidBN?.gt(reservePriceBN)
+      ? { minimumBidNumber: winningBidNumber, minimumBidBN: _minimumBidBN }
       : {
           minimumBidNumber: reservePriceNumber,
           minimumBidBN: minimumReservePriceBN,
         };
   }, [
-    currentBid?.currencyValue?.value,
-    currentBid?.currencyValue?.decimals,
+    winningBid?.currencyValue?.value,
+    winningBid?.currencyValue?.decimals,
     listing.reservePriceCurrencyValuePerToken,
     bidBuffer,
     listing.quantity,
   ]);
 
-  const minimumBidFormatted = useFormatedValue(
+  const minimumBidFormatted = useFormattedValue(
     minimumBidBN,
-    tokenModule,
+    token,
     expectedChainId,
   );
 
-  const currentBidFormatted = useFormatedValue(
-    currentBid?.currencyValue.value,
-    tokenModule,
+  const winningBidFormatted = useFormattedValue(
+    winningBid?.currencyValue.value,
+    token,
     expectedChainId,
   );
 
-  const buyoutPrice = useFormatedValue(
+  const buyoutPrice = useFormattedValue(
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       listing.quantity,
     ),
-    tokenModule,
+    token,
     expectedChainId,
   );
 
@@ -260,95 +235,61 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
     setBid(minimumBidNumber);
   }, [minimumBidNumber]);
 
-  const bidMutation = useMutation(
-    async () => {
-      if (!module) {
-        throw new Error("No module");
-      }
+  const makeBidMutation = useMakeBid(contract);
 
-      return module.auction.makeBid(listing.id, bid.toString());
-    },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully placed a bid on this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries();
+  const makeBid = async () => {
+    makeBidMutation.mutate(
+      { listingId: listing.id, bid: bid.toString() },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully placed a bid on this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          console.error(err);
+          toast({
+            title: "Failed to place a bid on this auction",
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
+    );
+  };
 
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.message.includes("Invariant failed:")) {
-          message = anyErr.message.replace("Invariant failed:", "");
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to make this bid.";
-        }
+  const buyNowMutation = useBuyNow(contract);
 
-        toast({
-          title: "Failed to place a bid on this auction",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
+  const buyNow = async () => {
+    buyNowMutation.mutate(
+      { id: listing.id, type: listing.type },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully purchased from this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          console.error(err);
+          toast({
+            title: "Failed to purchase from listing",
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-    },
-  );
-
-  const buyMutation = useMutation(
-    () => {
-      if (!module) {
-        throw new Error("No module");
-      }
-
-      return module.buyoutListing(listing.id);
-    },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully purchased this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries();
-      },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to buyout this auction.";
-        }
-
-        toast({
-          title: "Failed to buyout auction.",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    },
-  );
+    );
+  };
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -373,10 +314,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                     minW="120px"
                     borderLeftRadius="0"
                     fontSize={{ base: "label.md", md: "label.lg" }}
-                    isLoading={bidMutation.isLoading}
+                    isLoading={makeBidMutation.isLoading}
                     leftIcon={<RiAuctionLine />}
                     colorScheme="blue"
-                    onClick={() => bidMutation.mutate()}
+                    onClick={makeBid}
                     isDisabled={parseFloat(bid) < parseFloat(minimumBidNumber)}
                   >
                     Bid
@@ -394,10 +335,10 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                       minW="160px"
                       variant="outline"
                       fontSize={{ base: "label.md", md: "label.lg" }}
-                      isLoading={buyMutation.isLoading}
+                      isLoading={buyNowMutation.isLoading}
                       leftIcon={<IoDiamondOutline />}
                       colorScheme="blue"
-                      onClick={() => buyMutation.mutate()}
+                      onClick={buyNow}
                     >
                       Buyout Auction ({buyoutPrice})
                     </Button>
@@ -412,30 +353,30 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
                   borderWidth="1px"
                   spacing={0}
                 >
-                  {currentBidFormatted ? (
+                  {winningBidFormatted ? (
                     <Text>
-                      {currentBid?.buyerAddress && (
+                      {winningBid?.buyerAddress && (
                         <>
-                          {currentBid?.buyerAddress === address ? (
+                          {winningBid?.buyerAddress === address ? (
                             `You are currently the highest bidder `
                           ) : (
                             <>
                               The highest bidder is currently{" "}
-                              <Tooltip label={currentBid?.buyerAddress}>
+                              <Tooltip label={winningBid?.buyerAddress}>
                                 <Text
                                   fontWeight="bold"
                                   cursor="pointer"
                                   display="inline"
                                 >
-                                  {currentBid?.buyerAddress.slice(0, 6)}...
-                                  {currentBid?.buyerAddress.slice(-4)}
+                                  {winningBid?.buyerAddress.slice(0, 6)}...
+                                  {winningBid?.buyerAddress.slice(-4)}
                                 </Text>
                               </Tooltip>
                             </>
                           )}
                         </>
                       )}{" "}
-                      with a bid of <strong>{currentBidFormatted}</strong>.
+                      with a bid of <strong>{winningBidFormatted}</strong>.
                     </Text>
                   ) : (
                     <Text color="gray.600" display="inline">
@@ -538,16 +479,14 @@ const AuctionListing: React.FC<AuctionListingProps> = ({
   );
 };
 
-const DirectListing: React.FC<DirectListingProps> = ({
-  module,
-  sdk,
+const DirectListingComponent: React.FC<DirectListingProps> = ({
+  contract,
   expectedChainId,
   listing,
 }) => {
-  const [{ data: network }] = useNetwork();
   const address = useAddress();
-  const chainId = useMemo(() => network?.chain?.id, [network]);
-  const tokenModule = useTokenModule(sdk, listing.currencyContractAddress);
+  const chainId = useChainId();
+  const token = useToken(listing.currencyContractAddress);
   const [quantity, setQuantity] = useState(1);
   const [buySuccess, setBuySuccess] = useState(false);
 
@@ -557,11 +496,11 @@ const DirectListing: React.FC<DirectListingProps> = ({
     return BigNumber.from(listing.quantity || 1);
   }, [listing.quantity]);
 
-  const formatedPrice = useFormatedValue(
+  const formattedPrice = useFormattedValue(
     BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
       BigNumber.from(quantity),
     ),
-    tokenModule,
+    token,
     expectedChainId,
   );
 
@@ -573,53 +512,33 @@ const DirectListing: React.FC<DirectListingProps> = ({
     return () => clearTimeout(t);
   }, [buySuccess]);
 
-  const buyMutation = useMutation(
-    () => {
-      if (!address || !module) {
-        throw new Error("No address or module");
-      }
+  const buyNowMutation = useBuyNow(contract);
 
-      return module.buyoutListing(
-        BigNumber.from(listing.id),
-        // either the quantity or the limit if it is lower
-        Math.min(quantity, quantityLimit.toNumber()),
-      );
-    },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "You have successfully purchased from this listing",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries();
+  const buyNow = async () => {
+    buyNowMutation.mutate(
+      { id: listing.id, type: listing.type, buyAmount: quantity },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "You have successfully purchased from this listing",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+        onError: (err) => {
+          console.error(err);
+          toast({
+            title: "Failed to purchase from listing",
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+          });
+        },
       },
-      onError: (err) => {
-        const anyErr = err as any;
-        let message = "";
-
-        if (anyErr.code === "INSUFFICIENT_FUNDS") {
-          message = "Insufficient funds to purchase.";
-        } else if (
-          anyErr.message.includes("User denied transaction signature")
-        ) {
-          message = "You denied the transaction";
-        } else if (anyErr.data.message.includes("insufficient funds")) {
-          message = "You don't have enough funds to buy this listing.";
-        }
-
-        toast({
-          title: "Failed to purchase from listing",
-          description: message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    },
-  );
+    );
+  };
 
   const canClaim = !isSoldOut && !!address;
 
@@ -660,11 +579,11 @@ const DirectListing: React.FC<DirectListingProps> = ({
           )}
           <Button
             fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={buyMutation.isLoading}
+            isLoading={buyNowMutation.isLoading}
             isDisabled={!canClaim}
             leftIcon={<IoDiamondOutline />}
-            onClick={() => buyMutation.mutate()}
-            isFullWidth
+            onClick={buyNow}
+            w="full"
             colorScheme="blue"
           >
             {isSoldOut
@@ -673,8 +592,8 @@ const DirectListing: React.FC<DirectListingProps> = ({
               ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
                   BigNumber.from(pricePerToken).eq(0)
                     ? " (Free)"
-                    : formatedPrice
-                    ? ` (${formatedPrice})`
+                    : formattedPrice
+                    ? ` (${formattedPrice})`
                     : ""
                 }`
               : "Purchase Unavailable"}
@@ -688,8 +607,7 @@ const DirectListing: React.FC<DirectListingProps> = ({
 };
 
 const BuyPage: React.FC<BuyPageProps> = ({
-  module,
-  sdk,
+  contract,
   expectedChainId,
   listing,
 }) => {
@@ -750,17 +668,15 @@ const BuyPage: React.FC<BuyPageProps> = ({
           </Heading>
         )}
         {listing?.type === ListingType.Direct ? (
-          <DirectListing
-            module={module}
+          <DirectListingComponent
+            contract={contract}
             expectedChainId={expectedChainId}
-            sdk={sdk}
             listing={listing}
           />
         ) : (
-          <AuctionListing
-            module={module}
+          <AuctionListingComponent
+            contract={contract}
             expectedChainId={expectedChainId}
-            sdk={sdk}
             listing={listing}
           />
         )}
@@ -769,7 +685,11 @@ const BuyPage: React.FC<BuyPageProps> = ({
   );
 };
 
-const Body: React.FC = ({ children }) => {
+interface BodyProps {
+  children?: React.ReactNode;
+}
+
+const Body: React.FC<BodyProps> = ({ children }) => {
   return (
     <Flex as="main" px="28px" w="100%" flexGrow={1}>
       {children}
@@ -777,53 +697,21 @@ const Body: React.FC = ({ children }) => {
   );
 };
 
-interface MarketplaceWidgetProps {
+interface MarketplaceEmbedProps {
   colorScheme?: "light" | "dark";
-  rpcUrl?: string;
-  relayUrl?: string;
   contractAddress: string;
   expectedChainId: number;
   listingId: string;
-  ipfsGateway?: string;
 }
 
-const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
-  rpcUrl,
-  relayUrl,
+const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   contractAddress,
   expectedChainId,
   listingId,
-  ipfsGateway,
 }) => {
-  const sdk = useSDKWithSigner({
-    rpcUrl,
-    relayUrl,
-    expectedChainId,
-    ipfsGateway,
-  });
+  const marketplace = useMarketplace(contractAddress);
 
-  const marketplaceModule = useMemo(() => {
-    if (!sdk || !contractAddress) {
-      return undefined;
-    }
-    return sdk.getMarketplace(contractAddress);
-  }, [sdk, contractAddress]);
-
-  const { data: listing } = useQuery(
-    ["numbers", "available"],
-    async () => {
-      try {
-        return await marketplaceModule?.getListing(listingId);
-      } catch (err: any) {
-        if (err.message.includes("Could not find listing")) {
-          return null;
-        }
-
-        throw err;
-      }
-    },
-    { enabled: !!marketplaceModule && !!listingId },
-  );
+  const { data: listing } = useListing(marketplace, listingId);
 
   return (
     <Flex
@@ -840,11 +728,10 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header sdk={sdk} tokenAddress={listing?.currencyContractAddress} />
+      <Header tokenAddress={listing?.currencyContractAddress} />
       <Body>
         <BuyPage
-          module={marketplaceModule}
-          sdk={sdk}
+          contract={marketplace}
           expectedChainId={expectedChainId}
           listing={listing as DirectListing | AuctionListing}
         />
@@ -854,7 +741,6 @@ const MarketplaceWidget: React.FC<MarketplaceWidgetProps> = ({
   );
 };
 
-const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -863,11 +749,21 @@ const App: React.FC = () => {
   // default to expectedChainId default
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
-  const relayUrl = urlParams.get("relayUrl") || "";
-
-  const connectors = useConnectors(expectedChainId, rpcUrl);
+  const relayerUrl = urlParams.get("relayUrl") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+
+  const sdkOptions = useMemo(
+    () =>
+      relayerUrl
+        ? {
+            gasless: {
+              openzeppelin: { relayerUrl },
+            },
+          }
+        : undefined,
+    [relayerUrl],
+  );
 
   return (
     <>
@@ -879,22 +775,26 @@ const App: React.FC = () => {
           }
         `}
       />
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={chakraTheme}>
-          <Provider autoConnect connectors={connectors}>
-            <MarketplaceWidget
-              rpcUrl={rpcUrl}
-              contractAddress={contractAddress}
-              expectedChainId={expectedChainId}
-              listingId={listingId}
-              relayUrl={relayUrl}
-              ipfsGateway={ipfsGateway}
-            />
-          </Provider>
-        </ChakraProvider>
-      </QueryClientProvider>
+      <ChakraProvider theme={chakraTheme}>
+        <ThirdwebProvider
+          desiredChainId={expectedChainId}
+          sdkOptions={sdkOptions}
+          storageInterface={
+            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+          }
+          chainRpc={{ [expectedChainId]: rpcUrl }}
+        >
+          <MarketplaceEmbed
+            contractAddress={contractAddress}
+            expectedChainId={expectedChainId}
+            listingId={listingId}
+          />
+        </ThirdwebProvider>
+      </ChakraProvider>
     </>
   );
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const container = document.getElementById("root") as Element;
+const root = createRoot(container);
+root.render(<App />);

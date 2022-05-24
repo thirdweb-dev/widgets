@@ -1,9 +1,9 @@
 import { AddressZero } from "@ethersproject/constants";
-import { ThirdwebSDK, Token } from "@thirdweb-dev/sdk";
+import { Token } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChainIDToNativeSymbol } from "./commonRPCUrls";
+import { useCallback, useEffect, useState } from "react";
+import { ChainIDToNativeSymbol } from "./rpcUtils";
 
 export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -17,22 +17,7 @@ export function isAddressZero(address: string): boolean {
   );
 }
 
-export function useTokenModule(
-  sdk?: ThirdwebSDK,
-  assetContractAddress?: string,
-) {
-  const tokenModule = useMemo(() => {
-    if (!assetContractAddress || !sdk) {
-      return undefined;
-    }
-
-    return sdk.getToken(assetContractAddress);
-  }, [assetContractAddress]);
-
-  return tokenModule;
-}
-
-export function useTokenUnitConversion(tokenModule?: Token) {
+export function useTokenUnitConversion(tokenContract?: Token) {
   const format = useCallback(
     async (value: BigNumberish, chainId?: number) => {
       value = BigNumber.from(value);
@@ -41,17 +26,17 @@ export function useTokenUnitConversion(tokenModule?: Token) {
         : "";
 
       // invalid token address
-      if (isAddressZero(tokenModule?.getAddress() || "")) {
+      if (isAddressZero(tokenContract?.getAddress() || "")) {
         // default to 18 decimals
 
         return formatUnits(value.toString(), 18) + nativeCurrency;
       }
 
       try {
-        const moduleData = await tokenModule?.get();
-        if (moduleData?.decimals) {
-          return `${formatUnits(value.toString(), moduleData.decimals)} ${
-            moduleData.symbol
+        const contractData = await tokenContract?.get();
+        if (contractData?.decimals) {
+          return `${formatUnits(value.toString(), contractData.decimals)} ${
+            contractData.symbol
           }`;
         }
         return formatUnits(value.toString(), 18) + nativeCurrency;
@@ -59,19 +44,19 @@ export function useTokenUnitConversion(tokenModule?: Token) {
         return formatUnits(value.toString(), 18) + nativeCurrency;
       }
     },
-    [tokenModule],
+    [tokenContract],
   );
 
   return { format };
 }
 
-export function useFormatedValue(
+export function useFormattedValue(
   value?: BigNumberish,
-  tokenModule?: Token,
+  tokenContract?: Token,
   chainId?: number,
 ) {
   const [formatted, setFormatted] = useState<string | undefined>();
-  const { format } = useTokenUnitConversion(tokenModule);
+  const { format } = useTokenUnitConversion(tokenContract);
   useEffect(() => {
     if (!value) {
       return;

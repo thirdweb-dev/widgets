@@ -1,16 +1,16 @@
 const path = require("path");
 const fs = require("fs");
 
-const WIDGETS_SRC_PATH = path.resolve(process.cwd(), "src/widgets");
+const EMBEDS_SRC_PATH = path.resolve(process.cwd(), "src/embeds");
 const DIST_PATH = path.resolve(process.cwd(), "dist/");
 
-const files = fs.readdirSync(WIDGETS_SRC_PATH);
+const files = fs.readdirSync(EMBEDS_SRC_PATH);
 
 fs.rmSync(DIST_PATH, { recursive: true, force: true });
 
 require("esbuild")
   .build({
-    entryPoints: files.map((f) => path.resolve(WIDGETS_SRC_PATH, f)),
+    entryPoints: files.map((f) => path.resolve(EMBEDS_SRC_PATH, f)),
     bundle: true,
     minify: true,
     platform: "browser",
@@ -24,7 +24,7 @@ require("esbuild")
         env: "production"
       })
     },
-    inject:  ['./buffer-shim.js']
+    inject: ['./buffer-shim.js']
   })
   .then((result) => {
     for (const file of result.outputFiles) {
