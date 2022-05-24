@@ -17,13 +17,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import {
-  useAddress,
-  useDisconnect,
-  useToken,
-  useTokenBalance,
-} from "@thirdweb-dev/react";
-import { ethers } from "ethers";
+import { useAddress, useBalance, useDisconnect } from "@thirdweb-dev/react";
 import React from "react";
 import { IoCopy, IoWalletOutline } from "react-icons/io5";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
@@ -46,8 +40,7 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
   const address = useAddress();
   const disconnect = useDisconnect();
   const { onCopy } = useClipboard(address || "");
-  const token = useToken(tokenAddress);
-  const { data: balance } = useTokenBalance(token, address);
+  const { data: balance } = useBalance(tokenAddress);
 
   const switchWallet = async () => {
     const provider = data?.connector?.getProvider();
@@ -59,7 +52,6 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
       method: "wallet_requestPermissions",
       params: [{ eth_accounts: {} }],
     });
-
     onClose();
   };
 
@@ -82,17 +74,6 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
     <Flex align="center" gap={2}>
       {address && (
         <>
-          <Button
-            variant="outline"
-            size="sm"
-            color="gray.800"
-            leftIcon={
-              <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
-            }
-            onClick={onOpen}
-          >
-            {shortenAddress(address)}
-          </Button>
           {balance && (
             <Stack
               direction="row"
@@ -106,14 +87,21 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
             >
               <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
               <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
-                {ethers.utils.formatUnits(
-                  balance.value,
-                  balance.decimals || 18,
-                )}{" "}
-                {balance.symbol}
+                {balance.displayValue.slice(0, 6)} {balance.symbol}
               </Text>
             </Stack>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            color="gray.800"
+            leftIcon={
+              <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
+            }
+            onClick={onOpen}
+          >
+            {shortenAddress(address)}
+          </Button>
         </>
       )}
 
@@ -164,37 +152,6 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
                   </Button>
                 </ButtonGroup>
               </Stack>
-
-              {balance && (
-                <Stack display={{ base: "flex", md: "none" }}>
-                  <Text size="label.md">Balance</Text>
-                  <Flex>
-                    <Flex
-                      direction="row"
-                      height="32px"
-                      px="10px"
-                      borderRadius="md"
-                      borderColor="gray.200"
-                      borderWidth="1px"
-                      align="center"
-                      gap={1}
-                    >
-                      <Icon
-                        as={RiMoneyDollarCircleLine}
-                        boxSize={4}
-                        color="gray.500"
-                      />
-                      <Text fontSize="sm" fontWeight="semibold">
-                        {ethers.utils.formatUnits(
-                          balance.value,
-                          balance.decimals || 18,
-                        )}{" "}
-                        {balance.symbol}
-                      </Text>
-                    </Flex>
-                  </Flex>
-                </Stack>
-              )}
             </Flex>
           </ModalBody>
         </ModalContent>

@@ -334,8 +334,6 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 
   const editionDrop = useEditionDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
-  console.log(tokenId);
-  console.log(activeClaimCondition);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
   const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
