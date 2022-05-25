@@ -138,7 +138,9 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
                     <Image
                       maxWidth={6}
                       src={
-                        _connector.name !== "Injected"
+                        Object.keys(connectorIdToImageUrl).includes(
+                          _connector.name,
+                        )
                           ? connectorIdToImageUrl[_connector.name]
                           : connectorIdToImageUrl["Injected"]
                       }
