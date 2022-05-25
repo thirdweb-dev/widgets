@@ -69,6 +69,15 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
+  const [totalSupply, setTotalSupply] = useState(0);
+
+  useEffect(() => {
+    const getTotalSupply = async () => {
+      const supply = await contract?.totalSupply(tokenId);
+      setTotalSupply(supply?.toNumber() || 0);
+    };
+    getTotalSupply();
+  }, [contract, tokenId]);
 
   const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
@@ -133,7 +142,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }
 
   const maxQuantity = activeClaimCondition.data?.maxQuantity;
-  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -187,8 +195,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       </Flex>
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
-          {`${currentMintSupply || 0} ${
-            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
+          {`${totalSupply || 0} ${
+            maxQuantity !== "unlimited"
+              ? `/ ${Number(maxQuantity || 0) + totalSupply || 0}`
+              : ""
           } claimed`}
         </Text>
       )}
