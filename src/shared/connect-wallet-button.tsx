@@ -146,9 +146,9 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
                     />
                   }
                 >
-                  {_connector.name === "Injected"
-                    ? "Mobile Wallet"
-                    : _connector.name}
+                  {_connector.name !== "Injected"
+                    ? _connector.name
+                    : "Mobile Wallet"}
                 </Button>
               );
             })}
