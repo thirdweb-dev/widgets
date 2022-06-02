@@ -34,7 +34,7 @@ import {
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
@@ -71,7 +71,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const address = useAddress();
   const chainId = useChainId();
   const [quantity, setQuantity] = useState(1);
-  const [claimSuccess, setClaimSuccess] = useState(false);
   const loaded = useRef(false);
   const toast = useToast();
 
@@ -93,18 +92,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
   const priceToMint = bnPrice.mul(quantity);
 
-  useEffect(() => {
-    const t = setTimeout(() => setClaimSuccess(false), 3000);
-    return () => clearTimeout(t);
-  }, [claimSuccess]);
-
   const claim = async () => {
     claimMutation.mutate(
       { to: address as string, quantity },
       {
         onSuccess: () => {
           toast({
-            title: "Successfuly claimed.",
+            title: "Successfully claimed.",
             status: "success",
             duration: 5000,
             isClosable: true,

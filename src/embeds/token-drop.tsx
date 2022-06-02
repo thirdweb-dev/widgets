@@ -14,7 +14,6 @@ import {
   NumberInputStepper,
   Spinner,
   Stack,
-  Tab,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -25,62 +24,54 @@ import {
   useAddress,
   useChainId,
   useClaimIneligibilityReasons,
-  useClaimNFT,
-  useEditionDrop,
-  useNFT,
-  useOwnedNFTs,
-  useTotalCirculatingSupply,
+  useClaimToken,
+  useContractMetadata,
+  useTokenBalance,
+  useTokenDrop,
 } from "@thirdweb-dev/react";
-import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
+import { IpfsStorage, TokenDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
-import { Header } from "../shared/header";
-import { NFTCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseHugeNumber } from "../utils/parseHugeNumber";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-type Tab = "claim" | "inventory";
-
-interface ContractInProps {
-  contract?: EditionDrop;
+interface TokenDropEmbedProps {
+  colorScheme?: "light" | "dark";
+  contractAddress: string;
   expectedChainId: number;
 }
-
 interface ClaimPageProps {
-  contract?: EditionDrop;
+  contract?: TokenDrop;
   expectedChainId: number;
-  tokenId: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
-  tokenId,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
-  const { data: totalSupply } = useTotalCirculatingSupply(contract, tokenId);
+  const activeClaimCondition = useActiveClaimCondition(contract);
 
-  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
-  const claimIneligibilityReasons = useClaimIneligibilityReasons(
-    contract,
-    { quantity, walletAddress: address },
-    tokenId,
-  );
-  const claimMutation = useClaimNFT(contract);
+  const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
+    quantity,
+    walletAddress: address,
+  });
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
+  const owned = useTokenBalance(contract, address);
+  const claimMutation = useClaimToken(contract);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -97,7 +88,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const claim = async () => {
     claimMutation.mutate(
-      { to: address as string, tokenId, quantity },
+      { to: address as string, amount: quantity },
       {
         onSuccess: () => {
           toast({
@@ -130,6 +121,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }
 
   const maxQuantity = activeClaimCondition.data?.maxQuantity;
+  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -140,6 +132,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           onChange={(stringValue, value) => {
             if (stringValue === "") {
               setQuantity(1);
+            } else if (value > 1000) {
+              setQuantity(1000);
             } else {
               setQuantity(value);
             }
@@ -166,7 +160,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {isSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+            ? `Mint ${quantity}${
                 activeClaimCondition.data?.price.eq(0)
                   ? " (Free)"
                   : activeClaimCondition.data?.currencyMetadata.displayValue
@@ -177,18 +171,17 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
+            ? parseIneligibility(
+                claimIneligibilityReasons.data,
+                owned.data?.value.toNumber(),
+              )
             : "Minting Unavailable"}
         </Button>
       </Flex>
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
-          {`${totalSupply || "0"} ${
-            maxQuantity !== "unlimited"
-              ? `/ ${(totalSupply || BigNumber.from(0)).add(
-                  Number(maxQuantity || 0),
-                )}`
-              : ""
+          {`${currentMintSupply || 0} ${
+            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
           } claimed`}
         </Text>
       )}
@@ -196,12 +189,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({
-  contract,
-  expectedChainId,
-  tokenId,
-}) => {
-  const tokenMetadata = useNFT(contract, tokenId);
+const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
+  /*   const tokenMetadata = useEditionToken(contract, tokenId); */
+  const tokenMetadata = useContractMetadata(contract?.getAddress());
 
   if (tokenMetadata.isLoading) {
     return (
@@ -213,8 +203,6 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
       </Center>
     );
   }
-
-  const metadata = tokenMetadata.data?.metadata;
 
   return (
     <Center w="100%" h="100%">
@@ -228,80 +216,30 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           placeContent="center"
           overflow="hidden"
         >
-          {metadata?.image ? (
+          {tokenMetadata?.data?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={metadata?.image}
-              alt={metadata?.name}
+              src={tokenMetadata?.data?.image}
+              alt={tokenMetadata?.data?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {metadata?.name}
+          {tokenMetadata?.data?.name}
         </Heading>
-        {metadata?.description && (
+        {tokenMetadata?.data?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metadata.description}
+            {tokenMetadata.data?.description}
           </Heading>
         )}
-        <ClaimButton
-          contract={contract}
-          tokenId={tokenId}
-          expectedChainId={expectedChainId}
-        />
+        <ClaimButton contract={contract} expectedChainId={expectedChainId} />
       </Flex>
     </Center>
   );
-};
-
-const InventoryPage: React.FC<ContractInProps> = ({
-  contract,
-  expectedChainId,
-}) => {
-  const address = useAddress();
-  const ownedDrops = useOwnedNFTs(contract, address);
-
-  if (ownedDrops.isLoading) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  const ownedDropsMetadata = ownedDrops.data?.map((d: any) => d.metadata);
-
-  if (!address) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack spacing={4} direction="column" align="center">
-          <Heading size="label.sm">
-            Connect your wallet to see your owned drops
-          </Heading>
-          <ConnectWalletButton expectedChainId={expectedChainId} />
-        </Stack>
-      </Center>
-    );
-  }
-
-  if (!ownedDropsMetadata?.length) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Heading size="label.sm">No drops owned yet</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  return <NFTCarousel metadata={ownedDropsMetadata} />;
 };
 
 interface BodyProps {
@@ -316,26 +254,19 @@ const Body: React.FC<BodyProps> = ({ children }) => {
   );
 };
 
-interface EditionDropEmbedProps {
-  startingTab?: Tab;
+interface TokenDropEmbedProps {
   colorScheme?: "light" | "dark";
   contractAddress: string;
-  tokenId: string;
   expectedChainId: number;
 }
 
-const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
-  startingTab = "claim",
+const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   contractAddress,
-  tokenId,
   expectedChainId,
 }) => {
-  const [activeTab, setActiveTab] = useState(startingTab);
-
-  const editionDrop = useEditionDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
+  const tokenDrop = useTokenDrop(contractAddress);
+  const activeClaimCondition = useActiveClaimCondition(tokenDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
-  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
   return (
     <Flex
@@ -352,40 +283,34 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header
-        activeTab={activeTab}
-        setActiveTab={(tab) => setActiveTab(tab)}
-        tokenAddress={tokenAddress}
-        expectedChainId={expectedChainId}
-        available={available}
-      />
+      <Stack
+        as="header"
+        px="28px"
+        direction="row"
+        spacing="20px"
+        w="100%"
+        flexGrow={0}
+        borderBottom="1px solid rgba(0,0,0,.1)"
+        justify="flex-end"
+        py={2}
+      >
+        <ConnectedWallet tokenAddress={tokenAddress} />
+      </Stack>
       <Body>
-        {activeTab === "claim" ? (
-          <ClaimPage
-            contract={editionDrop}
-            tokenId={tokenId}
-            expectedChainId={expectedChainId}
-          />
-        ) : (
-          <InventoryPage
-            contract={editionDrop}
-            expectedChainId={expectedChainId}
-          />
-        )}
+        <ClaimPage contract={tokenDrop} expectedChainId={expectedChainId} />
       </Body>
       <Footer />
     </Flex>
   );
 };
 
+const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
   const expectedChainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
-  // default to expectedChainId default
   const rpcUrl = urlParams.get("rpcUrl") || "";
-  const tokenId = urlParams.get("tokenId") || "0";
   const relayerUrl = urlParams.get("relayUrl") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
@@ -412,23 +337,23 @@ const App: React.FC = () => {
           }
         `}
       />
-      <ChakraProvider theme={chakraTheme}>
-        ChainRpc
-        <ThirdwebProvider
-          desiredChainId={expectedChainId}
-          sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-          }
-          chainRpc={{ [expectedChainId]: rpcUrl }}
-        >
-          <EditionDropEmbed
-            contractAddress={contractAddress}
-            tokenId={tokenId}
-            expectedChainId={expectedChainId}
-          />
-        </ThirdwebProvider>
-      </ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={chakraTheme}>
+          <ThirdwebProvider
+            desiredChainId={expectedChainId}
+            sdkOptions={sdkOptions}
+            storageInterface={
+              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            }
+            chainRpc={{ [expectedChainId]: rpcUrl }}
+          >
+            <TokenDropEmbed
+              contractAddress={contractAddress}
+              expectedChainId={expectedChainId}
+            />
+          </ThirdwebProvider>
+        </ChakraProvider>
+      </QueryClientProvider>
     </>
   );
 };
