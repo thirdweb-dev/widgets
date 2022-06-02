@@ -54,9 +54,6 @@ interface NFTDropEmbedProps {
 
 type Tab = "claim" | "inventory";
 
-interface ContractInProps {
-  contract?: NFTDrop;
-}
 interface ClaimPageProps {
   contract?: NFTDrop;
   expectedChainId: number;

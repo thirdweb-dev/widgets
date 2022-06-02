@@ -48,11 +48,6 @@ import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 type Tab = "claim" | "inventory";
 
-interface ContractInProps {
-  contract?: EditionDrop;
-  expectedChainId: number;
-}
-
 interface ClaimPageProps {
   contract?: EditionDrop;
   expectedChainId: number;
