@@ -14,7 +14,6 @@ import {
   NumberInputStepper,
   Spinner,
   Stack,
-  Tab,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -24,38 +23,33 @@ import {
   useActiveClaimCondition,
   useAddress,
   useChainId,
-  useClaimedNFTSupply,
   useClaimIneligibilityReasons,
-  useClaimNFT,
+  useClaimToken,
   useContractMetadata,
-  useNFTDrop,
-  useUnclaimedNFTSupply,
+  useTokenDrop,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage, TokenDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
-import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface NFTDropEmbedProps {
-  startingTab?: "claim" | "inventory";
+interface TokenDropEmbedProps {
   colorScheme?: "light" | "dark";
   contractAddress: string;
   expectedChainId: number;
 }
-
-type Tab = "claim" | "inventory";
-
 interface ClaimPageProps {
-  contract?: NFTDrop;
+  contract?: TokenDrop;
   expectedChainId: number;
 }
 
@@ -67,29 +61,32 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const chainId = useChainId();
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
-  const toast = useToast();
-
   const activeClaimCondition = useActiveClaimCondition(contract);
+
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
     walletAddress: address,
   });
-  const unclaimedSupply = useUnclaimedNFTSupply(contract);
-  const claimedSupply = useClaimedNFTSupply(contract);
-  const claimMutation = useClaimNFT(contract);
 
-  // Enable all queries
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
+  const claimMutation = useClaimToken(contract);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
     activeClaimCondition.data?.currencyMetadata.decimals,
   );
+
   const priceToMint = bnPrice.mul(quantity);
+
+  const isSoldOut =
+    activeClaimCondition.data &&
+    parseInt(activeClaimCondition.data?.availableSupply) === 0;
+
+  const toast = useToast();
 
   const claim = async () => {
     claimMutation.mutate(
-      { to: address as string, quantity },
+      { to: address as string, amount: quantity },
       {
         onSuccess: () => {
           toast({
@@ -112,9 +109,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     );
   };
 
-  // Only sold out when available data is loaded
-  const isSoldOut = unclaimedSupply.data?.eq(0);
-
   const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
 
   const canClaim =
@@ -123,6 +117,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   if (!isEnabled) {
     return <ConnectWalletButton expectedChainId={expectedChainId} />;
   }
+
+  const maxQuantity = activeClaimCondition.data?.maxQuantity;
+  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
+  const availableSupply = activeClaimCondition.data?.availableSupply;
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -138,7 +136,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={1000}
+          max={
+            maxQuantity === "unlimited"
+              ? undefined
+              : parseInt(availableSupply || "1")
+          }
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -148,18 +150,18 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           </NumberInputStepper>
         </NumberInput>
         <Button
-          fontSize={{ base: "label.md", md: "label.lg" }}
-          isLoading={claimMutation.isLoading || isLoading}
+          isLoading={isLoading || claimMutation.isLoading}
           isDisabled={!canClaim}
           leftIcon={<IoDiamondOutline />}
           onClick={claim}
-          w="100%"
+          w="full"
           colorScheme="blue"
+          fontSize={{ base: "label.md", md: "label.lg" }}
         >
           {isSoldOut
             ? "Sold out"
             : canClaim
-            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+            ? `Mint ${quantity}${
                 activeClaimCondition.data?.price.eq(0)
                   ? " (Free)"
                   : activeClaimCondition.data?.currencyMetadata.displayValue
@@ -174,11 +176,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             : "Minting Unavailable"}
         </Button>
       </Flex>
-      {claimedSupply.data && (
+      {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
-          {`${claimedSupply.data?.toString()} / ${(
-            claimedSupply.data?.add(unclaimedSupply.data || 0) || 0
-          ).toString()} claimed`}
+          {`${currentMintSupply || 0} ${
+            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
+          } claimed`}
         </Text>
       )}
     </Stack>
@@ -186,11 +188,10 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 };
 
 const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
-  const { data: metadata, isLoading } = useContractMetadata(
-    contract?.getAddress(),
-  );
+  /*   const tokenMetadata = useEditionToken(contract, tokenId); */
+  const tokenMetadata = useContractMetadata(contract?.getAddress());
 
-  if (isLoading) {
+  if (tokenMetadata.isLoading) {
     return (
       <Center w="100%" h="100%">
         <Stack direction="row" align="center">
@@ -213,24 +214,24 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
           placeContent="center"
           overflow="hidden"
         >
-          {metadata?.image ? (
+          {tokenMetadata?.data?.image ? (
             <Image
               objectFit="contain"
               w="100%"
               h="100%"
-              src={metadata?.image}
-              alt={metadata?.name}
+              src={tokenMetadata?.data?.image}
+              alt={tokenMetadata?.data?.name}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
         <Heading size="display.md" fontWeight="title" as="h1">
-          {metadata?.name}
+          {tokenMetadata?.data?.name}
         </Heading>
-        {metadata?.description && (
+        {tokenMetadata?.data?.description && (
           <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {metadata.description}
+            {tokenMetadata.data?.description}
           </Heading>
         )}
         <ClaimButton contract={contract} expectedChainId={expectedChainId} />
@@ -251,23 +252,19 @@ const Body: React.FC<BodyProps> = ({ children }) => {
   );
 };
 
-interface NFTDropEmbedProps {
-  startingTab?: Tab;
+interface TokenDropEmbedProps {
   colorScheme?: "light" | "dark";
   contractAddress: string;
   expectedChainId: number;
 }
 
-const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
-  startingTab = "claim",
+const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   contractAddress,
   expectedChainId,
 }) => {
-  const [activeTab, setActiveTab] = useState(startingTab);
-  const nftDrop = useNFTDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(nftDrop);
+  const tokenDrop = useTokenDrop(contractAddress);
+  const activeClaimCondition = useActiveClaimCondition(tokenDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
-  const unclaimedSupply = useUnclaimedNFTSupply(nftDrop);
 
   return (
     <Flex
@@ -284,26 +281,28 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header
-        activeTab={activeTab}
-        setActiveTab={(tab) => setActiveTab(tab)}
-        tokenAddress={tokenAddress}
-        available={unclaimedSupply?.data?.toString()}
-        expectedChainId={expectedChainId}
-      />
+      <Stack
+        as="header"
+        px="28px"
+        direction="row"
+        spacing="20px"
+        w="100%"
+        flexGrow={0}
+        borderBottom="1px solid rgba(0,0,0,.1)"
+        justify="flex-end"
+        py={2}
+      >
+        <ConnectedWallet tokenAddress={tokenAddress} />
+      </Stack>
       <Body>
-        <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
-        {/*         {activeTab === "claim" ? (
-          <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
-        ) : (
-          <InventoryPage contract={nftDrop} />
-        )} */}
+        <ClaimPage contract={tokenDrop} expectedChainId={expectedChainId} />
       </Body>
       <Footer />
     </Flex>
   );
 };
 
+const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -336,21 +335,23 @@ const App: React.FC = () => {
           }
         `}
       />
-      <ChakraProvider theme={chakraTheme}>
-        <ThirdwebProvider
-          desiredChainId={expectedChainId}
-          sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-          }
-          chainRpc={{ [expectedChainId]: rpcUrl }}
-        >
-          <NFTDropEmbed
-            contractAddress={contractAddress}
-            expectedChainId={expectedChainId}
-          />
-        </ThirdwebProvider>
-      </ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={chakraTheme}>
+          <ThirdwebProvider
+            desiredChainId={expectedChainId}
+            sdkOptions={sdkOptions}
+            storageInterface={
+              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            }
+            chainRpc={{ [expectedChainId]: rpcUrl }}
+          >
+            <TokenDropEmbed
+              contractAddress={contractAddress}
+              expectedChainId={expectedChainId}
+            />
+          </ThirdwebProvider>
+        </ChakraProvider>
+      </QueryClientProvider>
     </>
   );
 };
