@@ -29,10 +29,12 @@ import {
   useEditionDrop,
   useNFT,
   useOwnedNFTs,
+  useTotalCirculatingSupply,
 } from "@thirdweb-dev/react";
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
@@ -66,9 +68,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 }) => {
   const address = useAddress();
   const chainId = useChainId();
-  const [claimSuccess, setClaimSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
+  const { data: totalSupply } = useTotalCirculatingSupply(contract, tokenId);
 
   const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
@@ -90,11 +92,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const isSoldOut =
     activeClaimCondition.data &&
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
-
-  useEffect(() => {
-    const t = setTimeout(() => setClaimSuccess(false), 3000);
-    return () => clearTimeout(t);
-  }, [claimSuccess]);
 
   const toast = useToast();
 
@@ -133,7 +130,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   }
 
   const maxQuantity = activeClaimCondition.data?.maxQuantity;
-  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -187,8 +183,12 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       </Flex>
       {activeClaimCondition.data && (
         <Text size="label.md" color="green.800">
-          {`${currentMintSupply || 0} ${
-            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
+          {`${totalSupply || "0"} ${
+            maxQuantity !== "unlimited"
+              ? `/ ${(totalSupply || BigNumber.from(0)).add(
+                  Number(maxQuantity || 0),
+                )}`
+              : ""
           } claimed`}
         </Text>
       )}
