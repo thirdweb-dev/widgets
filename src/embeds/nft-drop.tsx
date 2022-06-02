@@ -29,7 +29,6 @@ import {
   useClaimNFT,
   useContractMetadata,
   useNFTDrop,
-  useOwnedNFTs,
   useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
@@ -40,7 +39,6 @@ import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
-import { NFTCarousel } from "../shared/nft-carousel";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
@@ -242,50 +240,6 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
       </Flex>
     </Center>
   );
-};
-
-const InventoryPage: React.FC<ContractInProps> = ({ contract }) => {
-  const address = useAddress();
-  const ownedDrops = useOwnedNFTs(contract, address);
-  const expectedChainId = Number(urlParams.get("expectedChainId"));
-
-  if (ownedDrops.isLoading) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  const ownedDropsMetadata = ownedDrops.data?.map((d) => d.metadata);
-
-  if (!address) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack spacing={4} direction="column" align="center">
-          <Heading size="label.sm">
-            Connect your wallet to see your owned drops
-          </Heading>
-          <ConnectWalletButton expectedChainId={expectedChainId} />
-        </Stack>
-      </Center>
-    );
-  }
-
-  if (!ownedDropsMetadata?.length) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Heading size="label.sm">No drops owned yet</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  return <NFTCarousel metadata={ownedDropsMetadata} />;
 };
 
 interface BodyProps {

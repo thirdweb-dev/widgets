@@ -26,7 +26,6 @@ import {
   useClaimIneligibilityReasons,
   useClaimToken,
   useContractMetadata,
-  useTokenBalance,
   useTokenDrop,
 } from "@thirdweb-dev/react";
 import { IpfsStorage, TokenDrop } from "@thirdweb-dev/sdk";
@@ -70,7 +69,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   });
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
-  const owned = useTokenBalance(contract, address);
   const claimMutation = useClaimToken(contract);
 
   const bnPrice = parseUnits(
