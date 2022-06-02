@@ -122,6 +122,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const maxQuantity = activeClaimCondition.data?.maxQuantity;
   const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
+  const availableSupply = activeClaimCondition.data?.availableSupply;
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -132,14 +133,16 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           onChange={(stringValue, value) => {
             if (stringValue === "") {
               setQuantity(1);
-            } else if (value > 1000) {
-              setQuantity(1000);
             } else {
               setQuantity(value);
             }
           }}
           min={1}
-          max={1000}
+          max={
+            maxQuantity === "unlimited"
+              ? undefined
+              : parseInt(availableSupply || "1")
+          }
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
@@ -171,10 +174,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
                   : ""
               }`
             : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(
-                claimIneligibilityReasons.data,
-                owned.data?.value.toNumber(),
-              )
+            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
             : "Minting Unavailable"}
         </Button>
       </Flex>

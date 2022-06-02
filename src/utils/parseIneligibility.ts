@@ -20,7 +20,7 @@ export function parseIneligibility(
     return "You don't have enough currency to claim.";
   } else if (reason === ClaimEligibility.AddressNotAllowed) {
     if (quantity > 1) {
-      return `You are not eligible to claim ${quantity} NFTs.`;
+      return `You are not eligible to claim ${quantity} tokens.`;
     }
 
     return "You are not eligible to claim at this time.";
