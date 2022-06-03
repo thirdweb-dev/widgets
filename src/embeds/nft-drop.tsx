@@ -14,7 +14,6 @@ import {
   NumberInputStepper,
   Spinner,
   Stack,
-  Tab,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -44,15 +43,6 @@ import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-
-interface NFTDropEmbedProps {
-  startingTab?: "claim" | "inventory";
-  colorScheme?: "light" | "dark";
-  contractAddress: string;
-  expectedChainId: number;
-}
-
-type Tab = "claim" | "inventory";
 
 interface ClaimPageProps {
   contract?: NFTDrop;
@@ -252,22 +242,17 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 };
 
 interface NFTDropEmbedProps {
-  startingTab?: Tab;
-  colorScheme?: "light" | "dark";
   contractAddress: string;
   expectedChainId: number;
 }
 
 const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
-  startingTab = "claim",
   contractAddress,
   expectedChainId,
 }) => {
-  const [activeTab, setActiveTab] = useState(startingTab);
   const nftDrop = useNFTDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(nftDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
-  const unclaimedSupply = useUnclaimedNFTSupply(nftDrop);
 
   return (
     <Flex

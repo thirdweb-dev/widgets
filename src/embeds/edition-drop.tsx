@@ -14,7 +14,6 @@ import {
   NumberInputStepper,
   Spinner,
   Stack,
-  Tab,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -42,11 +41,8 @@ import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseHugeNumber } from "../utils/parseHugeNumber";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-
-type Tab = "claim" | "inventory";
 
 interface ClaimPageProps {
   contract?: EditionDrop;
@@ -266,7 +262,6 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 };
 
 interface EditionDropEmbedProps {
-  startingTab?: Tab;
   colorScheme?: "light" | "dark";
   contractAddress: string;
   tokenId: string;
@@ -274,17 +269,13 @@ interface EditionDropEmbedProps {
 }
 
 const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
-  startingTab = "claim",
   contractAddress,
   tokenId,
   expectedChainId,
 }) => {
-  const [activeTab, setActiveTab] = useState(startingTab);
-
   const editionDrop = useEditionDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
-  const available = parseHugeNumber(activeClaimCondition.data?.availableSupply);
 
   return (
     <Flex
