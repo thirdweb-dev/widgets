@@ -284,20 +284,9 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header
-        activeTab={activeTab}
-        setActiveTab={(tab) => setActiveTab(tab)}
-        tokenAddress={tokenAddress}
-        available={unclaimedSupply?.data?.toString()}
-        expectedChainId={expectedChainId}
-      />
+      <Header tokenAddress={tokenAddress} />
       <Body>
         <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
-        {/*         {activeTab === "claim" ? (
-          <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
-        ) : (
-          <InventoryPage contract={nftDrop} />
-        )} */}
       </Body>
       <Footer />
     </Flex>

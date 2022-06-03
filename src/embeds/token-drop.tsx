@@ -34,8 +34,8 @@ import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { Header } from "src/shared/header";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -281,19 +281,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Stack
-        as="header"
-        px="28px"
-        direction="row"
-        spacing="20px"
-        w="100%"
-        flexGrow={0}
-        borderBottom="1px solid rgba(0,0,0,.1)"
-        justify="flex-end"
-        py={2}
-      >
-        <ConnectedWallet tokenAddress={tokenAddress} />
-      </Stack>
+      <Header tokenAddress={tokenAddress} />
       <Body>
         <ClaimPage contract={tokenDrop} expectedChainId={expectedChainId} />
       </Body>

@@ -301,13 +301,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       borderColor="blackAlpha.100"
       bg="white"
     >
-      <Header
-        activeTab={activeTab}
-        setActiveTab={(tab) => setActiveTab(tab)}
-        tokenAddress={tokenAddress}
-        expectedChainId={expectedChainId}
-        available={available}
-      />
+      <Header tokenAddress={tokenAddress} />
       <Body>
         <ClaimPage
           contract={editionDrop}
