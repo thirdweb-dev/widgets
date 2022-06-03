@@ -86,6 +86,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     activeClaimCondition.data &&
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
+  const availableSupply = activeClaimCondition.data?.availableSupply;
+
   const toast = useToast();
 
   const claim = async () => {
@@ -179,7 +181,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           {`${totalSupply || "0"} ${
             maxQuantity !== "unlimited"
               ? `/ ${(totalSupply || BigNumber.from(0)).add(
-                  Number(maxQuantity || 0),
+                  Number(availableSupply || 0),
                 )}`
               : ""
           } claimed`}

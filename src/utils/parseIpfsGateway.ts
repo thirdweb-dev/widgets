@@ -10,7 +10,7 @@ export function parseIpfsGateway(ipfsGateway: string) {
     window.location.origin.startsWith("http") &&
     window.location.pathname.startsWith("/ipfs/")
   ) {
-    ipfsGateway = window.location.origin + "/ipfs/";
+    ipfsGateway = `${window.location.origin}/ipfs/`;
   }
 
   return "";
