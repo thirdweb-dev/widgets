@@ -2177,15 +2177,15 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@thirdweb-dev/contracts@2.3.9":
-  version "2.3.9"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.3.9.tgz#1493c7b12133b3a23733eb9bfa1355ad68954d6f"
-  integrity sha512-MmOVqWKdlFsZRk/Ym/fFfrCo/mzJyWL+EWsLYjpa3CUvwt6DffED+LB8pfTo8DkoTkC0Y9J4yzsdbJSgoa0tFw==
+"@thirdweb-dev/contracts@2.3.14":
+  version "2.3.14"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.3.14.tgz#46cb582b5593a4f2fd49d953894729aa6ec42f35"
+  integrity sha512-aQ7NGvU+1JDLh1Ha13m3DQpqfhmHzJUcbOOS93I0nKJOLKNUaQL2oQpg+3GBpMzZWIsScDztlfqwJ3wltaNYgQ==
 
-"@thirdweb-dev/react@^2.4.0-5":
-  version "2.4.0-5"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.4.0-5.tgz#8a589b67ce6ebf9a4a8b60b59c6da60e7b2f8a4d"
-  integrity sha512-HoPyZIZi79wAK/egHPcPIA+UhW9yDX2XrXCDSnYG91CGLPr4fbNRmLycD4CTj95TSE5akDZS941hi5dqyv/eIQ==
+"@thirdweb-dev/react@^2.4.2-3":
+  version "2.4.2-3"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.4.2-3.tgz#420b9a437cd2d910313f5a2a7309ff2f3752cfa4"
+  integrity sha512-adE4ZwpqExYYX0ozYDs57xUfs1aLzqDqdbb0ac1+6O5kOJkvEPll2X+0RD6bMBRy3zWNp//vYI+9FH1mmxFGAQ==
   dependencies:
     detect-browser "^5.3.0"
     mime "^3.0.0"
@@ -2194,12 +2194,12 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^2.3.7-1":
-  version "2.3.7-1"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.7-1.tgz#5b90c8ab054bd7352eda65762bfb6dc6f41dd3b6"
-  integrity sha512-H1sPoWDjOkWYkhH7sEObrtXQiR/OMznd6HPgvweZv6x5wHZ+qNhlvqLSpFOXxfQm7vt96vVVw93qZYGNynCuYQ==
+"@thirdweb-dev/sdk@^2.3.13-2":
+  version "2.3.13-2"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.13-2.tgz#abf487c50b2a40b76a7abb89c159545467debe8d"
+  integrity sha512-xNd9cgum1CPk2vCk6xZpRejrgflZOec2EyavbjSFUhq9/tSVUy8eePl5HMKzGFps2XY/hNxr9AZDRuEbCveYVA==
   dependencies:
-    "@thirdweb-dev/contracts" "2.3.9"
+    "@thirdweb-dev/contracts" "2.3.14"
     "@web-std/file" "^3.0.0"
     cbor "^8.1.0"
     cross-fetch "^3.1.5"
