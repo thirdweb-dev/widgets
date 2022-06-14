@@ -1,9 +1,8 @@
 import { AddressZero } from "@ethersproject/constants";
-import { Token } from "@thirdweb-dev/sdk";
+import { NATIVE_TOKENS, SUPPORTED_CHAIN_ID, Token } from "@thirdweb-dev/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 import { formatUnits, isAddress } from "ethers/lib/utils";
 import { useCallback, useEffect, useState } from "react";
-import { ChainIDToNativeSymbol } from "./rpcUtils";
 
 export const OtherAddressZero = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -22,7 +21,7 @@ export function useTokenUnitConversion(tokenContract?: Token) {
     async (value: BigNumberish, chainId?: number) => {
       value = BigNumber.from(value);
       const nativeCurrency = chainId
-        ? ` ${ChainIDToNativeSymbol[chainId]}`
+        ? ` ${NATIVE_TOKENS[chainId as SUPPORTED_CHAIN_ID].symbol}`
         : "";
 
       // invalid token address

@@ -14,6 +14,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useConnect, useNetwork } from "@thirdweb-dev/react";
+import { SUPPORTED_CHAIN_ID } from "@thirdweb-dev/sdk";
 import React from "react";
 import { FiInfo } from "react-icons/fi";
 import { IoSwapHorizontalSharp } from "react-icons/io5";
@@ -41,6 +42,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
   ] = useNetwork();
 
   const [{ data, loading }, connect] = useConnect();
+  const chainName = ChainIDToName[expectedChainId as SUPPORTED_CHAIN_ID];
 
   if (activeChain && expectedChainId !== activeChain.id) {
     if (switchNetwork) {
@@ -53,7 +55,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
             leftIcon={<IoSwapHorizontalSharp />}
             onClick={() => switchNetwork(expectedChainId)}
           >
-            Switch Network To {ChainIDToName[expectedChainId]}
+            Switch network {chainName ? `to ${chainName}` : ""}
           </Button>
           <Stack
             w="100%"
