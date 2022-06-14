@@ -6,12 +6,12 @@ import {
 import { defaultChains } from "wagmi";
 
 export const ChainIDToName: Record<SUPPORTED_CHAIN_ID, string> = {
-  [ChainId.Mainnet]: "Mainnet",
+  [ChainId.Mainnet]: "Ethereum Mainnet",
   [ChainId.Rinkeby]: "Rinkeby",
   [ChainId.Goerli]: "Goerli",
-  [ChainId.Polygon]: "Polygon",
+  [ChainId.Polygon]: "Polygon Mainnet",
   [ChainId.Mumbai]: "Mumbai",
-  [ChainId.Fantom]: "Fantom",
+  [ChainId.Fantom]: "Fantom Opera",
   [ChainId.FantomTestnet]: "Fantom Testnet",
   [ChainId.Avalanche]: "Avalanche",
   [ChainId.AvalancheFujiTestnet]: "Avalanche Fuji Testnet",
