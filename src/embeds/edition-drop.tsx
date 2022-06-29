@@ -87,7 +87,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const availableSupply = activeClaimCondition.data?.availableSupply;
 
   const maxClaimable = Math.min(
-    Number(activeClaimCondition.data?.maxQuantity || 1000),
+    Number(activeClaimCondition.data?.quantityLimitPerTransaction || 1000),
     isNaN(Number(availableSupply)) ? 1000 : Number(availableSupply),
   );
 
