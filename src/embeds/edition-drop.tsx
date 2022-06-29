@@ -86,8 +86,26 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const availableSupply = activeClaimCondition.data?.availableSupply;
 
-  const maxClaimable = Math.min(
-    Number(activeClaimCondition.data?.quantityLimitPerTransaction || 1000),
+  const quantityLimitPerTransaction =
+    activeClaimCondition.data?.quantityLimitPerTransaction;
+
+  const snapshot = activeClaimCondition.data?.snapshot;
+
+  const useDefault = useMemo(
+    () =>
+      !snapshot ||
+      snapshot?.find((user) => user.address === address)?.maxClaimable === "0",
+    [snapshot, address],
+  );
+
+  const maxClaimable = useDefault
+    ? isNaN(Number(quantityLimitPerTransaction))
+      ? 1000
+      : Number(quantityLimitPerTransaction)
+    : Number(snapshot?.find((user) => user.address === address)?.maxClaimable);
+
+  const lowerMaxClaimable = Math.min(
+    maxClaimable,
     isNaN(Number(availableSupply)) ? 1000 : Number(availableSupply),
   );
 
@@ -141,7 +159,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={activeClaimCondition.data?.snapshot ? 1000 : maxClaimable}
+          max={lowerMaxClaimable}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />

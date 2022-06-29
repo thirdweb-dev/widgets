@@ -77,10 +77,50 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
   const priceToMint = bnPrice.mul(quantity);
 
-  const maxClaimable = Math.min(
-    Number(activeClaimCondition.data?.quantityLimitPerTransaction || 1000),
+  const quantityLimitPerTransaction =
+    activeClaimCondition.data?.quantityLimitPerTransaction;
+
+  const maxClaimableWithoutSnapshot = Math.min(
+    isNaN(Number(quantityLimitPerTransaction))
+      ? 1000
+      : Number(quantityLimitPerTransaction),
     unclaimedSupply.data?.toNumber() || 1000,
   );
+
+  const snapshot = activeClaimCondition.data?.snapshot;
+
+  const useDefault = useMemo(
+    () =>
+      !snapshot ||
+      snapshot?.find((user) => user.address === address)?.maxClaimable === "0",
+    [snapshot, address],
+  );
+
+  const maxClaimable = useDefault
+    ? isNaN(Number(quantityLimitPerTransaction))
+      ? 1000
+      : Number(quantityLimitPerTransaction)
+    : Number(snapshot?.find((user) => user.address === address)?.maxClaimable);
+
+  const lowerMaxClaimable = Math.min(
+    maxClaimable,
+    unclaimedSupply.data?.toNumber() || 1000,
+  );
+
+  console.log({
+    useDefault,
+    maxClaimable,
+    lowerMaxClaimable,
+    isNaN: isNaN(Number(quantityLimitPerTransaction)),
+    quantityLimitPerTransaction: Number(quantityLimitPerTransaction),
+    findUserMaxClaimable: snapshot?.find((user) => user.address === address)
+      ?.maxClaimable,
+    findUser:
+      snapshot &&
+      snapshot.find((user) => user.address === address)?.maxClaimable === "0",
+  });
+
+  console.log(activeClaimCondition.data?.snapshot);
 
   const claim = async () => {
     claimMutation.mutate(
@@ -133,7 +173,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={activeClaimCondition.data?.snapshot ? 1000 : maxClaimable}
+          max={lowerMaxClaimable}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
