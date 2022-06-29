@@ -77,6 +77,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
   const priceToMint = bnPrice.mul(quantity);
 
+  const maxClaimable = Math.min(
+    Number(activeClaimCondition.data?.maxQuantity || 1000),
+    unclaimedSupply.data?.toNumber() || 1000,
+  );
+
+  console.log(activeClaimCondition.data?.maxQuantity);
+
   const claim = async () => {
     claimMutation.mutate(
       { to: address as string, quantity },
@@ -128,7 +135,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={1000}
+          max={activeClaimCondition.data?.snapshot ? 1000 : maxClaimable}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />

@@ -82,9 +82,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     activeClaimCondition.data &&
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
+  const toast = useToast();
+
   const availableSupply = activeClaimCondition.data?.availableSupply;
 
-  const toast = useToast();
+  const maxClaimable = Math.min(
+    Number(activeClaimCondition.data?.maxQuantity || 1000),
+    isNaN(Number(availableSupply)) ? 1000 : Number(availableSupply),
+  );
 
   const claim = async () => {
     claimMutation.mutate(
@@ -136,7 +141,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             }
           }}
           min={1}
-          max={1000}
+          max={activeClaimCondition.data?.snapshot ? 1000 : maxClaimable}
           maxW={{ base: "100%", md: "100px" }}
         >
           <NumberInputField />
