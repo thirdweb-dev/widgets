@@ -7,6 +7,7 @@ import {
   Heading,
   Icon,
   Image,
+  LightMode,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -15,6 +16,7 @@ import {
   Spinner,
   Stack,
   Text,
+  useColorMode,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -32,7 +34,7 @@ import {
 } from "@thirdweb-dev/react";
 import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
@@ -160,32 +162,34 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             <NumberDecrementStepper />
           </NumberInputStepper>
         </NumberInput>
-        <Button
-          fontSize={{ base: "label.md", md: "label.lg" }}
-          isLoading={claimMutation.isLoading || isLoading}
-          isDisabled={!canClaim}
-          leftIcon={<IoDiamondOutline />}
-          onClick={claim}
-          w="100%"
-          colorScheme="blue"
-        >
-          {isSoldOut
-            ? "Sold out"
-            : canClaim
-            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
-                activeClaimCondition.data?.price.eq(0)
-                  ? " (Free)"
-                  : activeClaimCondition.data?.currencyMetadata.displayValue
-                  ? ` (${formatUnits(
-                      priceToMint,
-                      activeClaimCondition.data.currencyMetadata.decimals,
-                    )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
-                  : ""
-              }`
-            : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
-            : "Minting Unavailable"}
-        </Button>
+        <LightMode>
+          <Button
+            fontSize={{ base: "label.md", md: "label.lg" }}
+            isLoading={claimMutation.isLoading || isLoading}
+            isDisabled={!canClaim}
+            leftIcon={<IoDiamondOutline />}
+            onClick={claim}
+            w="100%"
+            colorScheme="blue"
+          >
+            {isSoldOut
+              ? "Sold out"
+              : canClaim
+              ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+                  activeClaimCondition.data?.price.eq(0)
+                    ? " (Free)"
+                    : activeClaimCondition.data?.currencyMetadata.displayValue
+                    ? ` (${formatUnits(
+                        priceToMint,
+                        activeClaimCondition.data.currencyMetadata.decimals,
+                      )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
+                    : ""
+                }`
+              : claimIneligibilityReasons.data?.length
+              ? parseIneligibility(claimIneligibilityReasons.data, quantity)
+              : "Minting Unavailable"}
+          </Button>
+        </LightMode>
       </Flex>
       {claimedSupply.data && (
         <Text size="label.md" color="green.800">
@@ -267,15 +271,21 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 interface NFTDropEmbedProps {
   contractAddress: string;
   expectedChainId: number;
+  colorScheme: string;
 }
 
 const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   contractAddress,
   expectedChainId,
+  colorScheme,
 }) => {
+  const { setColorMode } = useColorMode();
   const nftDrop = useNFTDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(nftDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+  useEffect(() => {
+    setColorMode(colorScheme);
+  }, [colorScheme, setColorMode]);
 
   return (
     <Flex
@@ -290,7 +300,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
       borderColor="blackAlpha.100"
-      bg="white"
+      bgColor="backgroundBody"
     >
       <Header tokenAddress={tokenAddress} />
       <Body>
@@ -308,6 +318,7 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const colorScheme = urlParams.get("colorScheme") || "light";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -345,6 +356,7 @@ const App: React.FC = () => {
           <NFTDropEmbed
             contractAddress={contractAddress}
             expectedChainId={expectedChainId}
+            colorScheme={colorScheme}
           />
         </ThirdwebProvider>
       </ChakraProvider>

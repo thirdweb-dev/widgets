@@ -94,7 +94,6 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
           <Button
             variant="outline"
             size="sm"
-            color="gray.800"
             leftIcon={
               <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
             }
