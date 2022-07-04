@@ -151,7 +151,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+      <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
         <NumberInput
           inputMode="numeric"
           value={quantity}
@@ -164,7 +164,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           }}
           min={1}
           max={lowerMaxClaimable}
-          maxW={{ base: "100%", md: "100px" }}
+          maxW={{ base: "100%", sm: "100px" }}
           bgColor="inputBg"
         >
           <NumberInputField />

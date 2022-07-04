@@ -138,7 +138,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+      <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
         <NumberInput
           inputMode="numeric"
           value={quantity}
@@ -155,7 +155,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
               ? undefined
               : parseInt(availableSupply || "1")
           }
-          maxW={{ base: "100%", md: "100px" }}
+          maxW={{ base: "100%", sm: "100px" }}
           bgColor="inputBg"
         >
           <NumberInputField />
@@ -247,13 +247,13 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
+        <Heading fontSize={32} fontWeight="title" as="h1">
           {tokenMetadata?.data?.name}
         </Heading>
         {tokenMetadata?.data?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
-            {tokenMetadata.data?.description}
-          </Heading>
+          <Text noOfLines={2} as="h2" fontSize={16}>
+            {tokenMetadata.data.description}
+          </Text>
         )}
         <ClaimButton
           contract={contract}

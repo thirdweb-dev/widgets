@@ -578,7 +578,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         </Text>
       )}
       {address && chainId === expectedChainId ? (
-        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+        <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
               inputMode="numeric"
@@ -592,7 +592,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
               }}
               min={1}
               max={quantityLimit.toNumber()}
-              maxW={{ base: "100%", md: "100px" }}
+              maxW={{ base: "100%", sm: "100px" }}
             >
               <NumberInputField />
               <NumberInputStepper>
@@ -691,13 +691,13 @@ const BuyPage: React.FC<BuyPageProps> = ({
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
+        <Heading fontSize={32} fontWeight="title" as="h1">
           {listing?.asset?.name}
         </Heading>
         {listing?.asset?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
+          <Text noOfLines={2} as="h2" fontSize={16}>
             {listing?.asset?.description}
-          </Heading>
+          </Text>
         )}
         {listing?.type === ListingType.Direct ? (
           <DirectListingComponent
