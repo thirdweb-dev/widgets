@@ -762,7 +762,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
       overflow="hidden"
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
-      borderColor="blackAlpha.100"
+      borderColor="borderColor"
       bgColor="backgroundBody"
     >
       <Header tokenAddress={listing?.currencyContractAddress} />
@@ -789,7 +789,7 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
-  const colorScheme = urlParams.get("colorScheme") || "light";
+  const colorScheme = urlParams.get("theme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 

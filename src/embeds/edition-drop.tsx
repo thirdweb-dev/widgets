@@ -341,7 +341,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       overflow="hidden"
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
-      borderColor="blackAlpha.100"
+      borderColor="borderColor"
       bgColor="backgroundBody"
     >
       <Header tokenAddress={tokenAddress} />
@@ -371,7 +371,7 @@ const App: React.FC = () => {
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
-  const colorScheme = urlParams.get("colorScheme") || "light";
+  const colorScheme = urlParams.get("theme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 

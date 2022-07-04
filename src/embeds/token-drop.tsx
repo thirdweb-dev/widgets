@@ -333,7 +333,7 @@ const App: React.FC = () => {
   const relayerUrl = urlParams.get("relayUrl") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
-  const colorScheme = urlParams.get("colorScheme") || "light";
+  const colorScheme = urlParams.get("theme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
