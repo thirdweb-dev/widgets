@@ -49,11 +49,13 @@ import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 interface ClaimPageProps {
   contract?: NFTDrop;
   expectedChainId: number;
+  primaryColor: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
+  primaryColor,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
@@ -170,7 +172,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             leftIcon={<IoDiamondOutline />}
             onClick={claim}
             w="100%"
-            colorScheme="blue"
+            colorScheme={primaryColor}
           >
             {isSoldOut
               ? "Sold out"
@@ -192,7 +194,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         </LightMode>
       </Flex>
       {claimedSupply.data && (
-        <Text size="label.md" color="green.800">
+        <Text size="label.md" color="green.500">
           {`${claimedSupply.data?.toString()} / ${(
             claimedSupply.data?.add(unclaimedSupply.data || 0) || 0
           ).toString()} claimed`}
@@ -202,7 +204,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({
+  contract,
+  expectedChainId,
+  primaryColor,
+}) => {
   const { data: metadata, isLoading } = useContractMetadata(
     contract?.getAddress(),
   );
@@ -242,15 +248,19 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ contract, expectedChainId }) => {
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
+        <Heading fontSize={32} fontWeight="title" as="h1">
           {metadata?.name}
         </Heading>
         {metadata?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
+          <Text noOfLines={2} as="h2" fontSize={16}>
             {metadata.description}
-          </Heading>
+          </Text>
         )}
-        <ClaimButton contract={contract} expectedChainId={expectedChainId} />
+        <ClaimButton
+          contract={contract}
+          expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+        />
       </Flex>
     </Center>
   );
@@ -272,12 +282,14 @@ interface NFTDropEmbedProps {
   contractAddress: string;
   expectedChainId: number;
   colorScheme: string;
+  primaryColor: string;
 }
 
 const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   contractAddress,
   expectedChainId,
   colorScheme,
+  primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
   const nftDrop = useNFTDrop(contractAddress);
@@ -304,7 +316,11 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
     >
       <Header tokenAddress={tokenAddress} />
       <Body>
-        <ClaimPage contract={nftDrop} expectedChainId={expectedChainId} />
+        <ClaimPage
+          contract={nftDrop}
+          expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+        />
       </Body>
       <Footer />
     </Flex>
@@ -319,6 +335,7 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const colorScheme = urlParams.get("colorScheme") || "light";
+  const primaryColor = urlParams.get("primaryColor") || "blue";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -357,6 +374,7 @@ const App: React.FC = () => {
             contractAddress={contractAddress}
             expectedChainId={expectedChainId}
             colorScheme={colorScheme}
+            primaryColor={primaryColor}
           />
         </ThirdwebProvider>
       </ChakraProvider>
