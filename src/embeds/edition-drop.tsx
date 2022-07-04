@@ -7,6 +7,7 @@ import {
   Heading,
   Icon,
   Image,
+  LightMode,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -15,6 +16,7 @@ import {
   Spinner,
   Stack,
   Text,
+  useColorMode,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -32,7 +34,7 @@ import {
 import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
@@ -48,12 +50,16 @@ interface ClaimPageProps {
   contract?: EditionDrop;
   expectedChainId: number;
   tokenId: string;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
   tokenId,
+  primaryColor,
+  secondaryColor,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
@@ -140,7 +146,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
   if (!isEnabled) {
-    return <ConnectWalletButton expectedChainId={expectedChainId} />;
+    return (
+      <ConnectWalletButton
+        expectedChainId={expectedChainId}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
+    );
   }
 
   const maxQuantity = activeClaimCondition.data?.maxQuantity;
@@ -161,6 +173,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           min={1}
           max={lowerMaxClaimable}
           maxW={{ base: "100%", md: "100px" }}
+          bgColor="inputBg"
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -168,35 +181,37 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             <NumberDecrementStepper />
           </NumberInputStepper>
         </NumberInput>
-        <Button
-          isLoading={isLoading || claimMutation.isLoading}
-          isDisabled={!canClaim}
-          leftIcon={<IoDiamondOutline />}
-          onClick={claim}
-          w="full"
-          colorScheme="blue"
-          fontSize={{ base: "label.md", md: "label.lg" }}
-        >
-          {isSoldOut
-            ? "Sold out"
-            : canClaim
-            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
-                activeClaimCondition.data?.price.eq(0)
-                  ? " (Free)"
-                  : activeClaimCondition.data?.currencyMetadata.displayValue
-                  ? ` (${formatUnits(
-                      priceToMint,
-                      activeClaimCondition.data.currencyMetadata.decimals,
-                    )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
-                  : ""
-              }`
-            : claimIneligibilityReasons.data?.length
-            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
-            : "Minting Unavailable"}
-        </Button>
+        <LightMode>
+          <Button
+            isLoading={isLoading || claimMutation.isLoading}
+            isDisabled={!canClaim}
+            leftIcon={<IoDiamondOutline />}
+            onClick={claim}
+            w="full"
+            colorScheme={primaryColor}
+            fontSize={{ base: "label.md", md: "label.lg" }}
+          >
+            {isSoldOut
+              ? "Sold out"
+              : canClaim
+              ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+                  activeClaimCondition.data?.price.eq(0)
+                    ? " (Free)"
+                    : activeClaimCondition.data?.currencyMetadata.displayValue
+                    ? ` (${formatUnits(
+                        priceToMint,
+                        activeClaimCondition.data.currencyMetadata.decimals,
+                      )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
+                    : ""
+                }`
+              : claimIneligibilityReasons.data?.length
+              ? parseIneligibility(claimIneligibilityReasons.data, quantity)
+              : "Minting Unavailable"}
+          </Button>
+        </LightMode>
       </Flex>
       {activeClaimCondition.data && (
-        <Text size="label.md" color="green.800">
+        <Text size="label.md" color="green.500">
           {`${totalSupply || "0"} ${
             maxQuantity !== "unlimited"
               ? `/ ${(totalSupply || BigNumber.from(0)).add(
@@ -214,6 +229,8 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
   tokenId,
+  primaryColor,
+  secondaryColor,
 }) => {
   const tokenMetadata = useNFT(contract, tokenId);
 
@@ -266,6 +283,8 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           contract={contract}
           tokenId={tokenId}
           expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </Flex>
     </Center>
@@ -285,20 +304,30 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 };
 
 interface EditionDropEmbedProps {
-  colorScheme?: "light" | "dark";
   contractAddress: string;
   tokenId: string;
   expectedChainId: number;
+  colorScheme: string;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   contractAddress,
   tokenId,
   expectedChainId,
+  colorScheme,
+  primaryColor,
+  secondaryColor,
 }) => {
+  const { setColorMode } = useColorMode();
   const editionDrop = useEditionDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+
+  useEffect(() => {
+    setColorMode(colorScheme);
+  }, [colorScheme, setColorMode]);
 
   return (
     <Flex
@@ -313,7 +342,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
       borderColor="blackAlpha.100"
-      bg="white"
+      bgColor="backgroundBody"
     >
       <Header tokenAddress={tokenAddress} />
       <Body>
@@ -321,6 +350,8 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
           contract={editionDrop}
           tokenId={tokenId}
           expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </Body>
       <Footer />
@@ -339,6 +370,10 @@ const App: React.FC = () => {
   const relayerUrl = urlParams.get("relayUrl") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+
+  const colorScheme = urlParams.get("colorScheme") || "light";
+  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const sdkOptions = useMemo(
     () =>
@@ -376,6 +411,9 @@ const App: React.FC = () => {
             contractAddress={contractAddress}
             tokenId={tokenId}
             expectedChainId={expectedChainId}
+            colorScheme={colorScheme}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
           />
         </ThirdwebProvider>
       </ChakraProvider>

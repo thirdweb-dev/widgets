@@ -32,6 +32,7 @@ export const QuantityInput: React.FC<QuantityInputProps> = ({
           setStringValue(_stringValue);
           onChange(_stringValue);
         }}
+        bgColor="inputBg"
       />
     </InputGroup>
   );
