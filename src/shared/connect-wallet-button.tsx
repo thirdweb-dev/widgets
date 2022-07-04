@@ -7,6 +7,7 @@ import {
   Flex,
   Icon,
   Image,
+  LightMode,
   Menu,
   MenuButton,
   MenuList,
@@ -22,6 +23,8 @@ import { ChainIDToName, supportedChains } from "./rpcUtils";
 
 interface ConnectWalletButtonProps {
   expectedChainId: number;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 const connectorIdToImageUrl: Record<string, string> = {
@@ -33,6 +36,8 @@ const connectorIdToImageUrl: Record<string, string> = {
 
 export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
   expectedChainId,
+  primaryColor,
+  secondaryColor,
 }) => {
   const [
     {
@@ -48,33 +53,35 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
     if (switchNetwork) {
       return (
         <Stack w="100%">
-          <Button
-            w="full"
-            colorScheme="orange"
-            borderRadius="md"
-            leftIcon={<IoSwapHorizontalSharp />}
-            onClick={() => switchNetwork(expectedChainId)}
-          >
-            Switch network {chainName ? `to ${chainName}` : ""}
-          </Button>
+          <LightMode>
+            <Button
+              w="full"
+              colorScheme={secondaryColor}
+              borderRadius="md"
+              leftIcon={<IoSwapHorizontalSharp />}
+              onClick={() => switchNetwork(expectedChainId)}
+            >
+              Switch network {chainName ? `to ${chainName}` : ""}
+            </Button>
+          </LightMode>
           <Stack
             w="100%"
             direction="row"
-            bg={`orange.50`}
+            bg={`${secondaryColor}.50`}
             borderRadius="md"
             borderWidth="1px"
-            borderColor={`orange.100`}
+            borderColor={`${secondaryColor}.100`}
             align="center"
             padding="10px"
             spacing={3}
           >
-            <Icon as={FiInfo} color={`orange.400`} boxSize={6} />
+            <Icon as={FiInfo} color={`${secondaryColor}.400`} boxSize={6} />
             <Stack>
-              <Text color={`orange.800`}>
+              <Text color={`${secondaryColor}.800`}>
                 You are currently connected to the wrong network. Please switch
                 your network to continue.
               </Text>
-              <Text color={`orange.800`}>
+              <Text color={`${secondaryColor}.800`}>
                 If you are using WalletConnect or Coinbase Wallet, you may need
                 to manually switch networks on your app.
               </Text>
@@ -106,16 +113,18 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
 
   return (
     <Menu matchWidth>
-      <MenuButton
-        isLoading={loading}
-        as={Button}
-        colorScheme="blue"
-        borderRadius="md"
-        w="full"
-        rightIcon={<ChevronDownIcon />}
-      >
-        Connect Wallet
-      </MenuButton>
+      <LightMode>
+        <MenuButton
+          isLoading={loading}
+          as={Button}
+          colorScheme={primaryColor}
+          borderRadius="md"
+          w="full"
+          rightIcon={<ChevronDownIcon />}
+        >
+          Connect Wallet
+        </MenuButton>
+      </LightMode>
 
       <MenuList>
         <Flex direction={{ base: "column", md: "row" }} gap={2} px={3}>

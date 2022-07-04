@@ -50,12 +50,14 @@ interface ClaimPageProps {
   contract?: NFTDrop;
   expectedChainId: number;
   primaryColor: string;
+  secondaryColor: string;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
   primaryColor,
+  secondaryColor,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
@@ -138,7 +140,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
   if (!isEnabled) {
-    return <ConnectWalletButton expectedChainId={expectedChainId} />;
+    return (
+      <ConnectWalletButton
+        expectedChainId={expectedChainId}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
+    );
   }
 
   return (
@@ -157,6 +165,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           min={1}
           max={lowerMaxClaimable}
           maxW={{ base: "100%", md: "100px" }}
+          bgColor="inputBg"
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -208,6 +217,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   contract,
   expectedChainId,
   primaryColor,
+  secondaryColor,
 }) => {
   const { data: metadata, isLoading } = useContractMetadata(
     contract?.getAddress(),
@@ -260,6 +270,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           contract={contract}
           expectedChainId={expectedChainId}
           primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </Flex>
     </Center>
@@ -283,6 +294,7 @@ interface NFTDropEmbedProps {
   expectedChainId: number;
   colorScheme: string;
   primaryColor: string;
+  secondaryColor: string;
 }
 
 const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
@@ -290,11 +302,13 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   expectedChainId,
   colorScheme,
   primaryColor,
+  secondaryColor,
 }) => {
   const { setColorMode } = useColorMode();
   const nftDrop = useNFTDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(nftDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+
   useEffect(() => {
     setColorMode(colorScheme);
   }, [colorScheme, setColorMode]);
@@ -320,6 +334,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
           contract={nftDrop}
           expectedChainId={expectedChainId}
           primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </Body>
       <Footer />
@@ -336,6 +351,7 @@ const App: React.FC = () => {
   const relayerUrl = urlParams.get("relayUrl") || "";
   const colorScheme = urlParams.get("colorScheme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
+  const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -375,6 +391,7 @@ const App: React.FC = () => {
             expectedChainId={expectedChainId}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
           />
         </ThirdwebProvider>
       </ChakraProvider>

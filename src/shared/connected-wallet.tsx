@@ -5,6 +5,7 @@ import {
   Heading,
   Icon,
   IconButton,
+  LightMode,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -86,7 +87,7 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
               align="center"
             >
               <Icon as={RiMoneyDollarCircleLine} boxSize={4} color="gray.500" />
-              <Text fontSize="sm" fontWeight="semibold" whiteSpace="nowrap">
+              <Text fontSize={14} fontWeight="semibold" whiteSpace="nowrap">
                 {balance.displayValue.slice(0, 6)} {balance.symbol}
               </Text>
             </Stack>
@@ -94,6 +95,7 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
           <Button
             variant="outline"
             size="sm"
+            fontSize={14}
             leftIcon={
               <Icon as={IoWalletOutline} color="gray.500" boxSize={4} />
             }
@@ -126,11 +128,11 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
                     borderRight="none"
                     aria-label="Add to friends"
                     variant="outline"
-                    size="sm"
+                    fontSize={14}
                     icon={<Icon as={IoCopy} />}
                   />
                   <Button
-                    size="sm"
+                    fontSize={14}
                     variant="outline"
                     width="120px"
                     onClick={copyAddress}
@@ -138,17 +140,19 @@ export const ConnectedWallet: React.FC<ConnectedWalletProps> = ({
                     {shortenAddress(address || "")}
                   </Button>
                   {data?.connector?.getProvider()?.isMetaMask && (
-                    <Button size="sm" onClick={switchWallet}>
+                    <Button fontSize={14} onClick={switchWallet}>
                       Switch
                     </Button>
                   )}
-                  <Button
-                    onClick={disconnectWallet}
-                    colorScheme="red"
-                    size="sm"
-                  >
-                    Disconnect
-                  </Button>
+                  <LightMode>
+                    <Button
+                      onClick={disconnectWallet}
+                      colorScheme="red"
+                      fontSize={14}
+                    >
+                      Disconnect
+                    </Button>
+                  </LightMode>
                 </ButtonGroup>
               </Stack>
             </Flex>
