@@ -306,7 +306,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
       overflow="hidden"
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
-      borderColor="blackAlpha.100"
+      borderColor="borderColor"
       bgColor="backgroundBody"
     >
       <Header tokenAddress={tokenAddress} />
