@@ -7,6 +7,7 @@ import {
   Heading,
   Icon,
   Image,
+  LightMode,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -16,6 +17,7 @@ import {
   Stack,
   Text,
   Tooltip,
+  useColorMode,
   useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
@@ -55,16 +57,21 @@ import { useFormattedValue } from "../shared/tokenHooks";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface MarketplaceEmbedProps {
-  colorScheme?: "light" | "dark";
   rpcUrl?: string;
   contractAddress: string;
   expectedChainId: number;
+  listingId: string;
+  colorScheme: string;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 interface BuyPageProps {
   contract?: Marketplace;
   expectedChainId: number;
   listing: DirectListing | AuctionListing;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 interface AuctionListingProps extends BuyPageProps {
@@ -101,6 +108,8 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   contract,
   expectedChainId,
   listing,
+  primaryColor,
+  secondaryColor,
 }) => {
   const toast = useToast();
   const address = useAddress();
@@ -307,21 +316,26 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                       setBid(valueString || minimumBidNumber);
                     }}
                     min={parseFloat(minimumBidNumber)}
+                    bgColor="inputBg"
                   >
                     <NumberInputField width="100%" borderRightRadius={0} />
                   </NumberInput>
-                  <Button
-                    minW="120px"
-                    borderLeftRadius="0"
-                    fontSize={{ base: "label.md", md: "label.lg" }}
-                    isLoading={makeBidMutation.isLoading}
-                    leftIcon={<RiAuctionLine />}
-                    colorScheme="blue"
-                    onClick={makeBid}
-                    isDisabled={parseFloat(bid) < parseFloat(minimumBidNumber)}
-                  >
-                    Bid
-                  </Button>
+                  <LightMode>
+                    <Button
+                      minW="120px"
+                      borderLeftRadius="0"
+                      fontSize={{ base: "label.md", md: "label.lg" }}
+                      isLoading={makeBidMutation.isLoading}
+                      leftIcon={<RiAuctionLine />}
+                      colorScheme={primaryColor}
+                      onClick={makeBid}
+                      isDisabled={
+                        parseFloat(bid) < parseFloat(minimumBidNumber)
+                      }
+                    >
+                      Bid
+                    </Button>
+                  </LightMode>
                 </Flex>
 
                 {BigNumber.from(listing.buyoutPrice).gt(0) && (
@@ -331,25 +345,27 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                       all the listed assets and end the bidding process.
                     `}
                   >
-                    <Button
-                      minW="160px"
-                      variant="outline"
-                      fontSize={{ base: "label.md", md: "label.lg" }}
-                      isLoading={buyNowMutation.isLoading}
-                      leftIcon={<IoDiamondOutline />}
-                      colorScheme="blue"
-                      onClick={buyNow}
-                    >
-                      Buyout Auction ({buyoutPrice})
-                    </Button>
+                    <LightMode>
+                      <Button
+                        minW="160px"
+                        variant="outline"
+                        fontSize={{ base: "label.md", md: "label.lg" }}
+                        isLoading={buyNowMutation.isLoading}
+                        leftIcon={<IoDiamondOutline />}
+                        colorScheme={primaryColor}
+                        onClick={buyNow}
+                      >
+                        Buyout Auction ({buyoutPrice})
+                      </Button>
+                    </LightMode>
                   </Tooltip>
                 )}
 
                 <Stack
-                  bg="blue.50"
+                  bg={`${primaryColor}.50`}
                   borderRadius="md"
                   padding="12px"
-                  borderColor="blue.100"
+                  borderColor={`${primaryColor}.100`}
                   borderWidth="1px"
                   spacing={0}
                 >
@@ -399,15 +415,15 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                 </Stack>
 
                 <Stack
-                  bg="orange.50"
+                  bg={`${secondaryColor}.50`}
                   borderRadius="md"
                   padding="12px"
-                  borderColor="orange.100"
+                  borderColor={`${secondaryColor}.100`}
                   borderWidth="1px"
                   direction="row"
                 >
                   <Icon
-                    color="orange.300"
+                    color={`${secondaryColor}.300`}
                     as={AiFillExclamationCircle}
                     boxSize={6}
                   />
@@ -420,28 +436,30 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
             </>
           ) : (
             <Stack>
-              <Button
-                width="100%"
-                fontSize={{ base: "label.md", md: "label.lg" }}
-                leftIcon={<IoDiamondOutline />}
-                colorScheme="blue"
-                isDisabled
-              >
-                Auction Ended
-              </Button>
+              <LightMode>
+                <Button
+                  width="100%"
+                  fontSize={{ base: "label.md", md: "label.lg" }}
+                  leftIcon={<IoDiamondOutline />}
+                  colorScheme={primaryColor}
+                  isDisabled
+                >
+                  Auction Ended
+                </Button>
+              </LightMode>
               {auctionWinner && (
                 <Stack
-                  bg="blue.50"
+                  bg={`${primaryColor}.50`}
                   borderRadius="md"
                   padding="12px"
-                  borderColor="blue.100"
+                  borderColor={`${primaryColor}.100`}
                   borderWidth="1px"
                   direction="row"
                   align="center"
                   spacing={3}
                 >
                   <Icon
-                    color="blue.300"
+                    color={`${primaryColor}.300`}
                     as={AiFillExclamationCircle}
                     boxSize={6}
                   />
@@ -473,7 +491,11 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
           )}
         </Stack>
       ) : (
-        <ConnectWalletButton expectedChainId={expectedChainId} />
+        <ConnectWalletButton
+          expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+        />
       )}
     </Stack>
   );
@@ -483,6 +505,8 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
   contract,
   expectedChainId,
   listing,
+  primaryColor,
+  secondaryColor,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
@@ -554,7 +578,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         </Text>
       )}
       {address && chainId === expectedChainId ? (
-        <Flex w="100%" direction={{ base: "column", md: "row" }} gap={2}>
+        <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
           {showQuantityInput && (
             <NumberInput
               inputMode="numeric"
@@ -568,7 +592,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
               }}
               min={1}
               max={quantityLimit.toNumber()}
-              maxW={{ base: "100%", md: "100px" }}
+              maxW={{ base: "100%", sm: "100px" }}
             >
               <NumberInputField />
               <NumberInputStepper>
@@ -577,30 +601,36 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
               </NumberInputStepper>
             </NumberInput>
           )}
-          <Button
-            fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={buyNowMutation.isLoading}
-            isDisabled={!canClaim}
-            leftIcon={<IoDiamondOutline />}
-            onClick={buyNow}
-            w="full"
-            colorScheme="blue"
-          >
-            {isSoldOut
-              ? "Sold Out"
-              : canClaim
-              ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
-                  BigNumber.from(pricePerToken).eq(0)
-                    ? " (Free)"
-                    : formattedPrice
-                    ? ` (${formattedPrice})`
-                    : ""
-                }`
-              : "Purchase Unavailable"}
-          </Button>
+          <LightMode>
+            <Button
+              fontSize={{ base: "label.md", md: "label.lg" }}
+              isLoading={buyNowMutation.isLoading}
+              isDisabled={!canClaim}
+              leftIcon={<IoDiamondOutline />}
+              onClick={buyNow}
+              w="full"
+              colorScheme={primaryColor}
+            >
+              {isSoldOut
+                ? "Sold Out"
+                : canClaim
+                ? `Buy${showQuantityInput ? ` ${quantity}` : ""}${
+                    BigNumber.from(pricePerToken).eq(0)
+                      ? " (Free)"
+                      : formattedPrice
+                      ? ` (${formattedPrice})`
+                      : ""
+                  }`
+                : "Purchase Unavailable"}
+            </Button>
+          </LightMode>
         </Flex>
       ) : (
-        <ConnectWalletButton expectedChainId={expectedChainId} />
+        <ConnectWalletButton
+          expectedChainId={expectedChainId}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+        />
       )}
     </Stack>
   );
@@ -610,6 +640,8 @@ const BuyPage: React.FC<BuyPageProps> = ({
   contract,
   expectedChainId,
   listing,
+  primaryColor,
+  secondaryColor,
 }) => {
   if (listing === null) {
     return (
@@ -659,25 +691,29 @@ const BuyPage: React.FC<BuyPageProps> = ({
             <Icon maxW="100%" maxH="100%" as={DropSvg} />
           )}
         </Grid>
-        <Heading size="display.md" fontWeight="title" as="h1">
+        <Heading fontSize={32} fontWeight="title" as="h1">
           {listing?.asset?.name}
         </Heading>
         {listing?.asset?.description && (
-          <Heading noOfLines={2} as="h2" size="subtitle.md">
+          <Text noOfLines={2} as="h2" fontSize={16}>
             {listing?.asset?.description}
-          </Heading>
+          </Text>
         )}
         {listing?.type === ListingType.Direct ? (
           <DirectListingComponent
             contract={contract}
             expectedChainId={expectedChainId}
             listing={listing}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
           />
         ) : (
           <AuctionListingComponent
             contract={contract}
             expectedChainId={expectedChainId}
             listing={listing}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
           />
         )}
       </Flex>
@@ -697,21 +733,22 @@ const Body: React.FC<BodyProps> = ({ children }) => {
   );
 };
 
-interface MarketplaceEmbedProps {
-  colorScheme?: "light" | "dark";
-  contractAddress: string;
-  expectedChainId: number;
-  listingId: string;
-}
-
 const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   contractAddress,
   expectedChainId,
   listingId,
+  colorScheme,
+  primaryColor,
+  secondaryColor,
 }) => {
+  const { setColorMode } = useColorMode();
   const marketplace = useMarketplace(contractAddress);
 
   const { data: listing } = useListing(marketplace, listingId);
+
+  useEffect(() => {
+    setColorMode(colorScheme);
+  }, [colorScheme, setColorMode]);
 
   return (
     <Flex
@@ -725,8 +762,8 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
       overflow="hidden"
       shadow="0px 1px 1px rgba(0,0,0,0.1)"
       border="1px solid"
-      borderColor="blackAlpha.100"
-      bg="white"
+      borderColor="borderColor"
+      bgColor="backgroundBody"
     >
       <Header tokenAddress={listing?.currencyContractAddress} />
       <Body>
@@ -734,6 +771,8 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
           contract={marketplace}
           expectedChainId={expectedChainId}
           listing={listing as DirectListing | AuctionListing}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </Body>
       <Footer />
@@ -750,6 +789,9 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const colorScheme = urlParams.get("theme") || "light";
+  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -788,6 +830,9 @@ const App: React.FC = () => {
             contractAddress={contractAddress}
             expectedChainId={expectedChainId}
             listingId={listingId}
+            colorScheme={colorScheme}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
           />
         </ThirdwebProvider>
       </ChakraProvider>
