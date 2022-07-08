@@ -308,6 +308,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   const nftDrop = useNFTDrop(contractAddress);
   const activeClaimCondition = useActiveClaimCondition(nftDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
+  console.log(activeClaimCondition);
 
   useEffect(() => {
     setColorMode(colorScheme);
