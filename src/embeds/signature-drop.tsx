@@ -29,10 +29,10 @@ import {
   useClaimIneligibilityReasons,
   useClaimNFT,
   useContractMetadata,
-  useNFTDrop,
+  useSignatureDrop,
   useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage, SignatureDrop } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -47,7 +47,7 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface ClaimPageProps {
-  contract?: NFTDrop;
+  contract?: SignatureDrop;
   expectedChainId: number;
   primaryColor: string;
   secondaryColor: string;
@@ -289,7 +289,7 @@ const Body: React.FC<BodyProps> = ({ children }) => {
   );
 };
 
-interface NFTDropEmbedProps {
+interface SignatureDropEmbedProps {
   contractAddress: string;
   expectedChainId: number;
   colorScheme: string;
@@ -297,7 +297,7 @@ interface NFTDropEmbedProps {
   secondaryColor: string;
 }
 
-const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
+const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   contractAddress,
   expectedChainId,
   colorScheme,
@@ -305,8 +305,8 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   secondaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const nftDrop = useNFTDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(nftDrop);
+  const signatureDrop = useSignatureDrop(contractAddress);
+  const activeClaimCondition = useActiveClaimCondition(signatureDrop);
   const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
@@ -331,7 +331,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       <Header tokenAddress={tokenAddress} />
       <Body>
         <ClaimPage
-          contract={nftDrop}
+          contract={signatureDrop}
           expectedChainId={expectedChainId}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
@@ -386,7 +386,7 @@ const App: React.FC = () => {
           }
           chainRpc={{ [expectedChainId]: rpcUrl }}
         >
-          <NFTDropEmbed
+          <SignatureDropEmbed
             contractAddress={contractAddress}
             expectedChainId={expectedChainId}
             colorScheme={colorScheme}

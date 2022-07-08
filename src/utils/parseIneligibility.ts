@@ -9,7 +9,6 @@ export function parseIneligibility(
   }
 
   const reason = reasons[0];
-  console.log({ reasons });
 
   if (
     reason === ClaimEligibility.Unknown ||
