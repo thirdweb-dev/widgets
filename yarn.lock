@@ -2458,15 +2458,15 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@thirdweb-dev/contracts@2.4.3":
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-2.4.3.tgz#23d277729b6e267ae7340bcdd991e66b7ef45d52"
-  integrity sha512-4FdREGMxyfxBR1AJkMoeQooCwk1GKfGyvZJXvC/fVshrvxU+MbeyPcbDrCqjreJcJjsFPz1mV+mnYeRZrS6aeg==
+"@thirdweb-dev/contracts@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.0.0.tgz#0849f9bc961d654e07bca78c85a4ce1e5294e039"
+  integrity sha512-9LCjLLE+JXuwMfxis77GtHawMOaUhUutTm/h2y7F7K95GRMVydCGHQ4r7hL3cXnYQCLxLdTzUtwBqjqWH2nOlw==
 
-"@thirdweb-dev/react@^2.4.9-1":
-  version "2.4.9-1"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.4.9-1.tgz#c509578114e54b8c74f4474722ed57badbd64c22"
-  integrity sha512-q9LqPXEhziUDRY8NyLf4AY9xZK9xxO1fO0TjxDI9ulPPKyFtWA/3Tf5z/XjPz9bF7pCGaxd171tXqjerMIYs+w==
+"@thirdweb-dev/react@^2.4.9-4":
+  version "2.4.9-4"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.4.9-4.tgz#9eb1fbee6fe9e37fbe1c60ff6764b08068abcd36"
+  integrity sha512-QTt87LvITR15sWtLIw6YbkI8W1aIpUXftuUruO0n9CdR1/jd7WTIMfIogthEXo8H/mqQfPeaG5QqdDYJSuMXNw==
   dependencies:
     "@gnosis.pm/safe-core-sdk" "2.1.0"
     "@gnosis.pm/safe-ethers-adapters" "0.1.0-alpha.9"
@@ -2478,12 +2478,12 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^2.3.25-3":
-  version "2.3.25-3"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.25-3.tgz#343e2619531f23b1db97054b785bf3eb36ee526d"
-  integrity sha512-lAbwAwv4s7vcWVFpbRFWzVs3815CoYE8tOW5gBcN+GlW2hzgSE08bqcwmC2WjUft+8Lvb6m9cM3zQGg7iOiq6Q==
+"@thirdweb-dev/sdk@^2.3.27":
+  version "2.3.27"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.27.tgz#da01f1c1b34c55abecdc1ef20efb05464138555c"
+  integrity sha512-CBHj4VwqQUxKLPAsh8xswRRyamwyQPN5+daeBtooDmO4/E/ZkcV2Q12IF0A56MILy39ILN0cDZnzYVjn3fQbXw==
   dependencies:
-    "@thirdweb-dev/contracts" "2.4.3"
+    "@thirdweb-dev/contracts" "^3.0.0"
     "@web-std/file" "^3.0.0"
     cbor "^8.1.0"
     cross-fetch "^3.1.5"
