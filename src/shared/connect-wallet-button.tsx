@@ -14,7 +14,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useConnect, useNetwork } from "@thirdweb-dev/react";
+import { useConnect, useMetamask, useNetwork } from "@thirdweb-dev/react";
 import { SUPPORTED_CHAIN_ID } from "@thirdweb-dev/sdk";
 import React from "react";
 import { FiInfo } from "react-icons/fi";
@@ -47,6 +47,7 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
   ] = useNetwork();
 
   const [{ data, loading }, connect] = useConnect();
+  const connectWithMetamask = useMetamask();
   const chainName = ChainIDToName[expectedChainId as SUPPORTED_CHAIN_ID];
 
   if (activeChain && expectedChainId !== activeChain.id) {
@@ -125,11 +126,29 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
           Connect Wallet
         </MenuButton>
       </LightMode>
+      {console.log(data.connector?.name)}
 
       <MenuList>
         <Flex direction={{ base: "column", md: "row" }} gap={2} px={3}>
+          <Button
+            flexGrow={1}
+            size="sm"
+            variant="outline"
+            isLoading={loading}
+            onClick={connectWithMetamask}
+            leftIcon={
+              <Image
+                maxWidth={6}
+                src={connectorIdToImageUrl["MetaMask"]}
+                alt="MetaMask"
+              />
+            }
+          >
+            MetaMask
+          </Button>
           {data.connectors
             .filter((c) => c.ready)
+            .filter((c) => c.name !== "MetaMask")
             .map((_connector) => {
               if (!_connector.ready) {
                 return null;
