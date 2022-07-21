@@ -97,13 +97,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const maxClaimable = useDefault
     ? isNaN(Number(quantityLimitPerTransaction))
-      ? 1000
+      ? 99999
       : Number(quantityLimitPerTransaction)
     : Number(snapshot?.find((user) => user.address === address)?.maxClaimable);
 
   const lowerMaxClaimable = Math.min(
     maxClaimable,
-    unclaimedSupply.data?.toNumber() || 1000,
+    unclaimedSupply.data?.toNumber() || 99999,
   );
 
   const claim = async () => {
@@ -138,6 +138,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const canClaim =
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
+
+  console.log(claimIneligibilityReasons);
 
   if (!isEnabled) {
     return (
