@@ -407,14 +407,16 @@ const App: React.FC = () => {
           }
           chainRpc={{ [expectedChainId]: rpcUrl }}
         >
-          <EditionDropEmbed
-            contractAddress={contractAddress}
-            tokenId={tokenId}
-            expectedChainId={expectedChainId}
-            colorScheme={colorScheme}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
+          <Flex bgColor="transparent">
+            <EditionDropEmbed
+              contractAddress={contractAddress}
+              tokenId={tokenId}
+              expectedChainId={expectedChainId}
+              colorScheme={colorScheme}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+            />
+          </Flex>
         </ThirdwebProvider>
       </ChakraProvider>
     </>
