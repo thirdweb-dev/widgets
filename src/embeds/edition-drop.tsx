@@ -398,7 +398,6 @@ const App: React.FC = () => {
         `}
       />
       <ChakraProvider theme={chakraTheme}>
-        ChainRpc
         <ThirdwebProvider
           desiredChainId={expectedChainId}
           sdkOptions={sdkOptions}

@@ -16,14 +16,11 @@ const chakraTheme: Theme = extendTheme({
   styles: {
     global: {
       "html, body": {
-        background: "#000",
+        backgroundColor: "transparent",
         padding: 0,
         margin: 0,
         fontFeatureSettings: `'zero' 1`,
         scrollBehavior: "smooth",
-      },
-      body: {
-        colorScheme: "dark",
       },
       "::selection": {
         backgroundColor: "#90cdf4",
