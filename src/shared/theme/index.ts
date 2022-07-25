@@ -20,6 +20,7 @@ const chakraTheme: Theme = extendTheme({
         padding: 0,
         margin: 0,
         fontFeatureSettings: `'zero' 1`,
+        scrollBehavior: "smooth",
       },
       "::selection": {
         backgroundColor: "#90cdf4",
