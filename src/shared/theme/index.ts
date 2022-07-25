@@ -23,7 +23,7 @@ const chakraTheme: Theme = extendTheme({
         scrollBehavior: "smooth",
       },
       body: {
-        colorScheme: "dark",
+        backgroundColor: "transparent",
       },
       "::selection": {
         backgroundColor: "#90cdf4",
