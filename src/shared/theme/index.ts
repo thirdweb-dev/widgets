@@ -5,7 +5,6 @@ import { fontWeights, letterSpacings, lineHeights } from "./typography";
 
 const chakraTheme: Theme = extendTheme({
   config: {
-    initialColorMode: "dark",
     useSystemColorMode: false,
   } as Theme["config"],
   fonts: {
