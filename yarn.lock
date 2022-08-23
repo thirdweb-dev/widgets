@@ -2458,10 +2458,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@thirdweb-dev/contracts@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.0.0.tgz#0849f9bc961d654e07bca78c85a4ce1e5294e039"
-  integrity sha512-9LCjLLE+JXuwMfxis77GtHawMOaUhUutTm/h2y7F7K95GRMVydCGHQ4r7hL3cXnYQCLxLdTzUtwBqjqWH2nOlw==
+"@thirdweb-dev/contracts@3.1.0-1":
+  version "3.1.0-1"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.1.0-1.tgz#8c4d068f0548f780a90cc723636bcc358cb946eb"
+  integrity sha512-v19UtKKIpd6ol7fXcAL24F7Jwew1jIAmxstogTw9MdX2k9McwaI0Ebxu/3SSkQq2AhmruwOPp+E2xq1SWKsBUw==
 
 "@thirdweb-dev/react@^2.4.9-4":
   version "2.4.9-4"
@@ -2478,12 +2478,12 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^2.3.27":
-  version "2.3.27"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.27.tgz#da01f1c1b34c55abecdc1ef20efb05464138555c"
-  integrity sha512-CBHj4VwqQUxKLPAsh8xswRRyamwyQPN5+daeBtooDmO4/E/ZkcV2Q12IF0A56MILy39ILN0cDZnzYVjn3fQbXw==
+"@thirdweb-dev/sdk@^2.3.39-0":
+  version "2.3.39-0"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.39-0.tgz#2f6d0758943908a78b2b71d46afa7005730900d5"
+  integrity sha512-ztzCJ1Uu01MaoAHSdEzGOq9HsFtEdmXRMJz5WmRkF+QI9h60Y6m/3hO5Bx0kEtyy0J5ZwmO9W2vsdYC4l/8a/w==
   dependencies:
-    "@thirdweb-dev/contracts" "^3.0.0"
+    "@thirdweb-dev/contracts" "3.1.0-1"
     "@web-std/file" "^3.0.0"
     cbor "^8.1.0"
     cross-fetch "^3.1.5"
