@@ -7649,7 +7649,7 @@ wagmi-core@0.1.22:
     "@ethersproject/providers" "^5.5.1"
     eventemitter3 "^4.0.7"
 
-wagmi@^0.2.28, wagmi@^0.2.9:
+wagmi@^0.2.28:
   version "0.2.28"
   resolved "https://registry.yarnpkg.com/wagmi/-/wagmi-0.2.28.tgz#710c1d4849c3f6f983028cccecaaf554e83f9c1c"
   integrity sha512-ovB/3ULocxt4IojC7t2aqb1tPNk3Or9+hrUiLkf15yDLeUdn4murot1lpunKZHrlaIsCGwNknW8hsGY+47btCw==

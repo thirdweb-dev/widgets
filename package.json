@@ -59,8 +59,7 @@
     "framer-motion": "^6",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "react-icons": "^4.3.1",
-    "wagmi": "^0.2.9"
+    "react-icons": "^4.3.1"
   },
   "resolutions": {
     "ansi-regex": "^5.0.1"
