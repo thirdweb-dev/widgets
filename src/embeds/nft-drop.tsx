@@ -32,7 +32,8 @@ import {
   useNFTDrop,
   useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
+import { NFTDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -68,7 +69,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
-    walletAddress: address,
+    walletAddress: address || "",
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
@@ -306,8 +307,6 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const nftDrop = useNFTDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(nftDrop);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -328,7 +327,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={nftDrop}

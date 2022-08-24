@@ -32,7 +32,8 @@ import {
   useSignatureDrop,
   useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, SignatureDrop } from "@thirdweb-dev/sdk";
+import { SignatureDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -68,7 +69,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
-    walletAddress: address,
+    walletAddress: address || "",
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
@@ -308,8 +309,6 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const signatureDrop = useSignatureDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(signatureDrop);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -330,7 +329,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={signatureDrop}
