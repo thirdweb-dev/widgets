@@ -31,7 +31,8 @@ import {
   useNFT,
   useTotalCirculatingSupply,
 } from "@thirdweb-dev/react";
-import { EditionDrop, IpfsStorage } from "@thirdweb-dev/sdk";
+import { EditionDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -70,7 +71,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
     contract,
-    { quantity, walletAddress: address },
+    { quantity, walletAddress: address || "" },
     tokenId,
   );
   const claimMutation = useClaimNFT(contract);
@@ -265,7 +266,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
               w="100%"
               h="100%"
               src={metadata?.image}
-              alt={metadata?.name}
+              alt={metadata?.name?.toString()}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />

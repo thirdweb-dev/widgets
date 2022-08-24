@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  SUPPORTED_CHAIN_ID,
-  SUPPORTED_CHAIN_IDS,
-} from "@thirdweb-dev/sdk";
-import { defaultChains } from "wagmi";
+import { ChainId, SUPPORTED_CHAIN_ID } from "@thirdweb-dev/sdk";
 
 export const ChainIDToName: Record<SUPPORTED_CHAIN_ID, string> = {
   [ChainId.Mainnet]: "Ethereum Mainnet",
@@ -20,7 +15,3 @@ export const ChainIDToName: Record<SUPPORTED_CHAIN_ID, string> = {
   [ChainId.Arbitrum]: "Arbitrum One",
   [ChainId.ArbitrumTestnet]: "Arbitrum Rinkeby",
 };
-
-export const supportedChains = defaultChains.filter((c) =>
-  SUPPORTED_CHAIN_IDS.includes(c.id),
-);

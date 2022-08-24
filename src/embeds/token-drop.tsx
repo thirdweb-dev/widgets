@@ -30,12 +30,12 @@ import {
   useContractMetadata,
   useTokenDrop,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, TokenDrop } from "@thirdweb-dev/sdk";
+import { TokenDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { Header } from "src/shared/header";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
@@ -73,7 +73,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
-    walletAddress: address,
+    walletAddress: address || "",
   });
 
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
@@ -323,7 +323,6 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   );
 };
 
-const queryClient = new QueryClient();
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
@@ -359,26 +358,24 @@ const App: React.FC = () => {
           }
         `}
       />
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={chakraTheme}>
-          <ThirdwebProvider
-            desiredChainId={expectedChainId}
-            sdkOptions={sdkOptions}
-            storageInterface={
-              ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
-            }
-            chainRpc={{ [expectedChainId]: rpcUrl }}
-          >
-            <TokenDropEmbed
-              contractAddress={contractAddress}
-              expectedChainId={expectedChainId}
-              colorScheme={colorScheme}
-              primaryColor={primaryColor}
-              secondaryColor={secondaryColor}
-            />
-          </ThirdwebProvider>
-        </ChakraProvider>
-      </QueryClientProvider>
+      <ChakraProvider theme={chakraTheme}>
+        <ThirdwebProvider
+          desiredChainId={expectedChainId}
+          sdkOptions={sdkOptions}
+          storageInterface={
+            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+          }
+          chainRpc={{ [expectedChainId]: rpcUrl }}
+        >
+          <TokenDropEmbed
+            contractAddress={contractAddress}
+            expectedChainId={expectedChainId}
+            colorScheme={colorScheme}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+        </ThirdwebProvider>
+      </ChakraProvider>
     </>
   );
 };

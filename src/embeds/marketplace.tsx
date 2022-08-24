@@ -37,10 +37,10 @@ import {
 import {
   AuctionListing,
   DirectListing,
-  IpfsStorage,
   ListingType,
   Marketplace,
 } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -685,7 +685,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
                 "ipfs://",
                 "https://cloudflare-ipfs.com/ipfs/",
               )}
-              alt={listing?.asset?.name}
+              alt={listing?.asset?.name?.toString()}
             />
           ) : (
             <Icon maxW="100%" maxH="100%" as={DropSvg} />

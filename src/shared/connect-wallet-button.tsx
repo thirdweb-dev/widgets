@@ -15,11 +15,11 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useConnect, useNetwork } from "@thirdweb-dev/react";
-import { SUPPORTED_CHAIN_ID } from "@thirdweb-dev/sdk";
+import { SUPPORTED_CHAIN_ID, SUPPORTED_CHAIN_IDS } from "@thirdweb-dev/sdk";
 import React from "react";
 import { FiInfo } from "react-icons/fi";
 import { IoSwapHorizontalSharp } from "react-icons/io5";
-import { ChainIDToName, supportedChains } from "./rpcUtils";
+import { ChainIDToName } from "./rpcUtils";
 
 interface ConnectWalletButtonProps {
   expectedChainId: number;
@@ -101,7 +101,13 @@ export const ConnectWalletButton: React.FC<ConnectWalletButtonProps> = ({
             <Text>
               Please switch your wallet to{" "}
               <strong>
-                {supportedChains.find((c) => c.id === expectedChainId)?.name}
+                {
+                  ChainIDToName[
+                    SUPPORTED_CHAIN_IDS.find(
+                      (cId) => cId === expectedChainId,
+                    ) as SUPPORTED_CHAIN_ID
+                  ]
+                }
               </strong>
               .
             </Text>

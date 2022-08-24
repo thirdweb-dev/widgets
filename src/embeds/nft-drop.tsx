@@ -32,12 +32,13 @@ import {
   useNFTDrop,
   useUnclaimedNFTSupply,
 } from "@thirdweb-dev/react";
-import { IpfsStorage, NFTDrop } from "@thirdweb-dev/sdk";
+import { NFTDrop } from "@thirdweb-dev/sdk";
+import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
-import { ConnectWalletButton } from "../shared/connect-wallet-button";
+import { ConnectWalletButton } from "src/shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
@@ -68,7 +69,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity,
-    walletAddress: address,
+    walletAddress: address || "",
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
