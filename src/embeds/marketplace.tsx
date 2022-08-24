@@ -47,8 +47,8 @@ import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
+import { Header } from "src/shared/header";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
-import { ConnectedWallet } from "../shared/connected-wallet";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -81,28 +81,6 @@ interface AuctionListingProps extends BuyPageProps {
 interface DirectListingProps extends BuyPageProps {
   listing: DirectListing;
 }
-
-interface HeaderProps {
-  tokenAddress?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
-  return (
-    <Stack
-      as="header"
-      px="28px"
-      direction="row"
-      height="48px"
-      w="100%"
-      flexGrow={0}
-      borderBottom="1px solid rgba(0,0,0,.1)"
-      align="center"
-      justify="flex-end"
-    >
-      <ConnectedWallet tokenAddress={tokenAddress} />
-    </Stack>
-  );
-};
 
 const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   contract,
@@ -765,7 +743,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={listing?.currencyContractAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <BuyPage
           contract={marketplace}

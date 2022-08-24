@@ -2742,8 +2742,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.1.2.tgz#fde89c4b42f842f2504fe8f3d42b7535e8c1ddab"
   integrity sha512-Ly3cEw5K8xfCwj0Fhgzr5olK3mG267TKacDeeufXM/YvU+/6qrpcCWd0JeSafK11+OrMDVXAK/5md93JeniNPQ==
 
-"@thirdweb-dev/react@file:.yalc/@thirdweb-dev/react":
-  version "2.7.2"
+"@thirdweb-dev/react@^2.7.3-0":
+  version "2.7.3-0"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.7.3-0.tgz#9c0413789e1984e4c2e5634766aeb771622e8326"
+  integrity sha512-5/cZQmPIuW9LuelGJCmD0i0f6Cg6urys8mk1L4i63Z7aGXPEvYvXB3iDwH+IRMYkF7n0m0pDq/QXOONChQBxMQ==
   dependencies:
     "@emotion/react" "^11.10.0"
     "@emotion/styled" "^11.10.0"

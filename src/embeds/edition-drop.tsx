@@ -323,8 +323,6 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const editionDrop = useEditionDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(editionDrop, tokenId);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -345,7 +343,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={editionDrop}

@@ -50,7 +50,7 @@
     "@chakra-ui/react": "^2.1.0",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@thirdweb-dev/react": "file:.yalc/@thirdweb-dev/react",
+    "@thirdweb-dev/react": "^2.7.3-0",
     "@thirdweb-dev/sdk": "^2.3.39",
     "@thirdweb-dev/storage": "^0.1.0",
     "color": "^4.2.3",

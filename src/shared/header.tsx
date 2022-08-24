@@ -1,12 +1,21 @@
 import { Stack } from "@chakra-ui/react";
+import { ConnectWallet } from "@thirdweb-dev/react";
+import { ColorMode } from "@thirdweb-dev/react/dist/declarations/dist/components/theme";
 import React from "react";
-import { ConnectedWallet } from "./connected-wallet";
+import chakraTheme from "./theme";
 
 interface HeaderProps {
-  tokenAddress?: string;
+  primaryColor: string;
+  colorScheme: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
+export const Header: React.FC<HeaderProps> = ({
+  primaryColor,
+  colorScheme,
+}) => {
+  const colors = chakraTheme.colors;
+  const accentColor = colors[primaryColor as keyof typeof colors][500];
+
   return (
     <Stack
       as="header"
@@ -19,7 +28,10 @@ export const Header: React.FC<HeaderProps> = ({ tokenAddress }) => {
       justify="flex-end"
       py={2}
     >
-      <ConnectedWallet tokenAddress={tokenAddress} />
+      <ConnectWallet
+        accentColor={accentColor}
+        colorMode={colorScheme as ColorMode}
+      />
     </Stack>
   );
 };

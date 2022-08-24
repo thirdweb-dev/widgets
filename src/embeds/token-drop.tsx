@@ -287,8 +287,6 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const tokenDrop = useTokenDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(tokenDrop);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -309,7 +307,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={tokenDrop}

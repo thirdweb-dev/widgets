@@ -309,8 +309,6 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const signatureDrop = useSignatureDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(signatureDrop);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -331,7 +329,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={signatureDrop}

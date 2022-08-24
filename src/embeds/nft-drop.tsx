@@ -38,7 +38,7 @@ import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IoDiamondOutline } from "react-icons/io5";
-import { ConnectWalletButton } from "src/shared/connect-wallet-button";
+import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
@@ -307,8 +307,6 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const nftDrop = useNFTDrop(contractAddress);
-  const activeClaimCondition = useActiveClaimCondition(nftDrop);
-  const tokenAddress = activeClaimCondition?.data?.currencyAddress;
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -329,7 +327,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
       borderColor="borderColor"
       bgColor="backgroundHighlight"
     >
-      <Header tokenAddress={tokenAddress} />
+      <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
         <ClaimPage
           contract={nftDrop}
