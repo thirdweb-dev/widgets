@@ -2742,10 +2742,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.1.2.tgz#fde89c4b42f842f2504fe8f3d42b7535e8c1ddab"
   integrity sha512-Ly3cEw5K8xfCwj0Fhgzr5olK3mG267TKacDeeufXM/YvU+/6qrpcCWd0JeSafK11+OrMDVXAK/5md93JeniNPQ==
 
-"@thirdweb-dev/react@^2.7.3-0":
-  version "2.7.3-0"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.7.3-0.tgz#9c0413789e1984e4c2e5634766aeb771622e8326"
-  integrity sha512-5/cZQmPIuW9LuelGJCmD0i0f6Cg6urys8mk1L4i63Z7aGXPEvYvXB3iDwH+IRMYkF7n0m0pDq/QXOONChQBxMQ==
+"@thirdweb-dev/react@^2.8.0-0":
+  version "2.8.0-0"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-2.8.0-0.tgz#cd4959a5715f843e20b51199346791cf2b1f1039"
+  integrity sha512-iGyf5xDiMlw7a7+PprxLq2hefj6i8aJMMc4Y5X8bk+blC8ecn5hks88gnZatkj+h2Mlf7bYFyBWfYbDchvEhuA==
   dependencies:
     "@emotion/react" "^11.10.0"
     "@emotion/styled" "^11.10.0"
@@ -2766,10 +2766,10 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^2.3.39":
-  version "2.3.39"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.3.39.tgz#95af60acd8d02e61c2df6c1e024b514e4e8f4d3b"
-  integrity sha512-JVnX64+MdQiSIrn/CNhFsrBDhpbd1oVKe7bLGHnAJ/CjG5LRiUOLR1Xj754odotxDiUPW8umIiCKqZRF267pZQ==
+"@thirdweb-dev/sdk@^2.4.0-0":
+  version "2.4.0-0"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-2.4.0-0.tgz#d8c98ed5be7e2c893cdf2c6b99e92daf51e078d0"
+  integrity sha512-XlMibWx/sviwkW//myjQizh3AR8MMJWYV/5km9LF12pD2Svw86iuSK8iJl7JhyRljGuSStapPfq4FeReM5ANNQ==
   dependencies:
     "@thirdweb-dev/contracts" "3.1.2"
     "@thirdweb-dev/storage" "^0.1.0"
