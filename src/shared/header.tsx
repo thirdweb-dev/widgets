@@ -1,6 +1,6 @@
 import { Stack } from "@chakra-ui/react";
 import { ConnectWallet } from "@thirdweb-dev/react";
-import { ColorMode } from "@thirdweb-dev/react/dist/declarations/dist/components/theme";
+import { ColorMode } from "@thirdweb-dev/react/dist/declarations/src/components/theme";
 import React from "react";
 import chakraTheme from "./theme";
 

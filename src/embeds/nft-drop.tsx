@@ -1,5 +1,4 @@
 import {
-  Button,
   Center,
   ChakraProvider,
   Flex,
@@ -27,17 +26,16 @@ import {
   useChainId,
   useClaimedNFTSupply,
   useClaimIneligibilityReasons,
-  useClaimNFT,
   useContractMetadata,
   useNFTDrop,
   useUnclaimedNFTSupply,
+  Web3Button,
 } from "@thirdweb-dev/react";
 import { NFTDrop } from "@thirdweb-dev/sdk";
 import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { IoDiamondOutline } from "react-icons/io5";
 import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
@@ -73,7 +71,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
-  const claimMutation = useClaimNFT(contract);
 
   // Enable all queries
   const isEnabled = !!contract && !!address && chainId === expectedChainId;
@@ -107,31 +104,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     unclaimedSupply.data?.toNumber() || 1000,
   );
 
-  const claim = async () => {
-    claimMutation.mutate(
-      { to: address as string, quantity },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Successfully claimed.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-        },
-        onError: (err) => {
-          console.error(err);
-          toast({
-            title: "Failed to claim drop.",
-            status: "error",
-            duration: 9000,
-            isClosable: true,
-          });
-        },
-      },
-    );
-  };
-
   // Only sold out when available data is loaded
   const isSoldOut = unclaimedSupply.data?.eq(0);
 
@@ -149,6 +121,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
       />
     );
   }
+
+  const colors = chakraTheme.colors;
+  const accentColor = colors[primaryColor as keyof typeof colors][500];
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -175,14 +150,28 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           </NumberInputStepper>
         </NumberInput>
         <LightMode>
-          <Button
-            fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={claimMutation.isLoading || isLoading}
+          <Web3Button
+            contractAddress={contract?.getAddress()}
+            action={(cntr) => cntr?.nft?.drop?.claim?.to(address, quantity)}
             isDisabled={!canClaim}
-            leftIcon={<IoDiamondOutline />}
-            onClick={claim}
-            w="100%"
-            colorScheme={primaryColor}
+            onSuccess={() =>
+              toast({
+                title: "Successfully claimed.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              })
+            }
+            onError={(err) => {
+              console.error(err);
+              toast({
+                title: "Failed to claim drop.",
+                status: "error",
+                duration: 9000,
+                isClosable: true,
+              });
+            }}
+            accentColor={accentColor}
           >
             {isSoldOut
               ? "Sold out"
@@ -200,7 +189,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
               : claimIneligibilityReasons.data?.length
               ? parseIneligibility(claimIneligibilityReasons.data, quantity)
               : "Minting Unavailable"}
-          </Button>
+          </Web3Button>
         </LightMode>
       </Flex>
       {claimedSupply.data && (
