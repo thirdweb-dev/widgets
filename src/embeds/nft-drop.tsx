@@ -31,12 +31,10 @@ import {
   useUnclaimedNFTSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
-import { NFTDrop } from "@thirdweb-dev/sdk";
 import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
@@ -46,7 +44,7 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface ClaimPageProps {
-  contract?: NFTDrop;
+  contract?: ReturnType<typeof useNFTDrop>;
   expectedChainId: number;
   primaryColor: string;
   secondaryColor: string;
@@ -113,13 +111,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
   if (!isEnabled) {
-    return (
-      <ConnectWalletButton
-        expectedChainId={expectedChainId}
-        primaryColor={primaryColor}
-        secondaryColor={secondaryColor}
-      />
-    );
+    return null;
   }
 
   const colors = chakraTheme.colors;
@@ -153,7 +145,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           <Web3Button
             contractAddress={contract?.getAddress()}
             action={(cntr) => cntr?.nft?.drop?.claim?.to(address, quantity)}
-            isDisabled={!canClaim}
+            isDisabled={!canClaim || isLoading}
             onSuccess={() =>
               toast({
                 title: "Successfully claimed.",

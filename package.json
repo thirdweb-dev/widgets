@@ -3,11 +3,10 @@
   "version": "2.0.0",
   "description": "",
   "scripts": {
-    "build": "rm -rf dist/ && node scripts/build.js",
+    "build": "rm -rf dist/ && node scripts/build.mjs",
     "dev": "parcel serve parcel-build.html",
     "gen:theme-typings": "chakra-cli tokens src/shared/theme/index.ts",
-    "postinstall": "yarn gen:theme-typings",
-    "deploy": "yarn build && node scripts/deploy.mjs"
+    "postinstall": "yarn gen:theme-typings"
   },
   "repository": {
     "type": "git",
@@ -30,7 +29,7 @@
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",
     "assert": "^2.0.0",
-    "esbuild": "^0.14.2",
+    "esbuild": "^0.15.6",
     "eslint": "^8.9.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.25.2",
@@ -56,7 +55,7 @@
     "color": "^4.2.3",
     "ethers": "^5.6.7",
     "flat": "^5.0.2",
-    "framer-motion": "^6",
+    "framer-motion": "^7",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-icons": "^4.3.1"

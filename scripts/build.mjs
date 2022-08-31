@@ -1,5 +1,6 @@
-const path = require("path");
-const fs = require("fs");
+import path from 'path';
+import fs from 'fs';
+import esbuild from 'esbuild';
 
 const EMBEDS_SRC_PATH = path.resolve(process.cwd(), "src/embeds");
 const DIST_PATH = path.resolve(process.cwd(), "dist/");
@@ -8,16 +9,20 @@ const files = fs.readdirSync(EMBEDS_SRC_PATH);
 
 fs.rmSync(DIST_PATH, { recursive: true, force: true });
 
-require("esbuild")
+esbuild
   .build({
+    jsx: 'automatic',
     entryPoints: files.map((f) => path.resolve(EMBEDS_SRC_PATH, f)),
     bundle: true,
-    minify: true,
+    minify: false,
     platform: "browser",
     target: "es6",
     outdir: "./esout",
+
+
     splitting: false,
     write: false,
+    sourcemap: false,
     define: {
       global: "window",
       process: JSON.stringify({
