@@ -24,12 +24,10 @@ esbuild
     write: false,
     sourcemap: false,
     define: {
-      global: "window",
       process: JSON.stringify({
         env: "production"
       })
     },
-    inject: ['./buffer-shim.js']
   })
   .then((result) => {
     for (const file of result.outputFiles) {
