@@ -352,8 +352,12 @@ const App: React.FC = () => {
   const colorScheme = urlParams.get("theme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+
+  console.log({biconomyApiId, biconomyApiKey})
 
   const sdkOptions = useMemo(
     () =>
@@ -363,8 +367,17 @@ const App: React.FC = () => {
               openzeppelin: { relayerUrl },
             },
           }
+        : biconomyApiKey && biconomyApiId
+        ? {
+            gasless: {
+              biconomy: {
+                apiKey: biconomyApiKey,
+                apiId: biconomyApiId,
+              },
+            },
+          }
         : undefined,
-    [relayerUrl],
+    [relayerUrl, biconomyApiKey, biconomyApiId],
   );
 
   return (
