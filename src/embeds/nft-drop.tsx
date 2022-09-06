@@ -144,7 +144,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         <LightMode>
           <Web3Button
             contractAddress={contract?.getAddress()}
-            action={(cntr) => cntr?.nft?.drop?.claim?.to(address, quantity)}
+            action={(cntr) => cntr.erc721.claimTo(address, quantity)}
             isDisabled={!canClaim || isLoading}
             onSuccess={() =>
               toast({
