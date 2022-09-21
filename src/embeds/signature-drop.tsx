@@ -251,7 +251,6 @@ interface SignatureDropEmbedProps {
   contractAddress: string;
   colorScheme: string;
   primaryColor: string;
-  secondaryColor: string;
 }
 
 const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
@@ -300,7 +299,6 @@ const App: React.FC = () => {
   const relayerUrl = urlParams.get("relayUrl") || "";
   const colorScheme = urlParams.get("theme") || "light";
   const primaryColor = urlParams.get("primaryColor") || "blue";
-  const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -339,7 +337,6 @@ const App: React.FC = () => {
             contractAddress={contractAddress}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
           />
         </ThirdwebProvider>
       </ChakraProvider>

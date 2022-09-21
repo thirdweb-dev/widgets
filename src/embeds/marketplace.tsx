@@ -38,7 +38,7 @@ import {
   AuctionListing,
   DirectListing,
   ListingType,
-  Marketplace,
+  MarketplaceImpl,
 } from "@thirdweb-dev/sdk";
 import { IpfsStorage } from "@thirdweb-dev/storage";
 import { BigNumber, ethers } from "ethers";
@@ -67,7 +67,7 @@ interface MarketplaceEmbedProps {
 }
 
 interface BuyPageProps {
-  contract?: Marketplace;
+  contract?: MarketplaceImpl;
   expectedChainId: number;
   listing: DirectListing | AuctionListing;
   primaryColor: string;
