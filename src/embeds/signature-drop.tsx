@@ -1,5 +1,4 @@
 import {
-  Button,
   Center,
   ChakraProvider,
   Flex,
@@ -7,7 +6,6 @@ import {
   Heading,
   Icon,
   Image,
-  LightMode,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -24,21 +22,18 @@ import {
   ThirdwebProvider,
   useActiveClaimCondition,
   useAddress,
-  useChainId,
   useClaimedNFTSupply,
   useClaimIneligibilityReasons,
-  useClaimNFT,
+  useContract,
   useContractMetadata,
-  useSignatureDrop,
   useUnclaimedNFTSupply,
+  Web3Button,
 } from "@thirdweb-dev/react";
-import { SignatureDrop } from "@thirdweb-dev/sdk";
 import { IpfsStorage } from "@thirdweb-dev/storage";
+import { SignatureDropImpl } from "@thirdweb-dev/sdk";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { IoDiamondOutline } from "react-icons/io5";
-import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { DropSvg } from "../shared/svg/drop";
@@ -48,20 +43,12 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface ClaimPageProps {
-  contract?: SignatureDrop;
-  expectedChainId: number;
+  contract?: SignatureDropImpl;
   primaryColor: string;
-  secondaryColor: string;
 }
 
-const ClaimButton: React.FC<ClaimPageProps> = ({
-  contract,
-  expectedChainId,
-  primaryColor,
-  secondaryColor,
-}) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
   const address = useAddress();
-  const chainId = useChainId();
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
   const toast = useToast();
@@ -73,10 +60,9 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   });
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
-  const claimMutation = useClaimNFT(contract);
 
   // Enable all queries
-  const isEnabled = !!contract && !!address && chainId === expectedChainId;
+  const isEnabled = !!contract && !!address;
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -107,31 +93,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     unclaimedSupply.data?.toNumber() || 99999,
   );
 
-  const claim = async () => {
-    claimMutation.mutate(
-      { to: address as string, quantity },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Successfully claimed.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-        },
-        onError: (err) => {
-          console.error(err);
-          toast({
-            title: "Failed to claim drop.",
-            status: "error",
-            duration: 9000,
-            isClosable: true,
-          });
-        },
-      },
-    );
-  };
-
   // Only sold out when available data is loaded
   const isSoldOut = unclaimedSupply.data?.eq(0);
 
@@ -140,21 +101,22 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const canClaim =
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
-  console.log(claimIneligibilityReasons);
-
   if (!isEnabled) {
-    return (
-      <ConnectWalletButton
-        expectedChainId={expectedChainId}
-        primaryColor={primaryColor}
-        secondaryColor={secondaryColor}
-      />
-    );
+    return null;
   }
+
+  const colors = chakraTheme.colors;
+  const accentColor = colors[primaryColor as keyof typeof colors][500];
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
+      <Flex
+        w="100%"
+        direction={{ base: "column", sm: "row" }}
+        gap={2}
+        justifyContent="center"
+        alignItems="center"
+      >
         <NumberInput
           inputMode="numeric"
           value={quantity}
@@ -169,6 +131,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
           max={lowerMaxClaimable}
           maxW={{ base: "100%", sm: "100px" }}
           bgColor="inputBg"
+          height="full"
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -176,34 +139,38 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
             <NumberDecrementStepper />
           </NumberInputStepper>
         </NumberInput>
-        <LightMode>
-          <Button
-            fontSize={{ base: "label.md", md: "label.lg" }}
-            isLoading={claimMutation.isLoading || isLoading}
-            isDisabled={!canClaim}
-            leftIcon={<IoDiamondOutline />}
-            onClick={claim}
-            w="100%"
-            colorScheme={primaryColor}
-          >
-            {isSoldOut
-              ? "Sold out"
-              : canClaim
-              ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
-                  activeClaimCondition.data?.price.eq(0)
-                    ? " (Free)"
-                    : activeClaimCondition.data?.currencyMetadata.displayValue
-                    ? ` (${formatUnits(
-                        priceToMint,
-                        activeClaimCondition.data.currencyMetadata.decimals,
-                      )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
-                    : ""
-                }`
-              : claimIneligibilityReasons.data?.length
-              ? parseIneligibility(claimIneligibilityReasons.data, quantity)
-              : "Minting Unavailable"}
-          </Button>
-        </LightMode>
+        <Web3Button
+          contractAddress={contract?.getAddress()}
+          action={(cntr) => cntr.erc721.claim(quantity)}
+          isDisabled={!canClaim || isLoading}
+          onError={(err) => {
+            console.error(err);
+            toast({
+              title: "Failed to claim drop.",
+              status: "error",
+              duration: 9000,
+              isClosable: true,
+            });
+          }}
+          accentColor={accentColor}
+        >
+          {isSoldOut
+            ? "Sold out"
+            : canClaim
+            ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
+                activeClaimCondition.data?.price.eq(0)
+                  ? " (Free)"
+                  : activeClaimCondition.data?.currencyMetadata.displayValue
+                  ? ` (${formatUnits(
+                      priceToMint,
+                      activeClaimCondition.data.currencyMetadata.decimals,
+                    )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
+                  : ""
+              }`
+            : claimIneligibilityReasons.data?.length
+            ? parseIneligibility(claimIneligibilityReasons.data, quantity)
+            : "Minting Unavailable"}
+        </Web3Button>
       </Flex>
       {claimedSupply.data && (
         <Text size="label.md" color="green.500">
@@ -216,15 +183,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({
-  contract,
-  expectedChainId,
-  primaryColor,
-  secondaryColor,
-}) => {
-  const { data: metadata, isLoading } = useContractMetadata(
-    contract?.getAddress(),
-  );
+const ClaimPage: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
+  const { data: metadata, isLoading } = useContractMetadata(contract);
 
   if (isLoading) {
     return (
@@ -269,12 +229,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
             {metadata.description}
           </Text>
         )}
-        <ClaimButton
-          contract={contract}
-          expectedChainId={expectedChainId}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-        />
+        <ClaimButton contract={contract} primaryColor={primaryColor} />
       </Flex>
     </Center>
   );
@@ -294,7 +249,6 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 
 interface SignatureDropEmbedProps {
   contractAddress: string;
-  expectedChainId: number;
   colorScheme: string;
   primaryColor: string;
   secondaryColor: string;
@@ -302,13 +256,12 @@ interface SignatureDropEmbedProps {
 
 const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   contractAddress,
-  expectedChainId,
   colorScheme,
   primaryColor,
-  secondaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const signatureDrop = useSignatureDrop(contractAddress);
+  const { contract: SignatureDrop } =
+    useContract<SignatureDropImpl>(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -331,12 +284,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage
-          contract={signatureDrop}
-          expectedChainId={expectedChainId}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-        />
+        <ClaimPage contract={SignatureDrop} primaryColor={primaryColor} />
       </Body>
       <Footer />
     </Flex>
@@ -346,7 +294,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const expectedChainId = Number(urlParams.get("chainId"));
+  const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
@@ -380,16 +328,15 @@ const App: React.FC = () => {
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          desiredChainId={expectedChainId}
+          desiredChainId={chainId}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
           }
-          chainRpc={{ [expectedChainId]: rpcUrl }}
+          chainRpc={{ [chainId]: rpcUrl }}
         >
           <SignatureDropEmbed
             contractAddress={contractAddress}
-            expectedChainId={expectedChainId}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
