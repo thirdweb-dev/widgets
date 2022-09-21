@@ -24,12 +24,12 @@ import {
   useActiveClaimCondition,
   useAddress,
   useClaimIneligibilityReasons,
-  useEditionDrop,
+  useContract,
   useNFT,
   useTotalCirculatingSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
-import { EditionDropImpl } from "@thirdweb-dev/sdk";
+import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
 import { IpfsStorage } from "@thirdweb-dev/storage";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
@@ -44,7 +44,7 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface ClaimPageProps {
-  contract?: EditionDropImpl;
+  contract?: SmartContract | null;
   tokenId: string;
   primaryColor: string;
 }
@@ -122,7 +122,13 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
 
   return (
     <Stack spacing={4} align="center" w="100%">
-      <Flex w="100%" direction={{ base: "column", sm: "row" }} gap={2}>
+      <Flex
+        w="100%"
+        direction={{ base: "column", sm: "row" }}
+        gap={2}
+        justifyContent="center"
+        alignItems="center"
+      >
         <NumberInput
           inputMode="numeric"
           value={quantity}
@@ -290,7 +296,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const editionDrop = useEditionDrop(contractAddress);
+  const { contract: editionDrop } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);

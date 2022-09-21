@@ -24,11 +24,11 @@ import {
   useActiveClaimCondition,
   useAddress,
   useClaimIneligibilityReasons,
+  useContract,
   useContractMetadata,
-  useTokenDrop,
   Web3Button,
 } from "@thirdweb-dev/react";
-import { TokenDropImpl } from "@thirdweb-dev/sdk";
+import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
 import { IpfsStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -47,7 +47,7 @@ interface TokenDropEmbedProps {
   contractAddress: string;
 }
 interface ClaimPageProps {
-  contract?: TokenDropImpl;
+  contract?: SmartContract;
   primaryColor: string;
 }
 
@@ -252,7 +252,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const tokenDrop = useTokenDrop(contractAddress);
+  const { contract: tokenDrop } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
