@@ -143,6 +143,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
           contractAddress={contract?.getAddress()}
           action={(cntr) => cntr.erc721.claim(quantity)}
           isDisabled={!canClaim || isLoading}
+          accentColor={accentColor}
           onError={(err) => {
             console.error(err);
             toast({
@@ -152,7 +153,14 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
               isClosable: true,
             });
           }}
-          accentColor={accentColor}
+          onSuccess={() => {
+            toast({
+              title: "Successfully claimed.",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+          }}
         >
           {isSoldOut
             ? "Sold out"

@@ -20,12 +20,10 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import {
-  getErc20,
   ThirdwebProvider,
   useActiveClaimCondition,
   useAddress,
   useClaimIneligibilityReasons,
-  useClaimToken,
   useContractMetadata,
   useTokenDrop,
   Web3Button,
@@ -65,9 +63,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
   });
 
   const isEnabled = !!contract && !!address;
-  const erc20 = getErc20(contract);
-
-  const claimMutation = useClaimToken(erc20);
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -81,31 +76,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
     parseInt(activeClaimCondition.data?.availableSupply) === 0;
 
   const toast = useToast();
-
-  const claim = async () => {
-    claimMutation.mutate(
-      { to: address as string, amount: quantity },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Successfully claimed.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-        },
-        onError: (err) => {
-          console.error(err);
-          toast({
-            title: "Failed to claim drop.",
-            status: "error",
-            duration: 9000,
-            isClosable: true,
-          });
-        },
-      },
-    );
-  };
 
   const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
 
@@ -164,6 +134,23 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
             isDisabled={!canClaim || isLoading}
             action={(cntr) => cntr.erc20.claim(quantity)}
             accentColor={accentColor}
+            onError={(err) => {
+              console.error(err);
+              toast({
+                title: "Failed to claim drop.",
+                status: "error",
+                duration: 9000,
+                isClosable: true,
+              });
+            }}
+            onSuccess={() => {
+              toast({
+                title: "Successfully claimed.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              });
+            }}
           >
             {isSoldOut
               ? "Sold out"
