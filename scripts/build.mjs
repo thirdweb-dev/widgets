@@ -14,7 +14,7 @@ esbuild
     jsx: 'automatic',
     entryPoints: files.map((f) => path.resolve(EMBEDS_SRC_PATH, f)),
     bundle: true,
-    minify: false,
+    minify: true,
     platform: "browser",
     target: "es6",
     outdir: "./esout",
