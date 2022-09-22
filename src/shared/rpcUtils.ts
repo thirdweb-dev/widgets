@@ -14,4 +14,6 @@ export const ChainIDToName: Record<SUPPORTED_CHAIN_ID, string> = {
   [ChainId.OptimismTestnet]: "Optimism Kovan",
   [ChainId.Arbitrum]: "Arbitrum One",
   [ChainId.ArbitrumTestnet]: "Arbitrum Rinkeby",
+  [ChainId.BinanceSmartChainMainnet]: "Binance Smart Chain Mainnet",
+  [ChainId.BinanceSmartChainTestnet]: "Binance Smart Chain Testnet",
 };
