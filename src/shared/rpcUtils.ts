@@ -11,9 +11,11 @@ export const ChainIDToName: Record<SUPPORTED_CHAIN_ID, string> = {
   [ChainId.Avalanche]: "Avalanche",
   [ChainId.AvalancheFujiTestnet]: "Avalanche Fuji Testnet",
   [ChainId.Optimism]: "Optimism",
-  [ChainId.OptimismTestnet]: "Optimism Kovan",
+  [ChainId.OptimismKovan]: "Optimism Kovan",
+  [ChainId.OptimismGoerli]: "Optimism Goerli",
   [ChainId.Arbitrum]: "Arbitrum One",
-  [ChainId.ArbitrumTestnet]: "Arbitrum Rinkeby",
+  [ChainId.ArbitrumRinkeby]: "Arbitrum Rinkeby",
+  [ChainId.ArbitrumGoerli]: "Arbitrum Goerli",
   [ChainId.BinanceSmartChainMainnet]: "Binance Smart Chain Mainnet",
   [ChainId.BinanceSmartChainTestnet]: "Binance Smart Chain Testnet",
 };
