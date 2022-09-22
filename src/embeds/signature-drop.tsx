@@ -1,6 +1,7 @@
 import {
   Center,
   ChakraProvider,
+  ColorMode,
   Flex,
   Grid,
   Heading,
@@ -29,8 +30,8 @@ import {
   useUnclaimedNFTSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
-import { IpfsStorage } from "@thirdweb-dev/storage";
-import { SignatureDropImpl } from "@thirdweb-dev/sdk";
+import type { SignatureDrop } from "@thirdweb-dev/sdk";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -43,11 +44,16 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface ClaimPageProps {
-  contract?: SignatureDropImpl;
+  contract?: SignatureDrop;
   primaryColor: string;
+  colorScheme: ColorMode;
 }
 
-const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({
+  contract,
+  primaryColor,
+  colorScheme,
+}) => {
   const address = useAddress();
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
@@ -140,6 +146,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
           </NumberInputStepper>
         </NumberInput>
         <Web3Button
+          colorMode={colorScheme}
           contractAddress={contract?.getAddress()}
           action={(cntr) => cntr.erc721.claim(quantity)}
           isDisabled={!canClaim || isLoading}
@@ -191,7 +198,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({
+  contract,
+  primaryColor,
+  colorScheme,
+}) => {
   const { data: metadata, isLoading } = useContractMetadata(contract);
 
   if (isLoading) {
@@ -237,7 +248,11 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
             {metadata.description}
           </Text>
         )}
-        <ClaimButton contract={contract} primaryColor={primaryColor} />
+        <ClaimButton
+          contract={contract}
+          primaryColor={primaryColor}
+          colorScheme={colorScheme}
+        />
       </Flex>
     </Center>
   );
@@ -257,7 +272,7 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 
 interface SignatureDropEmbedProps {
   contractAddress: string;
-  colorScheme: string;
+  colorScheme: ColorMode;
   primaryColor: string;
 }
 
@@ -267,8 +282,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: SignatureDrop } =
-    useContract<SignatureDropImpl>(contractAddress);
+  const { contract: sigDrop } = useContract<SignatureDrop>(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -291,7 +305,11 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={SignatureDrop} primaryColor={primaryColor} />
+        <ClaimPage
+          contract={sigDrop}
+          primaryColor={primaryColor}
+          colorScheme={colorScheme}
+        />
       </Body>
       <Footer />
     </Flex>
@@ -305,8 +323,8 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
-  const colorScheme = urlParams.get("theme") || "light";
-  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
@@ -337,7 +355,13 @@ const App: React.FC = () => {
           desiredChainId={chainId}
           sdkOptions={sdkOptions}
           storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            ipfsGateway
+              ? new ThirdwebStorage({
+                  gatewayUrls: {
+                    "ipfs://": [ipfsGateway],
+                  },
+                })
+              : undefined
           }
           chainRpc={{ [chainId]: rpcUrl }}
         >

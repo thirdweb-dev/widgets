@@ -2,6 +2,7 @@ import {
   Button,
   Center,
   ChakraProvider,
+  ColorMode,
   Flex,
   Grid,
   Heading,
@@ -28,19 +29,19 @@ import {
   useBidBuffer,
   useBuyNow,
   useChainId,
+  useContract,
   useListing,
   useMakeBid,
-  useMarketplace,
-  useToken,
   useWinningBid,
 } from "@thirdweb-dev/react";
 import {
   AuctionListing,
   DirectListing,
   ListingType,
-  MarketplaceImpl,
+  Marketplace,
+  Token,
 } from "@thirdweb-dev/sdk";
-import { IpfsStorage } from "@thirdweb-dev/storage";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -61,13 +62,13 @@ interface MarketplaceEmbedProps {
   contractAddress: string;
   expectedChainId: number;
   listingId: string;
-  colorScheme: string;
+  colorScheme: ColorMode;
   primaryColor: string;
   secondaryColor: string;
 }
 
 interface BuyPageProps {
-  contract?: MarketplaceImpl;
+  contract?: Marketplace;
   expectedChainId: number;
   listing: DirectListing | AuctionListing;
   primaryColor: string;
@@ -91,7 +92,7 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
 }) => {
   const toast = useToast();
   const address = useAddress();
-  const token = useToken(listing.currencyContractAddress);
+  const token = useContract<Token>(listing.currencyContractAddress).contract;
   const chainId = useChainId();
   const [bid, setBid] = useState("0");
 
@@ -488,7 +489,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
 }) => {
   const address = useAddress();
   const chainId = useChainId();
-  const token = useToken(listing.currencyContractAddress);
+  const token = useContract<Token>(listing.currencyContractAddress).contract;
   const [quantity, setQuantity] = useState(1);
   const [buySuccess, setBuySuccess] = useState(false);
 
@@ -720,7 +721,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   secondaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const marketplace = useMarketplace(contractAddress);
+  const marketplace = useContract<Marketplace>(contractAddress).contract;
 
   const { data: listing } = useListing(marketplace, listingId);
 
@@ -767,8 +768,8 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
-  const colorScheme = urlParams.get("theme") || "light";
-  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  const primaryColor = urlParams.get("primaryColor") || "purple";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
@@ -800,7 +801,13 @@ const App: React.FC = () => {
           desiredChainId={expectedChainId}
           sdkOptions={sdkOptions}
           storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            ipfsGateway
+              ? new ThirdwebStorage({
+                  gatewayUrls: {
+                    "ipfs://": [ipfsGateway],
+                  },
+                })
+              : undefined
           }
           chainRpc={{ [expectedChainId]: rpcUrl }}
         >

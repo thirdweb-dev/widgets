@@ -1,6 +1,7 @@
 import {
   Center,
   ChakraProvider,
+  ColorMode,
   Flex,
   Grid,
   Heading,
@@ -29,7 +30,7 @@ import {
   Web3Button,
 } from "@thirdweb-dev/react";
 import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
-import { IpfsStorage } from "@thirdweb-dev/storage";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -42,16 +43,21 @@ import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface TokenDropEmbedProps {
-  colorScheme: string;
+  colorScheme: ColorMode;
   primaryColor: string;
   contractAddress: string;
 }
 interface ClaimPageProps {
   contract?: SmartContract;
+  colorScheme: ColorMode;
   primaryColor: string;
 }
 
-const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
+const ClaimButton: React.FC<ClaimPageProps> = ({
+  contract,
+  primaryColor,
+  colorScheme,
+}) => {
   const address = useAddress();
   const [quantity, setQuantity] = useState(1);
   const loaded = useRef(false);
@@ -61,8 +67,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
     quantity,
     walletAddress: address || "",
   });
-
-  const isEnabled = !!contract && !!address;
 
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
@@ -82,7 +86,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
   const canClaim =
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
-  if (!isEnabled) {
+  if (!contract) {
     return null;
   }
 
@@ -130,7 +134,8 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
         </NumberInput>
         <LightMode>
           <Web3Button
-            contractAddress={contract?.getAddress()}
+            colorMode={colorScheme}
+            contractAddress={contract.getAddress()}
             isDisabled={!canClaim || isLoading}
             action={(cntr) => cntr.erc20.claim(quantity)}
             accentColor={accentColor}
@@ -182,7 +187,11 @@ const ClaimButton: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
   );
 };
 
-const ClaimPage: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
+const ClaimPage: React.FC<ClaimPageProps> = ({
+  contract,
+  primaryColor,
+  colorScheme,
+}) => {
   const tokenMetadata = useContractMetadata(contract);
 
   if (tokenMetadata.isLoading) {
@@ -228,7 +237,11 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ contract, primaryColor }) => {
             {tokenMetadata.data.description}
           </Text>
         )}
-        <ClaimButton contract={contract} primaryColor={primaryColor} />
+        <ClaimButton
+          contract={contract}
+          primaryColor={primaryColor}
+          colorScheme={colorScheme}
+        />
       </Flex>
     </Center>
   );
@@ -275,7 +288,11 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={tokenDrop} primaryColor={primaryColor} />
+        <ClaimPage
+          contract={tokenDrop}
+          primaryColor={primaryColor}
+          colorScheme={colorScheme}
+        />
       </Body>
       <Footer />
     </Flex>
@@ -291,8 +308,8 @@ const App: React.FC = () => {
   const relayerUrl = urlParams.get("relayUrl") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
-  const colorScheme = urlParams.get("theme") || "light";
-  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const sdkOptions = useMemo(
     () =>
@@ -321,7 +338,13 @@ const App: React.FC = () => {
           desiredChainId={chainId}
           sdkOptions={sdkOptions}
           storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            ipfsGateway
+              ? new ThirdwebStorage({
+                  gatewayUrls: {
+                    "ipfs://": [ipfsGateway],
+                  },
+                })
+              : undefined
           }
           chainRpc={{ [chainId]: rpcUrl }}
         >

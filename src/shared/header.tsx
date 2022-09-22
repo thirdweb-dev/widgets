@@ -6,7 +6,7 @@ import chakraTheme from "./theme";
 
 interface HeaderProps {
   primaryColor: string;
-  colorScheme: string;
+  colorScheme: ColorMode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,10 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
       justify="flex-end"
       py={2}
     >
-      <ConnectWallet
-        accentColor={accentColor}
-        colorMode={colorScheme as ColorMode}
-      />
+      <ConnectWallet accentColor={accentColor} colorMode={colorScheme} />
     </Stack>
   );
 };

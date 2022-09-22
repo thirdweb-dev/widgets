@@ -1,6 +1,7 @@
 import {
   Center,
   ChakraProvider,
+  ColorMode,
   Flex,
   Grid,
   Heading,
@@ -30,7 +31,7 @@ import {
   Web3Button,
 } from "@thirdweb-dev/react";
 import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
-import { IpfsStorage } from "@thirdweb-dev/storage";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -47,12 +48,14 @@ interface ClaimPageProps {
   contract?: SmartContract | null;
   tokenId: string;
   primaryColor: string;
+  colorScheme: ColorMode;
 }
 
 const ClaimButton: React.FC<ClaimPageProps> = ({
   contract,
   tokenId,
   primaryColor,
+  colorScheme,
 }) => {
   const address = useAddress();
   const [quantity, setQuantity] = useState(1);
@@ -65,9 +68,6 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
     { quantity, walletAddress: address || "" },
     tokenId,
   );
-
-  const isEnabled = !!contract && !!address;
-
   const bnPrice = parseUnits(
     activeClaimCondition.data?.currencyMetadata.displayValue || "0",
     activeClaimCondition.data?.currencyMetadata.decimals,
@@ -111,7 +111,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
   const canClaim =
     !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
 
-  if (!isEnabled) {
+  if (!contract) {
     return null;
   }
 
@@ -152,6 +152,7 @@ const ClaimButton: React.FC<ClaimPageProps> = ({
         </NumberInput>
         <LightMode>
           <Web3Button
+            colorMode={colorScheme}
             contractAddress={contract?.getAddress()}
             isDisabled={!canClaim || isLoading}
             action={(cntr) => cntr.erc1155.claim(tokenId, quantity)}
@@ -212,6 +213,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
   contract,
   tokenId,
   primaryColor,
+  colorScheme,
 }) => {
   const tokenMetadata = useNFT(contract, tokenId);
 
@@ -264,6 +266,7 @@ const ClaimPage: React.FC<ClaimPageProps> = ({
           contract={contract}
           tokenId={tokenId}
           primaryColor={primaryColor}
+          colorScheme={colorScheme}
         />
       </Flex>
     </Center>
@@ -285,7 +288,7 @@ const Body: React.FC<BodyProps> = ({ children }) => {
 interface EditionDropEmbedProps {
   contractAddress: string;
   tokenId: string;
-  colorScheme: string;
+  colorScheme: ColorMode;
   primaryColor: string;
 }
 
@@ -323,6 +326,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
           contract={editionDrop}
           tokenId={tokenId}
           primaryColor={primaryColor}
+          colorScheme={colorScheme}
         />
       </Body>
       <Footer />
@@ -341,8 +345,8 @@ const App: React.FC = () => {
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
-  const colorScheme = urlParams.get("theme") || "light";
-  const primaryColor = urlParams.get("primaryColor") || "blue";
+  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const sdkOptions = useMemo(
     () =>
@@ -371,7 +375,13 @@ const App: React.FC = () => {
           desiredChainId={chainId}
           sdkOptions={sdkOptions}
           storageInterface={
-            ipfsGateway ? new IpfsStorage(ipfsGateway) : undefined
+            ipfsGateway
+              ? new ThirdwebStorage({
+                  gatewayUrls: {
+                    "ipfs://": [ipfsGateway],
+                  },
+                })
+              : undefined
           }
           chainRpc={{ [chainId]: rpcUrl }}
         >

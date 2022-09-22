@@ -1644,11 +1644,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@microsoft/tsdoc@^0.14.2":
-  version "0.14.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/tsdoc/-/tsdoc-0.14.2.tgz#c3ec604a0b54b9a9b87e9735dfc59e1a5da6a5fb"
-  integrity sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==
-
 "@mischnic/json-sourcemap@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@mischnic/json-sourcemap/-/json-sourcemap-0.1.0.tgz#38af657be4108140a548638267d02a2ea3336507"
@@ -2585,10 +2580,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.1.8-0.tgz#847af3fe9a53368e7be04b7b6e6afe076d3d1676"
   integrity sha512-PiQjdRcAUBlu3poc4g6dN9KvjTgYsA1Vi+B/IgryptCgcJeMY4cldMabKCgPaCg9dPVpUq4O+SOM00P6mBNvGw==
 
-"@thirdweb-dev/react@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-3.0.4.tgz#3dae248fb91eac15edc281c697df93f7f3fc9ae5"
-  integrity sha512-nWAheDfBklLpl8uDYE5djKgnOW9VDeG/G78DxoJVJ66FT0Ngnqst9BFxY9th4PgUyrYAB0d2NM8eifHUUwkavA==
+"@thirdweb-dev/react@^3.0.5-nightly-b54f95d":
+  version "3.0.5-nightly-b54f95d"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-3.0.5-nightly-b54f95d.tgz#62fb2592cdbb806fba5cdb1b7f62cd9f562b8358"
+  integrity sha512-vetiu9RGHcFDDX1E//yrpk3upr4a1gncLfZP27Yv4DBJ0A9PBwbY8ALu5UGn67SEAbMc88OE23Mv8CWxvfQK+g==
   dependencies:
     "@emotion/react" "^11.10.0"
     "@emotion/styled" "^11.10.0"
@@ -2608,13 +2603,13 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.0.4.tgz#b206fd86ca304e67cc856a0ecb759f720a14dc45"
-  integrity sha512-YNbrdhAA13mQLapcIwAIamLzhN9KNqUTMWqD03yzJ7I5IR2xchCkaohjK3o6u6E8Ln5vsfXV/XRdUwSYRM6WNA==
+"@thirdweb-dev/sdk@^3.0.5-nightly-b54f95d":
+  version "3.0.5-nightly-b54f95d"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.0.5-nightly-b54f95d.tgz#b095de0ab1228b6f08f2dde373b92fc6c1bc086a"
+  integrity sha512-712OVuItB8Ts3rUghujy3AIBVGtEIMRumcq7pFEootTEIhH+KY+0++WojGG4Mi7jjv7CUpgyEPapKWP5GqdxKA==
   dependencies:
     "@thirdweb-dev/contracts-js" "^1.1.8"
-    "@thirdweb-dev/storage" "^1.0.1"
+    "@thirdweb-dev/storage" "1.0.2-nightly-b54f95d"
     cbor-web "^8.1.0"
     cross-fetch "^3.1.5"
     eventemitter3 "^4.0.7"
@@ -2623,28 +2618,17 @@
     merkletreejs "^0.2.24"
     multihashes "^4.0.3"
     tiny-invariant "^1.2.0"
-    uuid "^8.3.2"
+    uuid "^9.0.0"
     zod "^3.11.6"
 
-"@thirdweb-dev/storage@^0.2.8":
-  version "0.2.8"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-0.2.8.tgz#7c19b41dab363737e0015733a98e8f5252925db9"
-  integrity sha512-XM3wBlpUVWnMwBnHveWP1NgIsJDtvpzDsORO+DP8CQAsYizILKbiBC3n2w+eW/sLOGLuEYEUZk2zPFD/xpPM3Q==
+"@thirdweb-dev/storage@1.0.2-nightly-b54f95d", "@thirdweb-dev/storage@^1.0.2-nightly-b54f95d":
+  version "1.0.2-nightly-b54f95d"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.0.2-nightly-b54f95d.tgz#def755fb623e13b69a635e143bacd2c5c0141018"
+  integrity sha512-H/Ac6M29M+6Xo4PxDgXsJuq2bq7ehsbzKJt5Jk2RafbF6Zz5zZa/1LV4L9ammtugfEEno5t2LRYssZPuDPI8Qg==
   dependencies:
-    cross-fetch "^3.1.5"
-    form-data "^4.0.0"
-    zod "^3.11.6"
-
-"@thirdweb-dev/storage@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.0.1.tgz#d39b4dcac780626c5da93f65a6a3a99ecd0a2599"
-  integrity sha512-kkZ1LUb0D5PGuyPYPCQz/YGmLIknKmJAVd9lhLHON1KeM/ePdV+on3vQ8HNN/GyZz5zCyDttj/B6Q31DFQolXA==
-  dependencies:
-    "@microsoft/tsdoc" "^0.14.2"
     cross-fetch "^3.1.5"
     form-data "^4.0.0"
     uuid "^9.0.0"
-    zod "^3.11.6"
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
