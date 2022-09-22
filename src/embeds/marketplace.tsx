@@ -41,7 +41,7 @@ import {
   Marketplace,
 } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import { BigNumber } from "ethers";
+import { BigNumber, utils } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
@@ -106,31 +106,41 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   const { data: bidBuffer } = useBidBuffer(contract);
 
   const valuesFormatted = useMemo(() => {
-    if (
-      !winningBid?.currencyValue ||
-      !listing.buyoutCurrencyValuePerToken ||
-      !bidBuffer
-    ) {
-      return {
-        mimimumBidNumber: "",
-        minmumBid: undefined,
-        buyoutPrice: undefined,
-        winningBid: undefined,
-      } as const;
+    let mimimumBidNumber = BigNumber.from(winningBid?.currencyValue?.value || 0)
+      .mul(BigNumber.from(10000).add(bidBuffer || 0))
+      .div(BigNumber.from(10000));
+    if (mimimumBidNumber.eq(0)) {
+      mimimumBidNumber = BigNumber.from(
+        listing.reservePriceCurrencyValuePerToken.value || 0,
+      ).mul(listing.quantity);
     }
-    const mimimumBidNumber = BigNumber.from(winningBid.currencyValue.value || 0)
-      .mul(BigNumber.from(10000).add(bidBuffer))
-      .div(BigNumber.from(10000))
-      .toString();
-    return {
+
+    const formattedMinimumBid = utils.formatUnits(
       mimimumBidNumber,
-      minmumBid: `${mimimumBidNumber} ${winningBid.currencyValue.symbol}`,
-      buyoutPrice: `${listing.buyoutCurrencyValuePerToken.displayValue} ${listing.buyoutCurrencyValuePerToken.symbol}`,
-      winningBid: `${winningBid.currencyValue.displayValue} ${winningBid.currencyValue.symbol}`,
+      listing.reservePriceCurrencyValuePerToken.decimals,
+    );
+
+    return {
+      mimimumBidNumber: formattedMinimumBid,
+      minmumBid: `${formattedMinimumBid} ${listing.buyoutCurrencyValuePerToken.symbol}`,
+      buyoutPrice: `${utils.formatUnits(
+        BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
+          listing.quantity,
+        ),
+        listing.buyoutCurrencyValuePerToken.decimals,
+      )} ${listing.buyoutCurrencyValuePerToken.symbol}`,
+      winningBid: winningBid?.currencyValue
+        ? `${winningBid.currencyValue.displayValue} ${winningBid.currencyValue.symbol}`
+        : undefined,
     } as const;
   }, [
     bidBuffer,
-    listing.buyoutCurrencyValuePerToken,
+    listing.buyoutCurrencyValuePerToken.decimals,
+    listing.buyoutCurrencyValuePerToken.symbol,
+    listing.buyoutCurrencyValuePerToken.value,
+    listing.quantity,
+    listing.reservePriceCurrencyValuePerToken.decimals,
+    listing.reservePriceCurrencyValuePerToken.value,
     winningBid?.currencyValue,
   ]);
 
@@ -178,14 +188,16 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   }, [listing.endTimeInEpochSeconds]);
 
   useEffect(() => {
-    setBid(valuesFormatted.mimimumBidNumber);
+    if (valuesFormatted.mimimumBidNumber) {
+      setBid(valuesFormatted.mimimumBidNumber);
+    }
   }, [valuesFormatted.mimimumBidNumber]);
 
   const makeBidMutation = useMakeBid(contract);
 
   const makeBid = async () => {
     makeBidMutation.mutate(
-      { listingId: listing.id, bid: bid.toString() },
+      { listingId: listing.id, bid: parseFloat(bid.toString()) },
       {
         onSuccess: () => {
           toast({
@@ -268,7 +280,7 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                       onClick={makeBid}
                       isDisabled={
                         parseFloat(bid) <
-                        parseFloat(valuesFormatted.mimimumBidNumber)
+                        parseFloat(valuesFormatted.mimimumBidNumber.toString())
                       }
                     >
                       Bid
@@ -462,8 +474,13 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
     if (!listing.buyoutCurrencyValuePerToken || !quantity) {
       return undefined;
     }
-    return `${BigNumber.from(listing.buyoutCurrencyValuePerToken.value).mul(
-      BigNumber.from(quantity),
+    const formatted = BigNumber.from(
+      listing.buyoutCurrencyValuePerToken.value,
+    ).mul(BigNumber.from(quantity));
+
+    return `${utils.formatUnits(
+      formatted,
+      listing.buyoutCurrencyValuePerToken.decimals,
     )} ${listing.buyoutCurrencyValuePerToken.symbol}`;
   }, [listing.buyoutCurrencyValuePerToken, quantity]);
 
@@ -684,7 +701,6 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   const marketplace = useContract<Marketplace>(contractAddress).contract;
 
   const { data: listing } = useListing(marketplace, listingId);
-
   useEffect(() => {
     setColorMode(colorScheme);
   }, [colorScheme, setColorMode]);
