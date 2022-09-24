@@ -218,6 +218,7 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
 
   const colors = chakraTheme.colors;
   const accentColor = colors[primaryColor as keyof typeof colors][500];
+<<<<<<< HEAD
   if (activeClaimCondition.isError) {
     return (
       <Text size="label.md" color="red.500">
@@ -225,6 +226,8 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
       </Text>
     );
   }
+=======
+>>>>>>> origin/main
 
   return (
     <Stack spacing={4} align="center" w="100%">
