@@ -218,6 +218,13 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
 
   const colors = chakraTheme.colors;
   const accentColor = colors[primaryColor as keyof typeof colors][500];
+  if (activeClaimCondition.isError) {
+    return (
+      <Text size="label.md" color="red.500">
+        This drop is not ready to be claimed yet. (No claim condition set.)
+      </Text>
+    );
+  }
 
   return (
     <Stack spacing={4} align="center" w="100%">
