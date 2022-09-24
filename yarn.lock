@@ -2580,10 +2580,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.1.8-0.tgz#847af3fe9a53368e7be04b7b6e6afe076d3d1676"
   integrity sha512-PiQjdRcAUBlu3poc4g6dN9KvjTgYsA1Vi+B/IgryptCgcJeMY4cldMabKCgPaCg9dPVpUq4O+SOM00P6mBNvGw==
 
-"@thirdweb-dev/react@^3.0.5-nightly-a9ec190":
-  version "3.0.5-nightly-a9ec190"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-3.0.5-nightly-a9ec190.tgz#d4fd4dca11f52431d87acfbfa68fcb2c71b38e1e"
-  integrity sha512-Zt7afK4dGDQeBS80cJ63pl61cQB8RL2O3AaPN6YwDJ7DeLc8MiO7pUuNeHRkqbxxf3QLONNzuM9cuD/x4ujy/g==
+"@thirdweb-dev/react@^3.0.7-nightly-f4f05bd":
+  version "3.0.7-nightly-f4f05bd"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/react/-/react-3.0.7-nightly-f4f05bd.tgz#5954da67b84ae1b3bbcb9d22963b31efe5fe03ec"
+  integrity sha512-nqpGbfhkj02BabKYbLB1sdOhBaq2dC3ubtwHA8alTtQNRm8cX3p08N7ZE2lZV+w+IdOtgD5rBmz11V9Skb3JSw==
   dependencies:
     "@emotion/react" "^11.10.0"
     "@emotion/styled" "^11.10.0"
@@ -2603,13 +2603,13 @@
     tiny-invariant "^1.2.0"
     wagmi "^0.2.28"
 
-"@thirdweb-dev/sdk@^3.0.5-nightly-a9ec190":
-  version "3.0.5-nightly-a9ec190"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.0.5-nightly-a9ec190.tgz#89f2c9570811c56dad362491839fe795646334d9"
-  integrity sha512-KLbikyUOZjEaCGJDQ85SRnuCW+gf3QwkxBfqAYsesT3orGyOTdH3xYn+HiriTw5mLI/xnzUsH307mASLszVo8g==
+"@thirdweb-dev/sdk@^3.0.6-nightly-63258bc":
+  version "3.0.6-nightly-63258bc"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.0.6-nightly-63258bc.tgz#b768ce09372afa780a0330eaec5373d0951cd369"
+  integrity sha512-i99j+fxrhJq7qcTeYb/uLTq5z+NyJgKD2HrXrzzHziU+vOrctPVruiJK7tT5Vpeovu1yLV2PCFgrDvwGFiBhxA==
   dependencies:
     "@thirdweb-dev/contracts-js" "^1.1.8"
-    "@thirdweb-dev/storage" "1.0.2-nightly-a9ec190"
+    "@thirdweb-dev/storage" "1.0.3-nightly-63258bc"
     cbor-web "^8.1.0"
     cross-fetch "^3.1.5"
     eventemitter3 "^4.0.7"
@@ -2621,10 +2621,10 @@
     uuid "^9.0.0"
     zod "^3.11.6"
 
-"@thirdweb-dev/storage@1.0.2-nightly-a9ec190", "@thirdweb-dev/storage@^1.0.2-nightly-a9ec190":
-  version "1.0.2-nightly-a9ec190"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.0.2-nightly-a9ec190.tgz#51ef0b387e97d3a4a65d34f8887621118cf73a2a"
-  integrity sha512-VKWnLoTvy63sg5zYG8L3dN9Yy8V+NutK2wqvDjAvc53AQO9wX4M7bSbSU2FSiyhAosBPsN4QhQAZxdHjC1wXoA==
+"@thirdweb-dev/storage@1.0.3-nightly-63258bc", "@thirdweb-dev/storage@^1.0.3-nightly-63258bc":
+  version "1.0.3-nightly-63258bc"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.0.3-nightly-63258bc.tgz#5ae021c1c90d8acb4b0902c85f76af67c2964cba"
+  integrity sha512-GmMvnbmLVOgCH3UoFH52nKDfw6CgGq/Pt4HM/LvRz6WMCDLl5vWXYOb4i5drB8jtZSP3diKXbAEyPsq+1E6ehA==
   dependencies:
     cross-fetch "^3.1.5"
     form-data "^4.0.0"

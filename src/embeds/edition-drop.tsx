@@ -1,277 +1,22 @@
 import {
-  Center,
   ChakraProvider,
   ColorMode,
   Flex,
-  Grid,
-  Heading,
-  Icon,
-  Image,
-  LightMode,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  Spinner,
-  Stack,
-  Text,
   useColorMode,
-  useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import {
-  ThirdwebProvider,
-  useActiveClaimCondition,
-  useAddress,
-  useClaimIneligibilityReasons,
-  useContract,
-  useNFT,
-  useTotalCirculatingSupply,
-  Web3Button,
-} from "@thirdweb-dev/react";
-import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
+import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
+import { EditionDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import { BigNumber } from "ethers";
-import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
+import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
+import { ClaimPage } from "../shared/claim-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
-import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-
-interface ClaimPageProps {
-  contract?: SmartContract | null;
-  tokenId: string;
-  primaryColor: string;
-  colorScheme: ColorMode;
-}
-
-const ClaimButton: React.FC<ClaimPageProps> = ({
-  contract,
-  tokenId,
-  primaryColor,
-  colorScheme,
-}) => {
-  const address = useAddress();
-  const [quantity, setQuantity] = useState(1);
-  const loaded = useRef(false);
-  const { data: totalSupply } = useTotalCirculatingSupply(contract, tokenId);
-
-  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
-  const claimIneligibilityReasons = useClaimIneligibilityReasons(
-    contract,
-    { quantity, walletAddress: address || "" },
-    tokenId,
-  );
-  const bnPrice = parseUnits(
-    activeClaimCondition.data?.currencyMetadata.displayValue || "0",
-    activeClaimCondition.data?.currencyMetadata.decimals,
-  );
-
-  const priceToMint = bnPrice.mul(quantity);
-
-  const isSoldOut =
-    activeClaimCondition.data &&
-    parseInt(activeClaimCondition.data?.availableSupply) === 0;
-
-  const toast = useToast();
-
-  const availableSupply = activeClaimCondition.data?.availableSupply;
-
-  const quantityLimitPerTransaction =
-    activeClaimCondition.data?.quantityLimitPerTransaction;
-
-  const snapshot = activeClaimCondition.data?.snapshot;
-
-  const useDefault = useMemo(
-    () =>
-      !snapshot ||
-      snapshot?.find((user) => user.address === address)?.maxClaimable === "0",
-    [snapshot, address],
-  );
-
-  const maxClaimable = useDefault
-    ? isNaN(Number(quantityLimitPerTransaction))
-      ? 1000
-      : Number(quantityLimitPerTransaction)
-    : Number(snapshot?.find((user) => user.address === address)?.maxClaimable);
-
-  const lowerMaxClaimable = Math.min(
-    maxClaimable,
-    isNaN(Number(availableSupply)) ? 1000 : Number(availableSupply),
-  );
-
-  const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
-
-  const canClaim =
-    !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
-
-  if (!contract) {
-    return null;
-  }
-
-  const maxQuantity = activeClaimCondition.data?.maxQuantity;
-
-  const colors = chakraTheme.colors;
-  const accentColor = colors[primaryColor as keyof typeof colors][500];
-
-  return (
-    <Stack spacing={4} align="center" w="100%">
-      <Flex
-        w="100%"
-        direction={{ base: "column", sm: "row" }}
-        gap={2}
-        justifyContent="center"
-        alignItems="center"
-      >
-        <NumberInput
-          inputMode="numeric"
-          value={quantity}
-          onChange={(stringValue, value) => {
-            if (stringValue === "") {
-              setQuantity(1);
-            } else {
-              setQuantity(value);
-            }
-          }}
-          min={1}
-          max={lowerMaxClaimable}
-          maxW={{ base: "100%", sm: "100px" }}
-          bgColor="inputBg"
-        >
-          <NumberInputField />
-          <NumberInputStepper>
-            <NumberIncrementStepper />
-            <NumberDecrementStepper />
-          </NumberInputStepper>
-        </NumberInput>
-        <LightMode>
-          <Web3Button
-            colorMode={colorScheme}
-            contractAddress={contract?.getAddress()}
-            isDisabled={!canClaim || isLoading}
-            action={(cntr) => cntr.erc1155.claim(tokenId, quantity)}
-            accentColor={accentColor}
-            onError={(err) => {
-              console.error(err);
-              toast({
-                title: "Failed to claim drop.",
-                status: "error",
-                duration: 9000,
-                isClosable: true,
-              });
-            }}
-            onSuccess={() => {
-              toast({
-                title: "Successfully claimed.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-              });
-            }}
-          >
-            {isSoldOut
-              ? "Sold out"
-              : canClaim
-              ? `Mint${quantity > 1 ? ` ${quantity}` : ""}${
-                  activeClaimCondition.data?.price.eq(0)
-                    ? " (Free)"
-                    : activeClaimCondition.data?.currencyMetadata.displayValue
-                    ? ` (${formatUnits(
-                        priceToMint,
-                        activeClaimCondition.data.currencyMetadata.decimals,
-                      )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
-                    : ""
-                }`
-              : claimIneligibilityReasons.data?.length
-              ? parseIneligibility(claimIneligibilityReasons.data, quantity)
-              : "Minting Unavailable"}
-          </Web3Button>
-        </LightMode>
-      </Flex>
-      {activeClaimCondition.data && (
-        <Text size="label.md" color="green.500">
-          {`${totalSupply || "0"} ${
-            maxQuantity !== "unlimited"
-              ? `/ ${(totalSupply || BigNumber.from(0)).add(
-                  Number(availableSupply || 0),
-                )}`
-              : ""
-          } claimed`}
-        </Text>
-      )}
-    </Stack>
-  );
-};
-
-const ClaimPage: React.FC<ClaimPageProps> = ({
-  contract,
-  tokenId,
-  primaryColor,
-  colorScheme,
-}) => {
-  const tokenMetadata = useNFT(contract, tokenId);
-
-  if (tokenMetadata.isLoading) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  const metadata = tokenMetadata.data?.metadata;
-
-  return (
-    <Center w="100%" h="100%">
-      <Flex direction="column" align="center" gap={4} w="100%">
-        <Grid
-          bg="#F2F0FF"
-          border="1px solid rgba(0,0,0,.1)"
-          borderRadius="20px"
-          w="178px"
-          h="178px"
-          placeContent="center"
-          overflow="hidden"
-        >
-          {metadata?.image ? (
-            <Image
-              objectFit="contain"
-              w="100%"
-              h="100%"
-              src={metadata?.image}
-              alt={metadata?.name?.toString()}
-            />
-          ) : (
-            <Icon maxW="100%" maxH="100%" as={DropSvg} />
-          )}
-        </Grid>
-        <Heading fontSize={32} fontWeight="title" as="h1">
-          {metadata?.name}
-        </Heading>
-        {metadata?.description && (
-          <Text noOfLines={2} as="h2" fontSize={16}>
-            {metadata.description}
-          </Text>
-        )}
-        <ClaimButton
-          contract={contract}
-          tokenId={tokenId}
-          primaryColor={primaryColor}
-          colorScheme={colorScheme}
-        />
-      </Flex>
-    </Center>
-  );
-};
 
 interface BodyProps {
   children?: React.ReactNode;
@@ -299,7 +44,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: editionDrop } = useContract(contractAddress);
+  const { contract: editionDrop } = useContract<EditionDrop>(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -322,12 +67,14 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage
-          contract={editionDrop}
-          tokenId={tokenId}
-          primaryColor={primaryColor}
-          colorScheme={colorScheme}
-        />
+        <ClaimPage contract={editionDrop}>
+          <ERC1155ClaimButton
+            contract={editionDrop}
+            tokenId={tokenId}
+            primaryColor={primaryColor}
+            colorScheme={colorScheme}
+          />
+        </ClaimPage>
       </Body>
       <Footer />
     </Flex>
