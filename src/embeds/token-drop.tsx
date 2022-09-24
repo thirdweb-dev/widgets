@@ -1,45 +1,21 @@
 import {
-  Center,
   ChakraProvider,
   ColorMode,
   Flex,
-  Grid,
-  Heading,
-  Icon,
-  Image,
-  LightMode,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  Spinner,
-  Stack,
-  Text,
   useColorMode,
-  useToast,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import {
-  ThirdwebProvider,
-  useActiveClaimCondition,
-  useAddress,
-  useClaimIneligibilityReasons,
-  useContract,
-  useContractMetadata,
-  Web3Button,
-} from "@thirdweb-dev/react";
-import { SmartContract } from "@thirdweb-dev/sdk/dist/declarations/src/contracts/smart-contract";
+import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
+import { TokenDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import { formatUnits, parseUnits } from "ethers/lib/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
+import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
+import { ClaimPage } from "src/shared/claim-page";
 import { Header } from "src/shared/header";
 import { Footer } from "../shared/footer";
-import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIneligibility } from "../utils/parseIneligibility";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface TokenDropEmbedProps {
@@ -47,205 +23,6 @@ interface TokenDropEmbedProps {
   primaryColor: string;
   contractAddress: string;
 }
-interface ClaimPageProps {
-  contract?: SmartContract;
-  colorScheme: ColorMode;
-  primaryColor: string;
-}
-
-const ClaimButton: React.FC<ClaimPageProps> = ({
-  contract,
-  primaryColor,
-  colorScheme,
-}) => {
-  const address = useAddress();
-  const [quantity, setQuantity] = useState(1);
-  const loaded = useRef(false);
-  const activeClaimCondition = useActiveClaimCondition(contract);
-
-  const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
-    quantity,
-    walletAddress: address || "",
-  });
-
-  const bnPrice = parseUnits(
-    activeClaimCondition.data?.currencyMetadata.displayValue || "0",
-    activeClaimCondition.data?.currencyMetadata.decimals,
-  );
-
-  const priceToMint = bnPrice.mul(quantity);
-
-  const isSoldOut =
-    activeClaimCondition.data &&
-    parseInt(activeClaimCondition.data?.availableSupply) === 0;
-
-  const toast = useToast();
-
-  const isLoading = claimIneligibilityReasons.isLoading && !loaded.current;
-
-  const canClaim =
-    !isSoldOut && !!address && !claimIneligibilityReasons.data?.length;
-
-  if (!contract) {
-    return null;
-  }
-
-  const maxQuantity = activeClaimCondition.data?.maxQuantity;
-  const currentMintSupply = activeClaimCondition.data?.currentMintSupply;
-  const availableSupply = activeClaimCondition.data?.availableSupply;
-
-  const colors = chakraTheme.colors;
-  const accentColor = colors[primaryColor as keyof typeof colors][500];
-
-  return (
-    <Stack spacing={4} align="center" w="100%">
-      <Flex
-        w="100%"
-        direction={{ base: "column", sm: "row" }}
-        gap={2}
-        justifyContent="center"
-        alignItems="center"
-      >
-        <NumberInput
-          inputMode="numeric"
-          value={quantity}
-          onChange={(stringValue, value) => {
-            if (stringValue === "") {
-              setQuantity(1);
-            } else {
-              setQuantity(value);
-            }
-          }}
-          min={1}
-          max={
-            maxQuantity === "unlimited"
-              ? undefined
-              : parseInt(availableSupply || "1")
-          }
-          maxW={{ base: "100%", sm: "100px" }}
-          bgColor="inputBg"
-          height="full"
-        >
-          <NumberInputField />
-          <NumberInputStepper>
-            <NumberIncrementStepper />
-            <NumberDecrementStepper />
-          </NumberInputStepper>
-        </NumberInput>
-        <LightMode>
-          <Web3Button
-            colorMode={colorScheme}
-            contractAddress={contract.getAddress()}
-            isDisabled={!canClaim || isLoading}
-            action={(cntr) => cntr.erc20.claim(quantity)}
-            accentColor={accentColor}
-            onError={(err) => {
-              console.error(err);
-              toast({
-                title: "Failed to claim drop.",
-                status: "error",
-                duration: 9000,
-                isClosable: true,
-              });
-            }}
-            onSuccess={() => {
-              toast({
-                title: "Successfully claimed.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-              });
-            }}
-          >
-            {isSoldOut
-              ? "Sold out"
-              : canClaim
-              ? `Mint ${quantity}${
-                  activeClaimCondition.data?.price.eq(0)
-                    ? " (Free)"
-                    : activeClaimCondition.data?.currencyMetadata.displayValue
-                    ? ` (${formatUnits(
-                        priceToMint,
-                        activeClaimCondition.data.currencyMetadata.decimals,
-                      )} ${activeClaimCondition.data?.currencyMetadata.symbol})`
-                    : ""
-                }`
-              : claimIneligibilityReasons.data?.length
-              ? parseIneligibility(claimIneligibilityReasons.data, quantity)
-              : "Minting Unavailable"}
-          </Web3Button>
-        </LightMode>
-      </Flex>
-      {activeClaimCondition.data && (
-        <Text size="label.md" color="green.500">
-          {`${currentMintSupply || 0} ${
-            maxQuantity !== "unlimited" ? `/ ${maxQuantity || 0}` : ""
-          } claimed`}
-        </Text>
-      )}
-    </Stack>
-  );
-};
-
-const ClaimPage: React.FC<ClaimPageProps> = ({
-  contract,
-  primaryColor,
-  colorScheme,
-}) => {
-  const tokenMetadata = useContractMetadata(contract);
-
-  if (tokenMetadata.isLoading) {
-    return (
-      <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
-      </Center>
-    );
-  }
-
-  return (
-    <Center w="100%" h="100%">
-      <Flex direction="column" align="center" gap={4} w="100%">
-        <Grid
-          bg="#F2F0FF"
-          border="1px solid rgba(0,0,0,.1)"
-          borderRadius="20px"
-          w="178px"
-          h="178px"
-          placeContent="center"
-          overflow="hidden"
-        >
-          {tokenMetadata?.data?.image ? (
-            <Image
-              objectFit="contain"
-              w="100%"
-              h="100%"
-              src={tokenMetadata?.data?.image}
-              alt={tokenMetadata?.data?.name}
-            />
-          ) : (
-            <Icon maxW="100%" maxH="100%" as={DropSvg} />
-          )}
-        </Grid>
-        <Heading fontSize={32} fontWeight="title" as="h1">
-          {tokenMetadata?.data?.name}
-        </Heading>
-        {tokenMetadata?.data?.description && (
-          <Text noOfLines={2} as="h2" fontSize={16}>
-            {tokenMetadata.data.description}
-          </Text>
-        )}
-        <ClaimButton
-          contract={contract}
-          primaryColor={primaryColor}
-          colorScheme={colorScheme}
-        />
-      </Flex>
-    </Center>
-  );
-};
 
 interface BodyProps {
   children?: React.ReactNode;
@@ -265,7 +42,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: tokenDrop } = useContract(contractAddress);
+  const { contract: tokenDrop } = useContract<TokenDrop>(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -288,11 +65,13 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage
-          contract={tokenDrop}
-          primaryColor={primaryColor}
-          colorScheme={colorScheme}
-        />
+        <ClaimPage contract={tokenDrop}>
+          <ERC20ClaimButton
+            contract={tokenDrop}
+            primaryColor={primaryColor}
+            colorScheme={colorScheme}
+          />
+        </ClaimPage>
       </Body>
       <Footer />
     </Flex>
