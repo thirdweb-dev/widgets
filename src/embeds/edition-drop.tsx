@@ -8,7 +8,7 @@ import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
 import { EditionDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
 import { TokenMetadataPage } from "../shared/token-metadata-page";
@@ -17,6 +17,7 @@ import { Header } from "../shared/header";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { useGasless } from "../shared/hooks/useGasless";
 
 interface BodyProps {
   children?: React.ReactNode;
@@ -90,23 +91,15 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const tokenId = urlParams.get("tokenId") || "0";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
-  const sdkOptions = useMemo(
-    () =>
-      relayerUrl
-        ? {
-            gasless: {
-              openzeppelin: { relayerUrl },
-            },
-          }
-        : undefined,
-    [relayerUrl],
-  );
+  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   return (
     <>

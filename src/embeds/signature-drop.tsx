@@ -8,16 +8,16 @@ import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import type { SignatureDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
-
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { useGasless } from "../shared/hooks/useGasless";
 
 interface BodyProps {
   children?: React.ReactNode;
@@ -86,22 +86,14 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
-  const sdkOptions = useMemo(
-    () =>
-      relayerUrl
-        ? {
-            gasless: {
-              openzeppelin: { relayerUrl },
-            },
-          }
-        : undefined,
-    [relayerUrl],
-  );
+  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   return (
     <>

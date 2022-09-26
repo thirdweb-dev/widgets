@@ -43,6 +43,7 @@ import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { Header } from "src/shared/header";
+import { useGasless } from "../shared/hooks/useGasless";
 import { TokenMetadataPage } from "src/shared/token-metadata-page";
 import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
@@ -661,23 +662,15 @@ const App: React.FC = () => {
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
-  const sdkOptions = useMemo(
-    () =>
-      relayerUrl
-        ? {
-            gasless: {
-              openzeppelin: { relayerUrl },
-            },
-          }
-        : undefined,
-    [relayerUrl],
-  );
+  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   return (
     <>
