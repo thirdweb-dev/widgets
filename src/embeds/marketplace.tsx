@@ -23,6 +23,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import {
+  ConnectWallet,
   ThirdwebProvider,
   useAddress,
   useAuctionWinner,
@@ -33,6 +34,7 @@ import {
   useListing,
   useMakeBid,
   useWinningBid,
+  Web3Button,
 } from "@thirdweb-dev/react";
 import {
   AuctionListing,
@@ -48,7 +50,6 @@ import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiAuctionLine } from "react-icons/ri";
 import { Header } from "src/shared/header";
-import { ConnectWalletButton } from "../shared/connect-wallet-button";
 import { Footer } from "../shared/footer";
 import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
@@ -71,6 +72,7 @@ interface BuyPageProps {
   listing: DirectListing | AuctionListing;
   primaryColor: string;
   secondaryColor: string;
+  colorScheme: ColorMode;
 }
 
 interface AuctionListingProps extends BuyPageProps {
@@ -87,6 +89,7 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
   listing,
   primaryColor,
   secondaryColor,
+  colorScheme,
 }) => {
   const toast = useToast();
   const address = useAddress();
@@ -248,6 +251,9 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
       },
     );
   };
+
+  const colors = chakraTheme.colors;
+  const accentColor = colors[primaryColor as keyof typeof colors][500];
 
   return (
     <Stack spacing={4} align="center" w="100%">
@@ -442,11 +448,7 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
           )}
         </Stack>
       ) : (
-        <ConnectWalletButton
-          expectedChainId={expectedChainId}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-        />
+        <ConnectWallet accentColor={accentColor} colorMode={colorScheme} />
       )}
     </Stack>
   );
@@ -457,7 +459,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
   expectedChainId,
   listing,
   primaryColor,
-  secondaryColor,
+  colorScheme,
 }) => {
   const address = useAddress();
   const chainId = useChainId();
@@ -525,6 +527,9 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
   const showQuantityInput =
     canClaim && quantityLimit.gt(1) && quantityLimit.lte(1000);
 
+  const colors = chakraTheme.colors;
+  const accentColor = colors[primaryColor as keyof typeof colors][500];
+
   return (
     <Stack spacing={4} align="center" w="100%">
       {!isSoldOut && (
@@ -582,10 +587,12 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
           </LightMode>
         </Flex>
       ) : (
-        <ConnectWalletButton
-          expectedChainId={expectedChainId}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
+        // Fake Web3Button only to handle network switching
+        <Web3Button
+          contractAddress={contract?.getAddress() || ""}
+          action={() => null}
+          accentColor={accentColor}
+          colorMode={colorScheme}
         />
       )}
     </Stack>
@@ -598,6 +605,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
   listing,
   primaryColor,
   secondaryColor,
+  colorScheme,
 }) => {
   if (listing === null) {
     return (
@@ -662,6 +670,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
             listing={listing}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
+            colorScheme={colorScheme}
           />
         ) : (
           <AuctionListingComponent
@@ -670,6 +679,7 @@ const BuyPage: React.FC<BuyPageProps> = ({
             listing={listing}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
+            colorScheme={colorScheme}
           />
         )}
       </Flex>
@@ -728,6 +738,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
           listing={listing as DirectListing | AuctionListing}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
+          colorScheme={colorScheme}
         />
       </Body>
       <Footer />
