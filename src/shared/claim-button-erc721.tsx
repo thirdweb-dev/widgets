@@ -194,9 +194,9 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
         activeClaimCondition.data?.currencyMetadata.value || 0,
       );
       if (pricePerToken.eq(0)) {
-        return "Claim Free";
+        return "Mint (Free)";
       }
-      return `Claim (${priceToMint})`;
+      return `Mint (${priceToMint})`;
     }
     if (claimIneligibilityReasons.data?.length) {
       return parseIneligibility(claimIneligibilityReasons.data, quantity);
