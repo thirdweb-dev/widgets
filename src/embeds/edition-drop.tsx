@@ -5,13 +5,13 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
+import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
 import { EditionDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
-import { ClaimPage } from "../shared/claim-page";
+import { TokenClaimPage } from "../shared/token-claim-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import chakraTheme from "../shared/theme";
@@ -45,6 +45,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const { contract: editionDrop } = useContract<EditionDrop>(contractAddress);
+  const query = useNFT(editionDrop, tokenId);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -67,14 +68,14 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={editionDrop} tokenId={tokenId}>
+        <TokenClaimPage query={query}>
           <ERC1155ClaimButton
             contract={editionDrop}
             tokenId={tokenId}
             primaryColor={primaryColor}
             colorScheme={colorScheme}
           />
-        </ClaimPage>
+        </TokenClaimPage>
       </Body>
       <Footer />
     </Flex>
