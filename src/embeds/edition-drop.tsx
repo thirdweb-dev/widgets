@@ -67,7 +67,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={editionDrop}>
+        <ClaimPage contract={editionDrop} tokenId={tokenId}>
           <ERC1155ClaimButton
             contract={editionDrop}
             tokenId={tokenId}

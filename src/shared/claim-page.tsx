@@ -4,24 +4,33 @@ import {
   Grid,
   Heading,
   Icon,
-  Image,
   Skeleton,
   Text,
 } from "@chakra-ui/react";
-import { DropContract, useContractMetadata } from "@thirdweb-dev/react";
+import {
+  DropContract,
+  ThirdwebNftMedia,
+  useContractMetadata,
+  useNFT,
+} from "@thirdweb-dev/react";
 import React from "react";
 import { DropSvg } from "./svg/drop";
 
 interface ClaimPageProps {
   contract?: Exclude<DropContract, null>;
+  tokenId?: string;
 }
 
 export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
   contract,
-
+  tokenId,
   children,
 }) => {
   const { data: metadata, isLoading } = useContractMetadata(contract);
+  const { data: nft } = useNFT(contract, tokenId);
+
+  console.log(nft);
+
   return (
     <Center w="100%" h="100%">
       <Flex direction="column" align="center" gap={4} w="100%">
@@ -35,14 +44,10 @@ export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
             placeContent="center"
             overflow="hidden"
           >
-            {metadata?.image ? (
-              <Image
-                objectFit="contain"
-                w="100%"
-                h="100%"
-                src={metadata?.image}
-                alt={metadata?.name}
-              />
+            {tokenId && nft?.metadata ? (
+              <ThirdwebNftMedia metadata={nft.metadata} />
+            ) : metadata?.image ? (
+              <ThirdwebNftMedia metadata={metadata} />
             ) : (
               <Icon maxW="100%" maxH="100%" as={DropSvg} />
             )}
