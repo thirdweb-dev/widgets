@@ -29,8 +29,6 @@ export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
   const { data: metadata, isLoading } = useContractMetadata(contract);
   const { data: nft } = useNFT(contract, tokenId);
 
-  console.log(nft);
-
   return (
     <Center w="100%" h="100%">
       <Flex direction="column" align="center" gap={4} w="100%">
