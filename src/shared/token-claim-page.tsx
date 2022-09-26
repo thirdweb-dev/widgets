@@ -7,27 +7,18 @@ import {
   Skeleton,
   Text,
 } from "@chakra-ui/react";
-import {
-  DropContract,
-  ThirdwebNftMedia,
-  useContractMetadata,
-  useNFT,
-} from "@thirdweb-dev/react";
+import { ThirdwebNftMedia, useNFT } from "@thirdweb-dev/react";
 import React from "react";
 import { DropSvg } from "./svg/drop";
 
-interface ClaimPageProps {
-  contract?: Exclude<DropContract, null>;
-  tokenId?: string;
+interface TokenClaimPageProps {
+  query: ReturnType<typeof useNFT>;
 }
 
-export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
-  contract,
-  tokenId,
-  children,
-}) => {
-  const { data: metadata, isLoading } = useContractMetadata(contract);
-  const { data: nft } = useNFT(contract, tokenId);
+export const TokenClaimPage: React.FC<
+  React.PropsWithChildren<TokenClaimPageProps>
+> = ({ query, children }) => {
+  const { data: nft, isLoading } = query;
 
   return (
     <Center w="100%" h="100%">
@@ -42,10 +33,8 @@ export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
             placeContent="center"
             overflow="hidden"
           >
-            {tokenId && nft?.metadata ? (
-              <ThirdwebNftMedia metadata={nft.metadata} />
-            ) : metadata?.image ? (
-              <ThirdwebNftMedia metadata={metadata} />
+            {nft?.metadata ? (
+              <ThirdwebNftMedia metadata={nft?.metadata} />
             ) : (
               <Icon maxW="100%" maxH="100%" as={DropSvg} />
             )}
@@ -53,13 +42,15 @@ export const ClaimPage: React.FC<React.PropsWithChildren<ClaimPageProps>> = ({
         </Skeleton>
         <Skeleton isLoaded={!isLoading}>
           <Heading fontSize={32} fontWeight="title" as="h1">
-            {isLoading ? "Loading..." : metadata?.name}
+            {isLoading ? "Loading..." : nft?.metadata?.name}
           </Heading>
         </Skeleton>
         <Skeleton isLoaded={!isLoading}>
-          {(metadata?.description || isLoading) && (
+          {(nft?.metadata?.description || isLoading) && (
             <Text noOfLines={2} as="h2" fontSize={16}>
-              {isLoading ? "Loading Description..." : metadata?.description}
+              {isLoading
+                ? "Loading Description..."
+                : nft?.metadata?.description}
             </Text>
           )}
         </Skeleton>
