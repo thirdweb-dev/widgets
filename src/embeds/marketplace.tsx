@@ -4,10 +4,8 @@ import {
   ChakraProvider,
   ColorMode,
   Flex,
-  Grid,
   Heading,
   Icon,
-  Image,
   LightMode,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -45,8 +43,8 @@ import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { Header } from "src/shared/header";
+import { TokenClaimPage } from "src/shared/token-claim-page";
 import { Footer } from "../shared/footer";
-import { DropSvg } from "../shared/svg/drop";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
@@ -574,38 +572,6 @@ const BuyPage: React.FC<BuyPageProps> = ({
   return (
     <Center w="100%" h="100%">
       <Flex direction="column" align="center" gap={4} w="100%">
-        <Grid
-          bg="#F2F0FF"
-          border="1px solid rgba(0,0,0,.1)"
-          borderRadius="20px"
-          w="178px"
-          h="178px"
-          placeContent="center"
-          overflow="hidden"
-        >
-          {listing?.asset?.image ? (
-            <Image
-              objectFit="contain"
-              w="100%"
-              h="100%"
-              src={listing?.asset?.image.replace(
-                "ipfs://",
-                "https://cloudflare-ipfs.com/ipfs/",
-              )}
-              alt={listing?.asset?.name?.toString()}
-            />
-          ) : (
-            <Icon maxW="100%" maxH="100%" as={DropSvg} />
-          )}
-        </Grid>
-        <Heading fontSize={32} fontWeight="title" as="h1">
-          {listing?.asset?.name}
-        </Heading>
-        {listing?.asset?.description && (
-          <Text noOfLines={2} as="h2" fontSize={16}>
-            {listing?.asset?.description}
-          </Text>
-        )}
         {listing?.type === ListingType.Direct ? (
           <DirectListingComponent
             contract={contract}
@@ -650,7 +616,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   const { setColorMode } = useColorMode();
   const marketplace = useContract<Marketplace>(contractAddress).contract;
 
-  const { data: listing } = useListing(marketplace, listingId);
+  const { data: listing, isLoading } = useListing(marketplace, listingId);
   useEffect(() => {
     setColorMode(colorScheme);
   }, [colorScheme, setColorMode]);
@@ -672,13 +638,15 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <BuyPage
-          contract={marketplace}
-          listing={listing as DirectListing | AuctionListing}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-          colorScheme={colorScheme}
-        />
+        <TokenClaimPage metadata={listing?.asset} isLoading={isLoading}>
+          <BuyPage
+            contract={marketplace}
+            listing={listing as DirectListing | AuctionListing}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+            colorScheme={colorScheme}
+          />
+        </TokenClaimPage>
       </Body>
       <Footer />
     </Flex>

@@ -7,19 +7,19 @@ import {
   Skeleton,
   Text,
 } from "@chakra-ui/react";
-import { ThirdwebNftMedia, useNFT } from "@thirdweb-dev/react";
+import { ThirdwebNftMedia } from "@thirdweb-dev/react";
+import { NFTMetadata } from "@thirdweb-dev/sdk";
 import React from "react";
 import { DropSvg } from "./svg/drop";
 
 interface TokenClaimPageProps {
-  query: ReturnType<typeof useNFT>;
+  metadata?: NFTMetadata;
+  isLoading: boolean;
 }
 
 export const TokenClaimPage: React.FC<
   React.PropsWithChildren<TokenClaimPageProps>
-> = ({ query, children }) => {
-  const { data: nft, isLoading } = query;
-
+> = ({ metadata, isLoading, children }) => {
   return (
     <Center w="100%" h="100%">
       <Flex direction="column" align="center" gap={4} w="100%">
@@ -33,8 +33,8 @@ export const TokenClaimPage: React.FC<
             placeContent="center"
             overflow="hidden"
           >
-            {nft?.metadata ? (
-              <ThirdwebNftMedia metadata={nft?.metadata} />
+            {metadata ? (
+              <ThirdwebNftMedia metadata={metadata} />
             ) : (
               <Icon maxW="100%" maxH="100%" as={DropSvg} />
             )}
@@ -42,15 +42,13 @@ export const TokenClaimPage: React.FC<
         </Skeleton>
         <Skeleton isLoaded={!isLoading}>
           <Heading fontSize={32} fontWeight="title" as="h1">
-            {isLoading ? "Loading..." : nft?.metadata?.name}
+            {isLoading ? "Loading..." : metadata?.name}
           </Heading>
         </Skeleton>
         <Skeleton isLoaded={!isLoading}>
-          {(nft?.metadata?.description || isLoading) && (
+          {(metadata?.description || isLoading) && (
             <Text noOfLines={2} as="h2" fontSize={16}>
-              {isLoading
-                ? "Loading Description..."
-                : nft?.metadata?.description}
+              {isLoading ? "Loading Description..." : metadata?.description}
             </Text>
           )}
         </Skeleton>

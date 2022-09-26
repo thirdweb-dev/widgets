@@ -45,7 +45,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
 }) => {
   const { setColorMode } = useColorMode();
   const { contract: editionDrop } = useContract<EditionDrop>(contractAddress);
-  const query = useNFT(editionDrop, tokenId);
+  const { data: nft, isLoading } = useNFT(editionDrop, tokenId);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -68,7 +68,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <TokenClaimPage query={query}>
+        <TokenClaimPage metadata={nft?.metadata} isLoading={isLoading}>
           <ERC1155ClaimButton
             contract={editionDrop}
             tokenId={tokenId}
