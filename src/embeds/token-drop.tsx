@@ -11,7 +11,7 @@ import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
-import { ContractClaimPage } from "src/shared/contract-claim-page";
+import { ContractMetadataPage } from "src/shared/contract-metadata-page";
 import { Header } from "src/shared/header";
 import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
@@ -65,13 +65,13 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractClaimPage contract={tokenDrop}>
+        <ContractMetadataPage contract={tokenDrop}>
           <ERC20ClaimButton
             contract={tokenDrop}
             primaryColor={primaryColor}
             colorScheme={colorScheme}
           />
-        </ContractClaimPage>
+        </ContractMetadataPage>
       </Body>
       <Footer />
     </Flex>

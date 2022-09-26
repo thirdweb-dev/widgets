@@ -10,7 +10,7 @@ import type { SignatureDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
-import { ContractClaimPage } from "../shared/contract-claim-page";
+import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
@@ -66,13 +66,13 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractClaimPage contract={sigDrop}>
+        <ContractMetadataPage contract={sigDrop}>
           <ERC721ClaimButton
             contract={sigDrop}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
           />
-        </ContractClaimPage>
+        </ContractMetadataPage>
       </Body>
       <Footer />
     </Flex>

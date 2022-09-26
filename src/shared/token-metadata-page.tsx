@@ -12,13 +12,13 @@ import { NFTMetadata } from "@thirdweb-dev/sdk";
 import React from "react";
 import { DropSvg } from "./svg/drop";
 
-interface TokenClaimPageProps {
+interface TokenMetadataPageProps {
   metadata?: NFTMetadata;
   isLoading: boolean;
 }
 
-export const TokenClaimPage: React.FC<
-  React.PropsWithChildren<TokenClaimPageProps>
+export const TokenMetadataPage: React.FC<
+  React.PropsWithChildren<TokenMetadataPageProps>
 > = ({ metadata, isLoading, children }) => {
   return (
     <Center w="100%" h="100%">

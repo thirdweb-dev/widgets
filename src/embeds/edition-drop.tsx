@@ -11,7 +11,7 @@ import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
-import { TokenClaimPage } from "../shared/token-claim-page";
+import { TokenMetadataPage } from "../shared/token-metadata-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import chakraTheme from "../shared/theme";
@@ -68,14 +68,14 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <TokenClaimPage metadata={nft?.metadata} isLoading={isLoading}>
+        <TokenMetadataPage metadata={nft?.metadata} isLoading={isLoading}>
           <ERC1155ClaimButton
             contract={editionDrop}
             tokenId={tokenId}
             primaryColor={primaryColor}
             colorScheme={colorScheme}
           />
-        </TokenClaimPage>
+        </TokenMetadataPage>
       </Body>
       <Footer />
     </Flex>

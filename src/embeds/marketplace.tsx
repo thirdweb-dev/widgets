@@ -43,7 +43,7 @@ import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
 import { Header } from "src/shared/header";
-import { TokenClaimPage } from "src/shared/token-claim-page";
+import { TokenMetadataPage } from "src/shared/token-metadata-page";
 import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
@@ -638,7 +638,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <TokenClaimPage metadata={listing?.asset} isLoading={isLoading}>
+        <TokenMetadataPage metadata={listing?.asset} isLoading={isLoading}>
           <BuyPage
             contract={marketplace}
             listing={listing as DirectListing | AuctionListing}
@@ -646,7 +646,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
             secondaryColor={secondaryColor}
             colorScheme={colorScheme}
           />
-        </TokenClaimPage>
+        </TokenMetadataPage>
       </Body>
       <Footer />
     </Flex>

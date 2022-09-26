@@ -17,7 +17,7 @@ import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
-import { ContractClaimPage } from "../shared/contract-claim-page";
+import { ContractMetadataPage } from "../shared/contract-metadata-page";
 
 interface BodyProps {
   children?: React.ReactNode;
@@ -66,7 +66,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractClaimPage contract={nftDrop}>
+        <ContractMetadataPage contract={nftDrop}>
           {nftDrop && (
             <ERC721ClaimButton
               contract={nftDrop}
@@ -74,7 +74,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
               primaryColor={primaryColor}
             />
           )}
-        </ContractClaimPage>
+        </ContractMetadataPage>
       </Body>
       <Footer />
     </Flex>

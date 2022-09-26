@@ -15,12 +15,12 @@ import {
 import React from "react";
 import { DropSvg } from "./svg/drop";
 
-interface ContractClaimPageProps {
+interface ContractMetadataPageProps {
   contract?: Exclude<DropContract, null>;
 }
 
-export const ContractClaimPage: React.FC<
-  React.PropsWithChildren<ContractClaimPageProps>
+export const ContractMetadataPage: React.FC<
+  React.PropsWithChildren<ContractMetadataPageProps>
 > = ({ contract, children }) => {
   const { data: metadata, isLoading } = useContractMetadata(contract);
 
