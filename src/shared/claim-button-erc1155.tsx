@@ -71,12 +71,12 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   }, [claimedSupply]);
 
   const numberTotal = useMemo(() => {
-    const n = totalAvailableSupply;
+    const n = totalAvailableSupply.add(BigNumber.from(claimedSupply.data || 0));
     if (n.gte(1_000_000)) {
-      return "Unlimited";
+      return "";
     }
     return n.toString();
-  }, [totalAvailableSupply]);
+  }, [totalAvailableSupply, claimedSupply]);
 
   const priceToMint = useMemo(() => {
     const bnPrice = BigNumber.from(
@@ -159,8 +159,11 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   const isSoldOut = useMemo(() => {
     try {
       return (
-        activeClaimCondition.isSuccess &&
-        BigNumber.from(activeClaimCondition.data?.availableSupply || 0).lte(0)
+        (activeClaimCondition.isSuccess &&
+          BigNumber.from(activeClaimCondition.data?.availableSupply || 0).lte(
+            0,
+          )) ||
+        numberClaimed === numberTotal
       );
     } catch (e) {
       return false;
@@ -168,6 +171,8 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   }, [
     activeClaimCondition.data?.availableSupply,
     activeClaimCondition.isSuccess,
+    numberClaimed,
+    numberTotal,
   ]);
 
   const canClaim = useMemo(() => {
@@ -232,7 +237,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   if (activeClaimCondition.isError) {
     return (
       <Text size="label.md" color="red.500">
-        This drop is not ready to be claimed yet. (No claim condition set.)
+        This drop is not ready to be minted yet. (No claim condition set)
       </Text>
     );
   }
@@ -246,30 +251,32 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
         justifyContent="center"
         alignItems="center"
       >
-        <Skeleton isLoaded={!isLoading}>
-          <NumberInput
-            inputMode="numeric"
-            value={quantity}
-            onChange={(stringValue, value) => {
-              if (stringValue === "") {
-                setQuantity(1);
-              } else {
-                setQuantity(value);
-              }
-            }}
-            min={1}
-            max={maxClaimable}
-            maxW={{ base: "100%", sm: "100px" }}
-            bgColor="inputBg"
-            height="full"
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-        </Skeleton>
+        {!isSoldOut && (
+          <Skeleton isLoaded={!isLoading}>
+            <NumberInput
+              inputMode="numeric"
+              value={quantity}
+              onChange={(stringValue, value) => {
+                if (stringValue === "") {
+                  setQuantity(1);
+                } else {
+                  setQuantity(value);
+                }
+              }}
+              min={1}
+              max={maxClaimable}
+              maxW={{ base: "100%", sm: "100px" }}
+              bgColor="inputBg"
+              height="full"
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+          </Skeleton>
+        )}
         <Web3Button
           colorMode={colorScheme}
           contractAddress={contract?.getAddress() || ""}
@@ -279,7 +286,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
           onError={(err) => {
             console.error(err);
             toast({
-              title: "Failed to claim drop.",
+              title: "Failed to mint drop.",
               status: "error",
               duration: 9000,
               isClosable: true,
@@ -287,7 +294,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
           }}
           onSuccess={() => {
             toast({
-              title: "Successfully claimed.",
+              title: "Successfully minted.",
               status: "success",
               duration: 5000,
               isClosable: true,
@@ -302,11 +309,11 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberClaimed}
         </Skeleton>{" "}
-        /{" "}
+        {numberTotal !== "" && "/ "}
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberTotal}
         </Skeleton>{" "}
-        claimed
+        minted
       </Text>
     </Stack>
   );
