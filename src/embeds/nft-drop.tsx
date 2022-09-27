@@ -18,7 +18,7 @@ import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
 import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { useGasless } from "../shared/hooks/useGasless";
-import { Body } from "src/shared/body";
+import { Body } from "../shared/body";
 
 interface NFTDropEmbedProps {
   contractAddress: string;

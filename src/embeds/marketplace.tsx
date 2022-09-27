@@ -476,7 +476,7 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         justifyContent="center"
         alignItems="center"
       >
-        {showQuantityInput && (
+        {showQuantityInput && !isSoldOut && (
           <NumberInput
             inputMode="numeric"
             value={quantity}
