@@ -71,12 +71,12 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   }, [claimedSupply]);
 
   const numberTotal = useMemo(() => {
-    const n = totalAvailableSupply;
+    const n = totalAvailableSupply.add(BigNumber.from(claimedSupply.data || 0));
     if (n.gte(1_000_000)) {
-      return "Unlimited";
+      return "";
     }
     return n.toString();
-  }, [totalAvailableSupply]);
+  }, [totalAvailableSupply, claimedSupply]);
 
   const priceToMint = useMemo(() => {
     const bnPrice = BigNumber.from(
@@ -309,7 +309,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberClaimed}
         </Skeleton>{" "}
-        /{" "}
+        {numberTotal !== "" && "/ "}
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberTotal}
         </Skeleton>{" "}
