@@ -18,18 +18,7 @@ import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { useGasless } from "../shared/hooks/useGasless";
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
+import { Body } from "src/shared/body";
 
 interface SignatureDropEmbedProps {
   contractAddress: string;

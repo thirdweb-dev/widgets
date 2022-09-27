@@ -18,18 +18,7 @@ import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
 import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { useGasless } from "../shared/hooks/useGasless";
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
+import { Body } from "src/shared/body";
 
 interface NFTDropEmbedProps {
   contractAddress: string;

@@ -49,6 +49,7 @@ import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { Body } from "src/shared/body";
 
 interface MarketplaceEmbedProps {
   rpcUrl?: string;
@@ -594,19 +595,6 @@ const BuyPage: React.FC<BuyPageProps> = ({
     </Center>
   );
 };
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
-
 const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   contractAddress,
   listingId,

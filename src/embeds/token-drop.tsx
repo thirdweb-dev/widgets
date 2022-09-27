@@ -18,25 +18,13 @@ import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { Body } from "src/shared/body";
 
 interface TokenDropEmbedProps {
   colorScheme: ColorMode;
   primaryColor: string;
   contractAddress: string;
 }
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
-
 const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   contractAddress,
   colorScheme,
