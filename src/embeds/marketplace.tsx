@@ -63,6 +63,7 @@ interface MarketplaceEmbedProps {
 interface BuyPageProps {
   contract?: Marketplace;
   listing: DirectListing | AuctionListing;
+  isLoading?: boolean;
   primaryColor: string;
   secondaryColor: string;
   colorScheme: ColorMode;
@@ -546,16 +547,18 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
 const BuyPage: React.FC<BuyPageProps> = ({
   contract,
   listing,
+  isLoading,
   primaryColor,
   secondaryColor,
   colorScheme,
 }) => {
-  if (listing === null) {
+  if (isLoading) {
     return (
       <Center w="100%" h="100%">
-        <Button colorScheme="primary" w="100%" isDisabled>
-          This listing was either cancelled or does not exist.
-        </Button>
+        <Stack direction="row" align="center">
+          <Spinner />
+          <Heading size="label.sm">Loading...</Heading>
+        </Stack>
       </Center>
     );
   }
@@ -563,10 +566,9 @@ const BuyPage: React.FC<BuyPageProps> = ({
   if (!listing) {
     return (
       <Center w="100%" h="100%">
-        <Stack direction="row" align="center">
-          <Spinner />
-          <Heading size="label.sm">Loading...</Heading>
-        </Stack>
+        <Button colorScheme="primary" w="100%" isDisabled>
+          This listing was either cancelled or does not exist.
+        </Button>
       </Center>
     );
   }
@@ -631,6 +633,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
           <BuyPage
             contract={marketplace}
             listing={listing as DirectListing | AuctionListing}
+            isLoading={isLoading}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
             colorScheme={colorScheme}
