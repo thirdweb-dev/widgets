@@ -8,34 +8,23 @@ import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { TokenDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
-import { ClaimPage } from "src/shared/claim-page";
+import { ContractMetadataPage } from "src/shared/contract-metadata-page";
 import { Header } from "src/shared/header";
+import { useGasless } from "../shared/hooks/useGasless";
 import { Footer } from "../shared/footer";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { Body } from "src/shared/body";
 
 interface TokenDropEmbedProps {
   colorScheme: ColorMode;
   primaryColor: string;
   contractAddress: string;
 }
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
-
 const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   contractAddress,
   colorScheme,
@@ -65,13 +54,13 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={tokenDrop}>
+        <ContractMetadataPage contract={tokenDrop}>
           <ERC20ClaimButton
             contract={tokenDrop}
             primaryColor={primaryColor}
             colorScheme={colorScheme}
           />
-        </ClaimPage>
+        </ContractMetadataPage>
       </Body>
       <Footer />
     </Flex>
@@ -85,22 +74,14 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
-  const sdkOptions = useMemo(
-    () =>
-      relayerUrl
-        ? {
-            gasless: {
-              openzeppelin: { relayerUrl },
-            },
-          }
-        : undefined,
-    [relayerUrl],
-  );
+  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   return (
     <>

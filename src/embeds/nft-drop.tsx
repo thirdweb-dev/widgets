@@ -8,28 +8,17 @@ import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import type { NFTDrop } from "@thirdweb-dev/sdk";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
-
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
-import { ClaimPage } from "../shared/claim-page";
-
-interface BodyProps {
-  children?: React.ReactNode;
-}
-
-const Body: React.FC<BodyProps> = ({ children }) => {
-  return (
-    <Flex as="main" px="28px" w="100%" flexGrow={1}>
-      {children}
-    </Flex>
-  );
-};
+import { ContractMetadataPage } from "../shared/contract-metadata-page";
+import { useGasless } from "../shared/hooks/useGasless";
+import { Body } from "src/shared/body";
 
 interface NFTDropEmbedProps {
   contractAddress: string;
@@ -66,7 +55,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ClaimPage contract={nftDrop}>
+        <ContractMetadataPage contract={nftDrop}>
           {nftDrop && (
             <ERC721ClaimButton
               contract={nftDrop}
@@ -74,7 +63,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
               primaryColor={primaryColor}
             />
           )}
-        </ClaimPage>
+        </ContractMetadataPage>
       </Body>
       <Footer />
     </Flex>
@@ -88,23 +77,15 @@ const App: React.FC = () => {
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
+  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
+  const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
-  const sdkOptions = useMemo(
-    () =>
-      relayerUrl
-        ? {
-            gasless: {
-              openzeppelin: { relayerUrl },
-            },
-          }
-        : undefined,
-    [relayerUrl],
-  );
+  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   return (
     <>
