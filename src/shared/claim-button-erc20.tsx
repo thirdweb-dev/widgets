@@ -86,7 +86,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
         activeClaimCondition.data?.quantityLimitPerTransaction || 0,
       );
     } catch (e) {
-      perTransactionClaimable = BigNumber.from(1_000_000);
+      perTransactionClaimable = BigNumber.from(1_000_000_000_000);
     }
 
     if (perTransactionClaimable.lte(bnMaxClaimable)) {
@@ -100,7 +100,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
     if (snapshotClaimable) {
       if (snapshotClaimable === "0") {
         // allowed unlimited for the snapshot
-        bnMaxClaimable = BigNumber.from(1_000_000);
+        bnMaxClaimable = BigNumber.from(1_000_000_000_000);
       } else {
         try {
           bnMaxClaimable = BigNumber.from(snapshotClaimable);
