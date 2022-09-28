@@ -15,6 +15,7 @@ import {
 import {
   useActiveClaimCondition,
   useAddress,
+  useClaimConditions,
   useClaimIneligibilityReasons,
   useTotalCirculatingSupply,
   Web3Button,
@@ -45,6 +46,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
 
   const debouncedQuantity = useDebounce(quantity, 500);
 
+  const claimConditions = useClaimConditions(contract);
   const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
 
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
@@ -234,10 +236,27 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
   const colors = chakraTheme.colors;
   const accentColor = colors[primaryColor as keyof typeof colors][500];
 
-  if (activeClaimCondition.isError) {
+  if (
+    claimConditions.data?.length === 0 ||
+    claimConditions.data?.every((cc) => cc.maxQuantity === "0")
+  ) {
     return (
       <Text size="label.md" color="red.500">
         This drop is not ready to be minted yet. (No claim condition set)
+      </Text>
+    );
+  }
+
+  if (
+    (claimConditions.data &&
+      claimConditions.data.length > 0 &&
+      activeClaimCondition.isError) ||
+    (activeClaimCondition.data &&
+      activeClaimCondition.data.startTime > new Date())
+  ) {
+    return (
+      <Text size="label.md" color={`${primaryColor}.500`}>
+        Drop is starting soon. Please check back later.
       </Text>
     );
   }
