@@ -135,13 +135,9 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
       }
     }
 
-    const maxAvailable = BigNumber.from(totalAvailableSupply).sub(
-      claimedSupply.data || 0,
-    );
-
     let max;
-    if (maxAvailable.lt(bnMaxClaimable)) {
-      max = maxAvailable;
+    if (totalAvailableSupply.lt(bnMaxClaimable)) {
+      max = totalAvailableSupply;
     } else {
       max = bnMaxClaimable;
     }
@@ -155,9 +151,9 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
     activeClaimCondition.data?.quantityLimitPerTransaction,
     activeClaimCondition.data?.snapshot,
     address,
-    claimedSupply.data,
     totalAvailableSupply,
   ]);
+
   const isSoldOut = useMemo(() => {
     try {
       return (
