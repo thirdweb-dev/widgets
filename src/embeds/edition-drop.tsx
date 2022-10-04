@@ -6,7 +6,6 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
-import { EditionDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -34,7 +33,10 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: editionDrop } = useContract<EditionDrop>(contractAddress);
+  const { contract: editionDrop } = useContract(
+    contractAddress,
+    "edition-drop",
+  );
   const { data: nft, isLoading } = useNFT(editionDrop, tokenId);
 
   useEffect(() => {

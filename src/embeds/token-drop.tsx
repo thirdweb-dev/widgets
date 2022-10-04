@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
-import { TokenDrop } from "@thirdweb-dev/sdk";
+
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -31,7 +31,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: tokenDrop } = useContract<TokenDrop>(contractAddress);
+  const { contract: tokenDrop } = useContract(contractAddress, "token-drop");
 
   useEffect(() => {
     setColorMode(colorScheme);
