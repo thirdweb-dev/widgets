@@ -34,7 +34,7 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: editionDrop } = useContract<EditionDrop>(contractAddress);
+  const { contract: editionDrop } = useContract(contractAddress, "edition-drop");
   const { data: nft, isLoading } = useNFT(editionDrop, tokenId);
 
   useEffect(() => {

@@ -7,7 +7,6 @@ import {
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import type { NFTDrop } from "@thirdweb-dev/sdk";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Footer } from "../shared/footer";
@@ -32,7 +31,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: nftDrop } = useContract<NFTDrop>(contractAddress);
+  const { contract: nftDrop } = useContract(contractAddress, "nft-drop");
 
   useEffect(() => {
     setColorMode(colorScheme);

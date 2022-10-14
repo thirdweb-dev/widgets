@@ -32,7 +32,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: sigDrop } = useContract<SignatureDrop>(contractAddress);
+  const { contract: sigDrop } = useContract(contractAddress, "signature-drop");
 
   useEffect(() => {
     setColorMode(colorScheme);

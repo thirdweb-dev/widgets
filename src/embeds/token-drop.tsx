@@ -31,7 +31,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: tokenDrop } = useContract<TokenDrop>(contractAddress);
+  const { contract: tokenDrop } = useContract(contractAddress, "token-drop");
 
   useEffect(() => {
     setColorMode(colorScheme);

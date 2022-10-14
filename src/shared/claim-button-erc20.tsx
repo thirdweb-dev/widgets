@@ -17,6 +17,7 @@ import {
   useAddress,
   useClaimConditions,
   useClaimIneligibilityReasons,
+  useTokenSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
 import type { TokenDrop } from "@thirdweb-dev/sdk";
@@ -49,13 +50,28 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
     quantity: debouncedQuantity,
     walletAddress: address || "",
   });
-  const numberTotal = useMemo(() => {
-    return activeClaimCondition.data?.maxQuantity;
-  }, [activeClaimCondition.data?.maxQuantity]);
+
+  const claimedSupply = useTokenSupply(contract);
+
+  const totalAvailableSupply = useMemo(() => {
+    try {
+      return BigNumber.from(activeClaimCondition.data?.availableSupply || 0);
+    } catch {
+      return BigNumber.from(1_000_000_000);
+    }
+  }, [activeClaimCondition.data?.availableSupply]);
 
   const numberClaimed = useMemo(() => {
-    return activeClaimCondition.data?.currentMintSupply;
-  }, [activeClaimCondition.data]);
+    return BigNumber.from(claimedSupply.data || 0).toString();
+  }, [claimedSupply]);
+
+  const numberTotal = useMemo(() => {
+    const n = totalAvailableSupply.add(BigNumber.from(claimedSupply.data || 0));
+    if (n.gte(1_000_000_000)) {
+      return "";
+    }
+    return n.toString();
+  }, [totalAvailableSupply, claimedSupply]);
 
   const priceToMint = useMemo(() => {
     const bnPrice = BigNumber.from(
@@ -76,10 +92,10 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
     let bnMaxClaimable;
     try {
       bnMaxClaimable = BigNumber.from(
-        parseFloat(activeClaimCondition.data?.maxQuantity || "0") || 0,
+        activeClaimCondition.data?.maxQuantity || 0,
       );
     } catch (e) {
-      bnMaxClaimable = BigNumber.from(1_000_000_000_000);
+      bnMaxClaimable = BigNumber.from(1_000_000_000);
     }
 
     let perTransactionClaimable;
@@ -88,7 +104,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
         activeClaimCondition.data?.quantityLimitPerTransaction || 0,
       );
     } catch (e) {
-      perTransactionClaimable = BigNumber.from(1_000_000_000_000);
+      perTransactionClaimable = BigNumber.from(1_000_000_000);
     }
 
     if (perTransactionClaimable.lte(bnMaxClaimable)) {
@@ -102,7 +118,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
     if (snapshotClaimable) {
       if (snapshotClaimable === "0") {
         // allowed unlimited for the snapshot
-        bnMaxClaimable = BigNumber.from(1_000_000_000_000);
+        bnMaxClaimable = BigNumber.from(1_000_000_000);
       } else {
         try {
           bnMaxClaimable = BigNumber.from(snapshotClaimable);
@@ -112,16 +128,23 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
       }
     }
 
-    if (bnMaxClaimable.gte(1_000_000_000_000)) {
-      return 1_000_000_000_000;
+    let max;
+    if (totalAvailableSupply.lt(bnMaxClaimable)) {
+      max = totalAvailableSupply;
+    } else {
+      max = bnMaxClaimable;
     }
 
-    return bnMaxClaimable.toNumber();
+    if (max.gte(1_000_000_000)) {
+      return 1_000_000_000;
+    }
+    return max.toNumber();
   }, [
     activeClaimCondition.data?.maxQuantity,
     activeClaimCondition.data?.quantityLimitPerTransaction,
     activeClaimCondition.data?.snapshot,
     address,
+    totalAvailableSupply,
   ]);
 
   const isSoldOut = useMemo(() => {
@@ -292,7 +315,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberClaimed}
         </Skeleton>{" "}
-        /{" "}
+        {numberTotal !== "" && "/ "}
         <Skeleton as="span" isLoaded={!isLoading}>
           {isLoading ? "00" : numberTotal}
         </Skeleton>{" "}
