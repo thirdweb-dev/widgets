@@ -16,7 +16,7 @@ esbuild
     bundle: true,
     minify: true,
     platform: "browser",
-    target: "es6",
+    target: "es2018",
     outdir: "./esout",
 
 
