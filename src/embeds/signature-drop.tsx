@@ -6,7 +6,6 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
-import type { SignatureDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -32,7 +31,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: sigDrop } = useContract<SignatureDrop>(contractAddress);
+  const { contract: sigDrop } = useContract(contractAddress, "signature-drop");
 
   useEffect(() => {
     setColorMode(colorScheme);

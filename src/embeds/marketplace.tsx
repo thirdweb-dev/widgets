@@ -605,7 +605,7 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
   secondaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const marketplace = useContract<Marketplace>(contractAddress).contract;
+  const marketplace = useContract(contractAddress, "marketplace").contract;
 
   const { data: listing, isLoading } = useListing(marketplace, listingId);
   useEffect(() => {
