@@ -7,18 +7,17 @@ import {
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
-
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
+import { Body } from "../shared/body";
+import { ERC721ClaimButton } from "../shared/claim-button-erc721";
+import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
+import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-import { ERC721ClaimButton } from "../shared/claim-button-erc721";
-import { ContractMetadataPage } from "../shared/contract-metadata-page";
-import { useGasless } from "../shared/hooks/useGasless";
-import { Body } from "../shared/body";
 
 interface NFTDropEmbedProps {
   contractAddress: string;

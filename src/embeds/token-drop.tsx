@@ -6,19 +6,18 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
-
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
+import { Body } from "src/shared/body";
 import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
 import { ContractMetadataPage } from "src/shared/contract-metadata-page";
 import { Header } from "src/shared/header";
-import { useGasless } from "../shared/hooks/useGasless";
 import { Footer } from "../shared/footer";
+import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-import { Body } from "src/shared/body";
 
 interface TokenDropEmbedProps {
   colorScheme: ColorMode;

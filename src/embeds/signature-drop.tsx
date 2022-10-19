@@ -9,15 +9,15 @@ import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { ContractMetadataPage } from "../shared/contract-metadata-page";
+import { Body } from "src/shared/body";
 import { ERC721ClaimButton } from "../shared/claim-button-erc721";
+import { ContractMetadataPage } from "../shared/contract-metadata-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
+import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-import { useGasless } from "../shared/hooks/useGasless";
-import { Body } from "src/shared/body";
 
 interface SignatureDropEmbedProps {
   contractAddress: string;
