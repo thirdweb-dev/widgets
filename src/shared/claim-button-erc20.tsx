@@ -46,6 +46,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
 
   const claimConditions = useClaimConditions(contract);
   const activeClaimCondition = useActiveClaimCondition(contract);
+
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
     walletAddress: address || "",
@@ -62,11 +63,13 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
   }, [activeClaimCondition.data?.availableSupply]);
 
   const numberClaimed = useMemo(() => {
-    return BigNumber.from(claimedSupply.data || 0).toString();
+    return BigNumber.from(claimedSupply.data?.value || 0).toString();
   }, [claimedSupply]);
 
   const numberTotal = useMemo(() => {
-    const n = totalAvailableSupply.add(BigNumber.from(claimedSupply.data || 0));
+    const n = totalAvailableSupply.add(
+      BigNumber.from(claimedSupply.data?.value || 0),
+    );
     if (n.gte(1_000_000_000)) {
       return "";
     }
