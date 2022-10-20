@@ -11,13 +11,13 @@ import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Body } from "src/shared/body";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
+import { parseIpfsGateway } from "src/utils/parseIpfsGateway";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { TokenMetadataPage } from "../shared/token-metadata-page";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface EditionDropEmbedProps {
   contractAddress: string;
