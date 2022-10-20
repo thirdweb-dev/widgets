@@ -16,7 +16,7 @@ esbuild
     bundle: true,
     minify: true,
     platform: "browser",
-    target: "es6",
+    target: "es2018",
     outdir: "./esout",
 
 
@@ -28,7 +28,6 @@ esbuild
         env: "production"
       })
     },
-    inject: ['./buffer-shim.js']
   })
   .then((result) => {
     for (const file of result.outputFiles) {

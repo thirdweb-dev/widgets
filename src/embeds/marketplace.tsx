@@ -42,14 +42,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import { IoDiamondOutline } from "react-icons/io5";
+import { Body } from "src/shared/body";
 import { Header } from "src/shared/header";
-import { useGasless } from "../shared/hooks/useGasless";
 import { TokenMetadataPage } from "src/shared/token-metadata-page";
 import { Footer } from "../shared/footer";
+import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-import { Body } from "src/shared/body";
 
 interface MarketplaceEmbedProps {
   rpcUrl?: string;

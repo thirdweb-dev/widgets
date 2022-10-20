@@ -6,19 +6,18 @@ import {
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
-import { EditionDrop } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
+import { Body } from "src/shared/body";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
-import { TokenMetadataPage } from "../shared/token-metadata-page";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
+import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
+import { TokenMetadataPage } from "../shared/token-metadata-page";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
-import { useGasless } from "../shared/hooks/useGasless";
-import { Body } from "src/shared/body";
 
 interface EditionDropEmbedProps {
   contractAddress: string;
@@ -34,7 +33,10 @@ const EditionDropEmbed: React.FC<EditionDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: editionDrop } = useContract(contractAddress, "edition-drop");
+  const { contract: editionDrop } = useContract(
+    contractAddress,
+    "edition-drop",
+  );
   const { data: nft, isLoading } = useNFT(editionDrop, tokenId);
 
   useEffect(() => {
