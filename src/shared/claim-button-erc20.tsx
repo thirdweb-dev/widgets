@@ -316,12 +316,20 @@ export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
 
       <Text size="label.md" color="green.500">
         <Skeleton as="span" isLoaded={!isLoading}>
-          {isLoading ? "00" : numberClaimed}
+          {isLoading
+            ? "00"
+            : utils.formatEther(BigNumber.from(numberClaimed || 0))}
         </Skeleton>{" "}
-        {numberTotal !== "" && "/ "}
-        <Skeleton as="span" isLoaded={!isLoading}>
-          {isLoading ? "00" : numberTotal}
-        </Skeleton>{" "}
+        {numberTotal !== "" && (
+          <>
+            /{" "}
+            <Skeleton as="span" isLoaded={!isLoading}>
+              {isLoading
+                ? "00"
+                : utils.formatEther(BigNumber.from(numberTotal || 0))}
+            </Skeleton>{" "}
+          </>
+        )}
         minted
       </Text>
     </Stack>
