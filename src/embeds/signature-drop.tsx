@@ -106,7 +106,7 @@ const App: React.FC = () => {
                 })
               : undefined
           }
-          chainRpc={{ [chainId]: rpcUrl }}
+          chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
           <SignatureDropEmbed
             contractAddress={contractAddress}
