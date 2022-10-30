@@ -99,7 +99,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
     let bnMaxClaimable;
     try {
       bnMaxClaimable = BigNumber.from(
-        activeClaimCondition.data?.maxQuantity || 0,
+        activeClaimCondition.data?.maxClaimableSupply || 0,
       );
     } catch (e) {
       bnMaxClaimable = BigNumber.from(1_000_000);
@@ -108,7 +108,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
     let perTransactionClaimable;
     try {
       perTransactionClaimable = BigNumber.from(
-        activeClaimCondition.data?.quantityLimitPerTransaction || 0,
+        activeClaimCondition.data?.maxClaimablePerWallet || 0,
       );
     } catch (e) {
       perTransactionClaimable = BigNumber.from(1_000_000);
@@ -147,8 +147,8 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
     }
     return max.toNumber();
   }, [
-    activeClaimCondition.data?.maxQuantity,
-    activeClaimCondition.data?.quantityLimitPerTransaction,
+    activeClaimCondition.data?.maxClaimableSupply,
+    activeClaimCondition.data?.maxClaimablePerWallet,
     activeClaimCondition.data?.snapshot,
     address,
     totalAvailableSupply,
@@ -234,7 +234,7 @@ export const ERC1155ClaimButton: React.FC<ClaimButtoProps> = ({
 
   if (
     claimConditions.data?.length === 0 ||
-    claimConditions.data?.every((cc) => cc.maxQuantity === "0")
+    claimConditions.data?.every((cc) => cc.maxClaimableSupply === "0")
   ) {
     return (
       <Text size="label.md" color="red.500">
