@@ -46,7 +46,9 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
   const debouncedQuantity = useDebounce(quantity, 500);
 
   const claimConditions = useClaimConditions(contract);
-  const activeClaimCondition = useActiveClaimCondition(contract);
+  const activeClaimCondition = useActiveClaimCondition(contract, undefined, {
+    withAllowList: true,
+  });
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
     walletAddress: address || "",
@@ -103,7 +105,7 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
     }
 
     const snapshotClaimable = activeClaimCondition.data?.snapshot?.find(
-      (u) => u.address === address,
+      (u) => u.address.toLowerCase() === address?.toLowerCase(),
     )?.maxClaimable;
 
     if (snapshotClaimable) {
