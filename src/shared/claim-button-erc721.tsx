@@ -17,6 +17,7 @@ import {
   useAddress,
   useClaimConditions,
   useClaimedNFTSupply,
+  useClaimerProofs,
   useClaimIneligibilityReasons,
   useUnclaimedNFTSupply,
   Web3Button,
@@ -46,9 +47,8 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
   const debouncedQuantity = useDebounce(quantity, 500);
 
   const claimConditions = useClaimConditions(contract);
-  const activeClaimCondition = useActiveClaimCondition(contract, undefined, {
-    withAllowList: true,
-  });
+  const activeClaimCondition = useActiveClaimCondition(contract);
+  const claimerProofs = useClaimerProofs(contract, address || "");
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
     walletAddress: address || "",
@@ -104,9 +104,7 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
       bnMaxClaimable = perTransactionClaimable;
     }
 
-    const snapshotClaimable = activeClaimCondition.data?.snapshot?.find(
-      (u) => u.address.toLowerCase() === address?.toLowerCase(),
-    )?.maxClaimable;
+    const snapshotClaimable = claimerProofs.data?.maxClaimable;
 
     if (snapshotClaimable) {
       if (snapshotClaimable === "0") {
@@ -135,11 +133,10 @@ export const ERC721ClaimButton: React.FC<ClaimButtoProps> = ({
     }
     return max.toNumber();
   }, [
+    claimerProofs.data?.maxClaimable,
+    unclaimedSupply.data,
     activeClaimCondition.data?.maxClaimableSupply,
     activeClaimCondition.data?.maxClaimablePerWallet,
-    activeClaimCondition.data?.snapshot,
-    address,
-    unclaimedSupply.data,
   ]);
 
   const isSoldOut = useMemo(() => {
