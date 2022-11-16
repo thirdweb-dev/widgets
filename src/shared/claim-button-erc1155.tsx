@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import {
   DropContract,
-  useActiveClaimCondition,
+  useActiveClaimConditionForWallet,
   useAddress,
   useClaimConditions,
   useClaimerProofs,
@@ -49,7 +49,11 @@ export const ERC1155ClaimButton: React.FC<ClaimButtonProps> = ({
   const debouncedQuantity = useDebounce(quantity, 500);
 
   const claimConditions = useClaimConditions(contract);
-  const activeClaimCondition = useActiveClaimCondition(contract, tokenId);
+  const activeClaimCondition = useActiveClaimConditionForWallet(
+    contract,
+    address,
+    tokenId,
+  );
   const claimerProofs = useClaimerProofs(contract, address || "", tokenId);
   const claimIneligibilityReasons = useClaimIneligibilityReasons(
     contract,
