@@ -19,12 +19,12 @@ import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface TokenDropEmbedProps {
+interface Erc20EmbedProps {
   colorScheme: ColorMode;
   primaryColor: string;
   contractAddress: string;
 }
-const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
+const Erc20Embed: React.FC<Erc20EmbedProps> = ({
   contractAddress,
   colorScheme,
   primaryColor,
@@ -107,7 +107,7 @@ const App: React.FC = () => {
           }
           chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
-          <TokenDropEmbed
+          <Erc20Embed
             contractAddress={contractAddress}
             colorScheme={colorScheme}
             primaryColor={primaryColor}

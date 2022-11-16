@@ -78,7 +78,7 @@ jobs:
     needs: release
     strategy:
       matrix:
-        filename: ['marketplace.html', 'edition-drop.html', 'nft-drop.html', 'token-drop.html', 'signature-drop.html']
+        filename: ['marketplace.html', 'erc721.html', 'erc1155.html', 'erc20.html']
         gateway: ['ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'ipfs.thirdweb.com']
     steps:
       - name: Warming ${{ matrix.gateway }} - ${{ matrix.filename }}
