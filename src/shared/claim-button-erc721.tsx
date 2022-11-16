@@ -54,9 +54,6 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
     contract,
     address,
   );
-
-  console.log("*** activeClaimCondition", activeClaimCondition);
-
   const claimerProofs = useClaimerProofs(contract, address || "");
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
