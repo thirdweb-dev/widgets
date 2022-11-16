@@ -20,6 +20,8 @@ import {
   useClaimedNFTSupply,
   useClaimerProofs,
   useClaimIneligibilityReasons,
+  useContract,
+  useTokenSupply,
   useUnclaimedNFTSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
@@ -50,10 +52,17 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
   const claimConditions = useClaimConditions(contract);
   const activeClaimCondition = useActiveClaimCondition(contract);
   const claimerProofs = useClaimerProofs(contract, address || "");
+  const tokenQuery = useContract("0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6");
+
+  const tokenSymbol = useTokenSupply(tokenQuery.contract).data?.symbol;
+  console.log({ tokenQuery, tokenSymbol });
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
     walletAddress: address || "",
   });
+
+  console.log(claimerProofs);
+
   const unclaimedSupply = useUnclaimedNFTSupply(contract);
   const claimedSupply = useClaimedNFTSupply(contract);
 
@@ -68,18 +77,41 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
   }, [claimedSupply.data, unclaimedSupply.data]);
 
   const priceToMint = useMemo(() => {
-    const bnPrice = BigNumber.from(
-      activeClaimCondition.data?.currencyMetadata.value || 0,
-    );
-    return `${utils.formatUnits(
+    let bnPrice;
+    const snapshotPrice = claimerProofs.data?.price;
+
+    if (snapshotPrice) {
+      bnPrice = BigNumber.from(utils.parseEther(snapshotPrice));
+    } else {
+      bnPrice = BigNumber.from(
+        activeClaimCondition.data?.currencyMetadata.value || 0,
+      );
+    }
+
+    return utils.formatUnits(
       bnPrice.mul(quantity).toString(),
       activeClaimCondition.data?.currencyMetadata.decimals || 18,
-    )} ${activeClaimCondition.data?.currencyMetadata.symbol}`;
+    );
   }, [
     activeClaimCondition.data?.currencyMetadata.decimals,
-    activeClaimCondition.data?.currencyMetadata.symbol,
     activeClaimCondition.data?.currencyMetadata.value,
+    claimerProofs.data?.price,
     quantity,
+  ]);
+
+  const currencyToMint = useMemo(() => {
+    let currencySymbol;
+    const snapshotCurrency = claimerProofs.data?.currencyAddress;
+    if (snapshotCurrency) {
+      currencySymbol = tokenSymbol;
+    } else {
+      currencySymbol = activeClaimCondition.data?.currencyMetadata.symbol;
+    }
+    return currencySymbol;
+  }, [
+    activeClaimCondition.data?.currencyMetadata.symbol,
+    claimerProofs.data?.currencyAddress,
+    tokenSymbol,
   ]);
 
   const maxClaimable = useMemo(() => {
@@ -197,13 +229,10 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
     }
 
     if (canClaim) {
-      const pricePerToken = BigNumber.from(
-        activeClaimCondition.data?.currencyMetadata.value || 0,
-      );
-      if (pricePerToken.eq(0)) {
+      if (priceToMint === "0") {
         return "Mint (Free)";
       }
-      return `Mint (${priceToMint})`;
+      return `Mint (${priceToMint} ${currencyToMint})`;
     }
     if (claimIneligibilityReasons.data?.length) {
       return parseIneligibility(claimIneligibilityReasons.data, quantity);
@@ -212,14 +241,14 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
       return "Checking eligibility...";
     }
 
-    return "Claiming not available";
+    return "Minting not available";
   }, [
     isSoldOut,
     canClaim,
     claimIneligibilityReasons.data,
     buttonLoading,
-    activeClaimCondition.data?.currencyMetadata.value,
     priceToMint,
+    currencyToMint,
     quantity,
   ]);
 
