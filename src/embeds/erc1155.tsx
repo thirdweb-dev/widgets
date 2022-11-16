@@ -5,33 +5,36 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
-import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
+import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Body } from "src/shared/body";
-import { ERC721ClaimButton } from "../shared/claim-button-erc721";
-import { ContractMetadataPage } from "../shared/contract-metadata-page";
+import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
+import { parseIpfsGateway } from "src/utils/parseIpfsGateway";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
+import { TokenMetadataPage } from "../shared/token-metadata-page";
 
-interface SignatureDropEmbedProps {
+interface Erc1155EmbedProps {
   contractAddress: string;
+  tokenId: string;
   colorScheme: ColorMode;
   primaryColor: string;
 }
 
-const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
+const Erc1155Embed: React.FC<Erc1155EmbedProps> = ({
   contractAddress,
+  tokenId,
   colorScheme,
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: sigDrop } = useContract(contractAddress, "signature-drop");
+  const { contract } = useContract(contractAddress);
+  const { data: nft, isLoading } = useNFT(contract, tokenId);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -54,13 +57,14 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractMetadataPage contract={sigDrop}>
-          <ERC721ClaimButton
-            contract={sigDrop}
-            colorScheme={colorScheme}
+        <TokenMetadataPage metadata={nft?.metadata} isLoading={isLoading}>
+          <ERC1155ClaimButton
+            contract={contract}
+            tokenId={tokenId}
             primaryColor={primaryColor}
+            colorScheme={colorScheme}
           />
-        </ContractMetadataPage>
+        </TokenMetadataPage>
       </Body>
       <Footer />
     </Flex>
@@ -73,13 +77,15 @@ const App: React.FC = () => {
   const chainId = Number(urlParams.get("chainId"));
   const contractAddress = urlParams.get("contract") || "";
   const rpcUrl = urlParams.get("rpcUrl") || "";
+  const tokenId = urlParams.get("tokenId") || "0";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
   const biconomyApiId = urlParams.get("biconomyApiId") || "";
-  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
-  const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+
+  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
@@ -108,8 +114,9 @@ const App: React.FC = () => {
           }
           chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
-          <SignatureDropEmbed
+          <Erc1155Embed
             contractAddress={contractAddress}
+            tokenId={tokenId}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
           />

@@ -9,29 +9,28 @@ import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { Body } from "../shared/body";
-import { ERC721ClaimButton } from "../shared/claim-button-erc721";
-import { ContractMetadataPage } from "../shared/contract-metadata-page";
+import { Body } from "src/shared/body";
+import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
+import { ContractMetadataPage } from "src/shared/contract-metadata-page";
+import { Header } from "src/shared/header";
 import { Footer } from "../shared/footer";
-import { Header } from "../shared/header";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
-interface NFTDropEmbedProps {
-  contractAddress: string;
+interface Erc20EmbedProps {
   colorScheme: ColorMode;
   primaryColor: string;
+  contractAddress: string;
 }
-
-const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
+const Erc20Embed: React.FC<Erc20EmbedProps> = ({
   contractAddress,
   colorScheme,
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: nftDrop } = useContract(contractAddress, "nft-drop");
+  const { contract } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -54,14 +53,12 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractMetadataPage contract={nftDrop}>
-          {nftDrop && (
-            <ERC721ClaimButton
-              contract={nftDrop}
-              colorScheme={colorScheme}
-              primaryColor={primaryColor}
-            />
-          )}
+        <ContractMetadataPage contract={contract}>
+          <ERC20ClaimButton
+            contract={contract}
+            primaryColor={primaryColor}
+            colorScheme={colorScheme}
+          />
         </ContractMetadataPage>
       </Body>
       <Footer />
@@ -79,10 +76,9 @@ const App: React.FC = () => {
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
   const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
-
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
@@ -111,7 +107,7 @@ const App: React.FC = () => {
           }
           chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
-          <NFTDropEmbed
+          <Erc20Embed
             contractAddress={contractAddress}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
