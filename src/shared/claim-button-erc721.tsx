@@ -14,7 +14,6 @@ import {
 } from "@chakra-ui/react";
 import {
   DropContract,
-  useActiveClaimCondition,
   useActiveClaimConditionForWallet,
   useAddress,
   useClaimConditions,
