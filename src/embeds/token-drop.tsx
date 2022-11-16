@@ -30,7 +30,7 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: tokenDrop } = useContract(contractAddress, "token-drop");
+  const { contract } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -53,9 +53,9 @@ const TokenDropEmbed: React.FC<TokenDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractMetadataPage contract={tokenDrop}>
+        <ContractMetadataPage contract={contract}>
           <ERC20ClaimButton
-            contract={tokenDrop}
+            contract={contract}
             primaryColor={primaryColor}
             colorScheme={colorScheme}
           />

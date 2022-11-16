@@ -31,7 +31,7 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: sigDrop } = useContract(contractAddress, "signature-drop");
+  const { contract } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -54,9 +54,9 @@ const SignatureDropEmbed: React.FC<SignatureDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractMetadataPage contract={sigDrop}>
+        <ContractMetadataPage contract={contract}>
           <ERC721ClaimButton
-            contract={sigDrop}
+            contract={contract}
             colorScheme={colorScheme}
             primaryColor={primaryColor}
           />

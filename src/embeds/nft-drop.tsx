@@ -31,7 +31,7 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
   primaryColor,
 }) => {
   const { setColorMode } = useColorMode();
-  const { contract: nftDrop } = useContract(contractAddress, "nft-drop");
+  const { contract } = useContract(contractAddress);
 
   useEffect(() => {
     setColorMode(colorScheme);
@@ -54,14 +54,12 @@ const NFTDropEmbed: React.FC<NFTDropEmbedProps> = ({
     >
       <Header primaryColor={primaryColor} colorScheme={colorScheme} />
       <Body>
-        <ContractMetadataPage contract={nftDrop}>
-          {nftDrop && (
-            <ERC721ClaimButton
-              contract={nftDrop}
-              colorScheme={colorScheme}
-              primaryColor={primaryColor}
-            />
-          )}
+        <ContractMetadataPage contract={contract}>
+          <ERC721ClaimButton
+            contract={contract}
+            colorScheme={colorScheme}
+            primaryColor={primaryColor}
+          />
         </ContractMetadataPage>
       </Body>
       <Footer />
