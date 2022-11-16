@@ -15,6 +15,7 @@ import {
 import {
   DropContract,
   useActiveClaimCondition,
+  useActiveClaimConditionForWallet,
   useAddress,
   useClaimConditions,
   useClaimedNFTSupply,
@@ -48,7 +49,14 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
   const debouncedQuantity = useDebounce(quantity, 500);
 
   const claimConditions = useClaimConditions(contract);
-  const activeClaimCondition = useActiveClaimCondition(contract);
+
+  const activeClaimCondition = useActiveClaimConditionForWallet(
+    contract,
+    address,
+  );
+
+  console.log("*** activeClaimCondition", activeClaimCondition);
+
   const claimerProofs = useClaimerProofs(contract, address || "");
   const claimIneligibilityReasons = useClaimIneligibilityReasons(contract, {
     quantity: debouncedQuantity,
