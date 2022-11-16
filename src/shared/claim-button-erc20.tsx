@@ -13,6 +13,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import {
+  DropContract,
   useActiveClaimCondition,
   useAddress,
   useClaimConditions,
@@ -21,20 +22,20 @@ import {
   useTokenSupply,
   Web3Button,
 } from "@thirdweb-dev/react";
-import type { TokenDrop } from "@thirdweb-dev/sdk";
+import type { EditionDrop, NFTDrop, SignatureDrop } from "@thirdweb-dev/sdk";
 import { BigNumber, utils } from "ethers";
 import React, { useMemo, useState } from "react";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { useDebounce } from "./hooks/useDebounce";
 import chakraTheme from "./theme";
 
-interface ClaimButtoProps {
-  contract?: TokenDrop;
+interface ClaimButtonProps {
+  contract?: Exclude<DropContract, EditionDrop | SignatureDrop | NFTDrop>;
   primaryColor: string;
   colorScheme: ColorMode;
 }
 
-export const ERC20ClaimButton: React.FC<ClaimButtoProps> = ({
+export const ERC20ClaimButton: React.FC<ClaimButtonProps> = ({
   contract,
   primaryColor,
   colorScheme,
