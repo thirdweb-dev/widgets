@@ -214,7 +214,7 @@ export const ERC20ClaimButton: React.FC<ClaimButtonProps> = ({
       return "Checking eligibility...";
     }
 
-    return "Claiming not available";
+    return "Minting not available";
   }, [
     isSoldOut,
     canClaim,
