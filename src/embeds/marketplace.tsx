@@ -648,9 +648,8 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chainId = Number(urlParams.get("chainId"));
+  const chain = JSON.parse(urlParams.get("chain") || "");
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || "";
   const listingId = urlParams.get("listingId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
@@ -675,7 +674,7 @@ const App: React.FC = () => {
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          desiredChainId={chainId}
+          activeChain={chain}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway
@@ -686,7 +685,6 @@ const App: React.FC = () => {
                 })
               : undefined
           }
-          chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
           <MarketplaceEmbed
             contractAddress={contractAddress}
