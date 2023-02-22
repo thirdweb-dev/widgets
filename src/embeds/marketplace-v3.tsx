@@ -673,9 +673,8 @@ const MarketplaceV3Embed: React.FC<MarketplaceV3EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chainId = Number(urlParams.get("chainId"));
+  const chain = JSON.parse(urlParams.get("chain") || "");
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || "";
   const directListingId = urlParams.get("directListingId") || "";
   const englishAuctionId = urlParams.get("englishAuctionId") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
@@ -703,7 +702,7 @@ const App: React.FC = () => {
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          desiredChainId={chainId}
+          activeChain={chain}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway
@@ -714,7 +713,6 @@ const App: React.FC = () => {
                 })
               : undefined
           }
-          chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
           <MarketplaceV3Embed
             contractAddress={contractAddress}

@@ -74,18 +74,17 @@ const Erc1155Embed: React.FC<Erc1155EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chainId = Number(urlParams.get("chainId"));
+  const chain = JSON.parse(urlParams.get("chain") || "");
   const contractAddress = urlParams.get("contract") || "";
-  const rpcUrl = urlParams.get("rpcUrl") || "";
   const tokenId = urlParams.get("tokenId") || "0";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
   const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
-
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
+
+  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
@@ -101,7 +100,7 @@ const App: React.FC = () => {
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          desiredChainId={chainId}
+          activeChain={chain}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway
@@ -112,7 +111,6 @@ const App: React.FC = () => {
                 })
               : undefined
           }
-          chainRpc={rpcUrl ? { [chainId]: rpcUrl } : undefined}
         >
           <Erc1155Embed
             contractAddress={contractAddress}
