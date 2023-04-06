@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
       justify="flex-end"
       py={2}
     >
-      <ConnectWallet /* /* accentColor={accentColor} */  */ theme={colorScheme} />
+      <ConnectWallet /* accentColor={accentColor} */ theme={colorScheme} />
     </Stack>
   );
 };
