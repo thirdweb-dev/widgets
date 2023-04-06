@@ -51,7 +51,7 @@
     "@emotion/styled": "^11",
     "@thirdweb-dev/react": "^3.11.7-nightly-0db0cc75-20230406141716",
     "@thirdweb-dev/sdk": "^3.10.10-nightly-0db0cc75-20230406141716",
-    "@thirdweb-dev/storage": "^1.1.2-nightly-839fce1f-20230330211636",
+    "@thirdweb-dev/storage": "^1.1.2",
     "color": "^4.2.3",
     "ethers": "^5.7.0",
     "flat": "^5.0.2",
