@@ -22,7 +22,7 @@ import { TokenMetadataPage } from "../shared/token-metadata-page";
 interface Erc1155EmbedProps {
   contractAddress: string;
   tokenId: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   primaryColor: string;
 }
 

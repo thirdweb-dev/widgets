@@ -55,7 +55,7 @@ interface MarketplaceEmbedProps {
   rpcUrl?: string;
   contractAddress: string;
   listingId: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   primaryColor: string;
   secondaryColor: string;
 }
@@ -66,7 +66,7 @@ interface BuyPageProps {
   isLoading?: boolean;
   primaryColor: string;
   secondaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
 }
 
 interface AuctionListingProps extends BuyPageProps {
@@ -212,8 +212,8 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                 <LightMode>
                   <Web3Button
                     contractAddress={contract?.getAddress() || ""}
-                    accentColor={accentColor}
-                    colorMode={colorScheme}
+                    /* accentColor={accentColor} */
+                    theme={colorScheme}
                     isDisabled={
                       parseFloat(bid) <
                       parseFloat(valuesFormatted.mimimumBidNumber.toString())
@@ -259,8 +259,8 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                   <LightMode>
                     <Web3Button
                       contractAddress={contract?.getAddress() || ""}
-                      accentColor={accentColor}
-                      colorMode={colorScheme}
+                      /* accentColor={accentColor} */
+                      theme={colorScheme}
                       action={() => contract?.buyoutListing(listing.id)}
                       onSuccess={() => {
                         toast({
@@ -502,8 +502,8 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         <LightMode>
           <Web3Button
             contractAddress={contract?.getAddress() || ""}
-            accentColor={accentColor}
-            colorMode={colorScheme}
+            /* accentColor={accentColor} */
+            theme={colorScheme}
             isDisabled={!canClaim}
             action={() => contract?.buyoutListing(listing.id, quantity)}
             onSuccess={() => {

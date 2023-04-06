@@ -1,5 +1,4 @@
 import {
-  ColorMode,
   Flex,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -33,7 +32,7 @@ import chakraTheme from "./theme";
 interface ClaimButtonProps {
   contract?: Exclude<DropContract, TokenDrop | EditionDrop>;
   primaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
 }
 
 export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
@@ -291,11 +290,11 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
           </Skeleton>
         )}
         <Web3Button
-          colorMode={colorScheme}
+          /* accentColor={accentColor} */
+          theme={colorScheme}
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc721.claim(quantity)}
           isDisabled={!canClaim || buttonLoading}
-          accentColor={accentColor}
           onError={(err) => {
             console.error(err);
             toast({

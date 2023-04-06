@@ -32,7 +32,7 @@ import chakraTheme from "./theme";
 interface ClaimButtonProps {
   contract?: Exclude<DropContract, EditionDrop | SignatureDrop | NFTDrop>;
   primaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
 }
 
 export const ERC20ClaimButton: React.FC<ClaimButtonProps> = ({
@@ -289,11 +289,11 @@ export const ERC20ClaimButton: React.FC<ClaimButtonProps> = ({
           </Skeleton>
         )}
         <Web3Button
-          colorMode={colorScheme}
+          theme={colorScheme}
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc20.claim(quantity)}
           isDisabled={!canClaim || buttonLoading}
-          accentColor={accentColor}
+          /* accentColor={accentColor} */
           onError={(err) => {
             console.error(err);
             toast({

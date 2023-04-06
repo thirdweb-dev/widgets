@@ -1,12 +1,11 @@
 import { Stack } from "@chakra-ui/react";
 import { ConnectWallet } from "@thirdweb-dev/react";
-import { ColorMode } from "@thirdweb-dev/react/dist/declarations/src/evm/components/theme";
 import React from "react";
 import chakraTheme from "./theme";
 
 interface HeaderProps {
   primaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
       justify="flex-end"
       py={2}
     >
-      <ConnectWallet accentColor={accentColor} colorMode={colorScheme} />
+      <ConnectWallet /* /* accentColor={accentColor} */  */ theme={colorScheme} />
     </Stack>
   );
 };

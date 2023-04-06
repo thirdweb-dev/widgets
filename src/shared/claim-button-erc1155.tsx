@@ -33,7 +33,7 @@ interface ClaimButtonProps {
   contract?: Exclude<DropContract, TokenDrop | SignatureDrop | NFTDrop>;
   tokenId: BigNumberish;
   primaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
 }
 
 export const ERC1155ClaimButton: React.FC<ClaimButtonProps> = ({
@@ -296,11 +296,11 @@ export const ERC1155ClaimButton: React.FC<ClaimButtonProps> = ({
           </Skeleton>
         )}
         <Web3Button
-          colorMode={colorScheme}
+          theme={colorScheme}
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc1155.claim(tokenId, quantity)}
           isDisabled={!canClaim || buttonLoading}
-          accentColor={accentColor}
+          /* accentColor={accentColor} */
           onError={(err) => {
             console.error(err);
             toast({
