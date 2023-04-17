@@ -1,9 +1,4 @@
-import {
-  ChakraProvider,
-  ColorMode,
-  Flex,
-  useColorMode,
-} from "@chakra-ui/react";
+import { ChakraProvider, Flex, useColorMode } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
@@ -21,7 +16,7 @@ import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface Erc721EmbedProps {
   contractAddress: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   primaryColor: string;
 }
 

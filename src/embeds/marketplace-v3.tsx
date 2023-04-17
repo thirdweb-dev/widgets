@@ -56,7 +56,7 @@ interface MarketplaceV3EmbedProps {
   rpcUrl?: string;
   contractAddress: string;
   listingId: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   primaryColor: string;
   secondaryColor: string;
   type: string;
@@ -68,7 +68,7 @@ interface BuyPageProps {
   isLoading?: boolean;
   primaryColor: string;
   secondaryColor: string;
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   type: string;
 }
 
@@ -217,8 +217,10 @@ const EnglishAuctionComponent: React.FC<EnglishAuctionProps> = ({
                 <LightMode>
                   <Web3Button
                     contractAddress={contract?.getAddress() || ""}
-                    accentColor={accentColor}
-                    colorMode={colorScheme}
+                    style={{
+                      backgroundColor: accentColor,
+                    }}
+                    theme={colorScheme}
                     isDisabled={
                       parseFloat(bid) <
                       parseFloat(valuesFormatted.mimimumBidNumber.toString())
@@ -264,8 +266,10 @@ const EnglishAuctionComponent: React.FC<EnglishAuctionProps> = ({
                   <LightMode>
                     <Web3Button
                       contractAddress={contract?.getAddress() || ""}
-                      accentColor={accentColor}
-                      colorMode={colorScheme}
+                      style={{
+                        backgroundColor: accentColor,
+                      }}
+                      theme={colorScheme}
                       action={() =>
                         contract?.englishAuctions.buyoutAuction(listing.id)
                       }
@@ -509,8 +513,10 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         <LightMode>
           <Web3Button
             contractAddress={contract?.getAddress() || ""}
-            accentColor={accentColor}
-            colorMode={colorScheme}
+            style={{
+              backgroundColor: accentColor,
+            }}
+            theme={colorScheme}
             isDisabled={!canClaim}
             action={() =>
               contract?.directListings.buyFromListing(listing.id, quantity)

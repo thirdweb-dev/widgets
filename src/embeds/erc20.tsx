@@ -20,7 +20,7 @@ import { fontsizeCss } from "../shared/theme/typography";
 import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface Erc20EmbedProps {
-  colorScheme: ColorMode;
+  colorScheme: "light" | "dark";
   primaryColor: string;
   contractAddress: string;
 }

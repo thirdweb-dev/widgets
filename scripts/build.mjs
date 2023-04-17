@@ -16,7 +16,7 @@ esbuild
     bundle: true,
     minify: true,
     platform: "browser",
-    target: "es2018",
+    target: "es2020",
     outdir: "./esout",
 
 
@@ -24,6 +24,7 @@ esbuild
     write: false,
     sourcemap: false,
     define: {
+      global: 'globalThis',
       process: JSON.stringify({
         env: "production"
       })
