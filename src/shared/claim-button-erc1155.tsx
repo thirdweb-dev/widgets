@@ -300,7 +300,9 @@ export const ERC1155ClaimButton: React.FC<ClaimButtonProps> = ({
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc1155.claim(tokenId, quantity)}
           isDisabled={!canClaim || buttonLoading}
-          /* accentColor={accentColor} */
+          style={{
+            backgroundColor: accentColor,
+          }}
           onError={(err) => {
             console.error(err);
             toast({

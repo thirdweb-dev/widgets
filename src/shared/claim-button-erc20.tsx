@@ -293,7 +293,9 @@ export const ERC20ClaimButton: React.FC<ClaimButtonProps> = ({
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc20.claim(quantity)}
           isDisabled={!canClaim || buttonLoading}
-          /* accentColor={accentColor} */
+          style={{
+            backgroundColor: accentColor,
+          }}
           onError={(err) => {
             console.error(err);
             toast({

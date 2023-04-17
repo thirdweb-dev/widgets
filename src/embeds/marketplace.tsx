@@ -212,7 +212,9 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                 <LightMode>
                   <Web3Button
                     contractAddress={contract?.getAddress() || ""}
-                    /* accentColor={accentColor} */
+                    style={{
+                      backgroundColor: accentColor,
+                    }}
                     theme={colorScheme}
                     isDisabled={
                       parseFloat(bid) <
@@ -259,7 +261,9 @@ const AuctionListingComponent: React.FC<AuctionListingProps> = ({
                   <LightMode>
                     <Web3Button
                       contractAddress={contract?.getAddress() || ""}
-                      /* accentColor={accentColor} */
+                      style={{
+                        backgroundColor: accentColor,
+                      }}
                       theme={colorScheme}
                       action={() => contract?.buyoutListing(listing.id)}
                       onSuccess={() => {
@@ -502,7 +506,9 @@ const DirectListingComponent: React.FC<DirectListingProps> = ({
         <LightMode>
           <Web3Button
             contractAddress={contract?.getAddress() || ""}
-            /* accentColor={accentColor} */
+            style={{
+              backgroundColor: accentColor,
+            }}
             theme={colorScheme}
             isDisabled={!canClaim}
             action={() => contract?.buyoutListing(listing.id, quantity)}

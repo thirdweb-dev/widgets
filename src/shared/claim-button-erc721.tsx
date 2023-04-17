@@ -290,7 +290,10 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
           </Skeleton>
         )}
         <Web3Button
-          /* accentColor={accentColor} */
+          style={{
+            backgroundColor: accentColor,
+            color: "white",
+          }}
           theme={colorScheme}
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc721.claim(quantity)}
