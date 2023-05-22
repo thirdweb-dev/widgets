@@ -1,5 +1,4 @@
 import {
-  ColorMode,
   Flex,
   NumberDecrementStepper,
   NumberIncrementStepper,
