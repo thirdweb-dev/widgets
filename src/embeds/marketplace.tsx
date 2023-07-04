@@ -2,7 +2,6 @@ import {
   Button,
   Center,
   ChakraProvider,
-  ColorMode,
   Flex,
   Heading,
   Icon,
@@ -49,7 +48,6 @@ import { Footer } from "../shared/footer";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 
 interface MarketplaceEmbedProps {
   rpcUrl?: string;
@@ -664,7 +662,7 @@ const App: React.FC = () => {
   const primaryColor = urlParams.get("primaryColor") || "purple";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
 
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = urlParams.get("ipfsGateway");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
