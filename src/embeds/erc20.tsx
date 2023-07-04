@@ -1,9 +1,4 @@
-import {
-  ChakraProvider,
-  ColorMode,
-  Flex,
-  useColorMode,
-} from "@chakra-ui/react";
+import { ChakraProvider, Flex, useColorMode } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
@@ -17,7 +12,6 @@ import { Footer } from "../shared/footer";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
 
 interface Erc20EmbedProps {
@@ -87,7 +81,7 @@ const App: React.FC = () => {
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = urlParams.get("ipfsGateway");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 

@@ -50,7 +50,6 @@ import { Footer } from "../shared/footer";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { parseIpfsGateway } from "../utils/parseIpfsGateway";
 import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
 
 interface MarketplaceV3EmbedProps {
@@ -701,7 +700,7 @@ const App: React.FC = () => {
 
   const listingType = directListingId ? "direct-listing" : "english-auction";
 
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = urlParams.get("ipfsGateway");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 

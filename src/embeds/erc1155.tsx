@@ -1,9 +1,4 @@
-import {
-  ChakraProvider,
-  ColorMode,
-  Flex,
-  useColorMode,
-} from "@chakra-ui/react";
+import { ChakraProvider, Flex, useColorMode } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
@@ -11,7 +6,6 @@ import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Body } from "src/shared/body";
 import { ERC1155ClaimButton } from "src/shared/claim-button-erc1155";
-import { parseIpfsGateway } from "src/utils/parseIpfsGateway";
 import { Footer } from "../shared/footer";
 import { Header } from "../shared/header";
 import { useGasless } from "../shared/hooks/useGasless";
@@ -93,7 +87,7 @@ const App: React.FC = () => {
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
-  const ipfsGateway = parseIpfsGateway(urlParams.get("ipfsGateway") || "");
+  const ipfsGateway = urlParams.get("ipfsGateway");
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
