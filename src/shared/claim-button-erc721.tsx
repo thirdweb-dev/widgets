@@ -70,6 +70,8 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
       .toString();
   }, [claimedSupply.data, unclaimedSupply.data]);
 
+  const supplyIsZero = numberTotal === "0";
+
   const priceToMint = useMemo(() => {
     const bnPrice = BigNumber.from(
       activeClaimCondition.data?.currencyMetadata.value || 0,
@@ -195,6 +197,10 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
     [claimIneligibilityReasons.isLoading, isLoading],
   );
   const buttonText = useMemo(() => {
+    if (supplyIsZero) {
+      return "No item to mint";
+    }
+
     if (isSoldOut) {
       return "Sold Out";
     }
@@ -297,7 +303,7 @@ export const ERC721ClaimButton: React.FC<ClaimButtonProps> = ({
           theme={colorScheme}
           contractAddress={contract?.getAddress() || ""}
           action={(cntr) => cntr.erc721.claim(quantity)}
-          isDisabled={!canClaim || buttonLoading}
+          isDisabled={!canClaim || buttonLoading || supplyIsZero}
           onError={(err) => {
             console.error(err);
             toast({
