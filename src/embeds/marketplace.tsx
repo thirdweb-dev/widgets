@@ -1,7 +1,6 @@
 import {
   Button,
   Center,
-  ChakraProvider,
   Flex,
   Heading,
   Icon,
@@ -18,9 +17,7 @@ import {
   useColorMode,
   useToast,
 } from "@chakra-ui/react";
-import { css, Global } from "@emotion/react";
 import {
-  ThirdwebProvider,
   useAddress,
   useAuctionWinner,
   useBidBuffer,
@@ -35,7 +32,6 @@ import {
   ListingType,
   Marketplace,
 } from "@thirdweb-dev/sdk";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { BigNumber, utils } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -45,26 +41,21 @@ import { Body } from "src/shared/body";
 import { Header } from "src/shared/header";
 import { TokenMetadataPage } from "src/shared/token-metadata-page";
 import { Footer } from "../shared/footer";
-import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
-import { fontsizeCss } from "../shared/theme/typography";
+import AppLayout from "src/shared/app-layout";
+import { BaseEmbedProps, ThemeProps } from "src/shared/types/base";
 
-interface MarketplaceEmbedProps {
+interface MarketplaceEmbedProps extends BaseEmbedProps {
   rpcUrl?: string;
-  contractAddress: string;
   listingId: string;
-  colorScheme: "light" | "dark";
-  primaryColor: string;
   secondaryColor: string;
 }
 
-interface BuyPageProps {
+interface BuyPageProps extends ThemeProps {
   contract?: Marketplace;
   listing: DirectListing | AuctionListing;
   isLoading?: boolean;
-  primaryColor: string;
   secondaryColor: string;
-  colorScheme: "light" | "dark";
 }
 
 interface AuctionListingProps extends BuyPageProps {
@@ -652,54 +643,21 @@ const MarketplaceEmbed: React.FC<MarketplaceEmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chain = JSON.parse(urlParams.get("chain") || "");
   const contractAddress = urlParams.get("contract") || "";
   const listingId = urlParams.get("listingId") || "";
-  const relayerUrl = urlParams.get("relayUrl") || "";
-  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
-  const biconomyApiId = urlParams.get("biconomyApiId") || "";
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
-
-  const ipfsGateway = urlParams.get("ipfsGateway");
-
-  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
-
   return (
-    <>
-      <Global
-        styles={css`
-          :host,
-          :root {
-            ${fontsizeCss};
-          }
-        `}
+    <AppLayout urlParams={urlParams}>
+      <MarketplaceEmbed
+        contractAddress={contractAddress}
+        listingId={listingId}
+        colorScheme={colorScheme}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
       />
-      <ChakraProvider theme={chakraTheme}>
-        <ThirdwebProvider
-          activeChain={chain}
-          sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway
-              ? new ThirdwebStorage({
-                  gatewayUrls: {
-                    "ipfs://": [ipfsGateway],
-                  },
-                })
-              : undefined
-          }
-        >
-          <MarketplaceEmbed
-            contractAddress={contractAddress}
-            listingId={listingId}
-            colorScheme={colorScheme}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
-        </ThirdwebProvider>
-      </ChakraProvider>
-    </>
+    </AppLayout>
   );
 };
 

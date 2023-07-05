@@ -1,7 +1,5 @@
-import { ChakraProvider, Flex, useColorMode } from "@chakra-ui/react";
-import { css, Global } from "@emotion/react";
-import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
+import { Flex, useColorMode } from "@chakra-ui/react";
+import { useContract } from "@thirdweb-dev/react";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Body } from "src/shared/body";
@@ -9,16 +7,11 @@ import { ERC20ClaimButton } from "src/shared/claim-button-erc20";
 import { ContractMetadataPage } from "src/shared/contract-metadata-page";
 import { Header } from "src/shared/header";
 import { Footer } from "../shared/footer";
-import { useGasless } from "../shared/hooks/useGasless";
-import chakraTheme from "../shared/theme";
-import { fontsizeCss } from "../shared/theme/typography";
-import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
+import AppLayout from "src/shared/app-layout";
+import { BaseEmbedProps } from "src/shared/types/base";
 
-interface Erc20EmbedProps {
-  colorScheme: "light" | "dark";
-  primaryColor: string;
-  contractAddress: string;
-}
+interface Erc20EmbedProps extends BaseEmbedProps {}
+
 const Erc20Embed: React.FC<Erc20EmbedProps> = ({
   contractAddress,
   colorScheme,
@@ -64,59 +57,17 @@ const Erc20Embed: React.FC<Erc20EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chain =
-    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
-      ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain");
-  const tempChain = getChainBySlug(
-    typeof chain === "string" ? chain : chain.slug,
-  );
-  const activeChain: Chain | string =
-    typeof chain === "string" ? chain : { ...chain, icon: tempChain.icon };
   const contractAddress = urlParams.get("contract") || "";
-  const relayerUrl = urlParams.get("relayUrl") || "";
-  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
-  const biconomyApiId = urlParams.get("biconomyApiId") || "";
-
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
-
-  const ipfsGateway = urlParams.get("ipfsGateway");
-
-  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
-
   return (
-    <>
-      <Global
-        styles={css`
-          :host,
-          :root {
-            ${fontsizeCss};
-          }
-        `}
+    <AppLayout urlParams={urlParams}>
+      <Erc20Embed
+        contractAddress={contractAddress}
+        colorScheme={colorScheme}
+        primaryColor={primaryColor}
       />
-      <ChakraProvider theme={chakraTheme}>
-        <ThirdwebProvider
-          activeChain={activeChain}
-          sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway
-              ? new ThirdwebStorage({
-                  gatewayUrls: {
-                    "ipfs://": [ipfsGateway],
-                  },
-                })
-              : undefined
-          }
-        >
-          <Erc20Embed
-            contractAddress={contractAddress}
-            colorScheme={colorScheme}
-            primaryColor={primaryColor}
-          />
-        </ThirdwebProvider>
-      </ChakraProvider>
-    </>
+    </AppLayout>
   );
 };
 

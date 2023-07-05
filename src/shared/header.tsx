@@ -1,11 +1,9 @@
 import { Stack } from "@chakra-ui/react";
 import { ConnectWallet } from "@thirdweb-dev/react";
 import React from "react";
+import { ThemeProps } from "./types/base";
 
-interface HeaderProps {
-  primaryColor: string;
-  colorScheme: "light" | "dark";
-}
+interface HeaderProps extends ThemeProps {}
 
 export const Header: React.FC<HeaderProps> = ({ colorScheme }) => {
   return (

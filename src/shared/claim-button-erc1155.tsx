@@ -27,12 +27,11 @@ import React, { useMemo, useState } from "react";
 import { parseIneligibility } from "../utils/parseIneligibility";
 import { useDebounce } from "./hooks/useDebounce";
 import chakraTheme from "./theme";
+import { ThemeProps } from "./types/base";
 
-interface ClaimButtonProps {
+interface ClaimButtonProps extends ThemeProps {
   contract?: Exclude<DropContract, TokenDrop | SignatureDrop | NFTDrop>;
   tokenId: BigNumberish;
-  primaryColor: string;
-  colorScheme: "light" | "dark";
 }
 
 export const ERC1155ClaimButton: React.FC<ClaimButtonProps> = ({

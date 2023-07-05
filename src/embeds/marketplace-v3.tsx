@@ -1,8 +1,6 @@
 import {
   Button,
   Center,
-  ChakraProvider,
-  ColorMode,
   Flex,
   Heading,
   Icon,
@@ -19,9 +17,7 @@ import {
   useColorMode,
   useToast,
 } from "@chakra-ui/react";
-import { css, Global } from "@emotion/react";
 import {
-  ThirdwebProvider,
   useAddress,
   useAuctionWinner,
   useBidBuffer,
@@ -37,7 +33,6 @@ import {
   DirectListingV3,
   EnglishAuction,
 } from "@thirdweb-dev/sdk/dist/declarations/src/evm/types/marketplacev3";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { BigNumber, utils } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -47,28 +42,22 @@ import { Body } from "src/shared/body";
 import { Header } from "src/shared/header";
 import { TokenMetadataPage } from "src/shared/token-metadata-page";
 import { Footer } from "../shared/footer";
-import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
-import { fontsizeCss } from "../shared/theme/typography";
-import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
+import AppLayout from "src/shared/app-layout";
+import { BaseEmbedProps, ThemeProps } from "src/shared/types/base";
 
-interface MarketplaceV3EmbedProps {
+interface MarketplaceV3EmbedProps extends BaseEmbedProps {
   rpcUrl?: string;
-  contractAddress: string;
   listingId: string;
-  colorScheme: "light" | "dark";
-  primaryColor: string;
   secondaryColor: string;
   type: string;
 }
 
-interface BuyPageProps {
+interface BuyPageProps extends ThemeProps {
   contract?: MarketplaceV3;
   listing: DirectListingV3 | EnglishAuction;
   isLoading?: boolean;
-  primaryColor: string;
   secondaryColor: string;
-  colorScheme: "light" | "dark";
   type: string;
 }
 
@@ -679,70 +668,26 @@ const MarketplaceV3Embed: React.FC<MarketplaceV3EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chain =
-    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
-      ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain");
-  const tempChain = getChainBySlug(
-    typeof chain === "string" ? chain : chain.slug,
-  );
-  const activeChain: Chain | string =
-    typeof chain === "string" ? chain : { ...chain, icon: tempChain.icon };
   const contractAddress = urlParams.get("contract") || "";
   const directListingId = urlParams.get("directListingId") || "";
   const englishAuctionId = urlParams.get("englishAuctionId") || "";
-  const relayerUrl = urlParams.get("relayUrl") || "";
-  const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
-  const biconomyApiId = urlParams.get("biconomyApiId") || "";
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
   const secondaryColor = urlParams.get("secondaryColor") || "orange";
-
   const listingType = directListingId ? "direct-listing" : "english-auction";
-
-  const ipfsGateway = urlParams.get("ipfsGateway");
-
-  const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
-
   return (
-    <>
-      <Global
-        styles={css`
-          :host,
-          :root {
-            ${fontsizeCss};
-          }
-        `}
+    <AppLayout urlParams={urlParams}>
+      <MarketplaceV3Embed
+        contractAddress={contractAddress}
+        listingId={
+          listingType === "direct-listing" ? directListingId : englishAuctionId
+        }
+        colorScheme={colorScheme}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        type={listingType}
       />
-      <ChakraProvider theme={chakraTheme}>
-        <ThirdwebProvider
-          activeChain={activeChain}
-          sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway
-              ? new ThirdwebStorage({
-                  gatewayUrls: {
-                    "ipfs://": [ipfsGateway],
-                  },
-                })
-              : undefined
-          }
-        >
-          <MarketplaceV3Embed
-            contractAddress={contractAddress}
-            listingId={
-              listingType === "direct-listing"
-                ? directListingId
-                : englishAuctionId
-            }
-            colorScheme={colorScheme}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-            type={listingType}
-          />
-        </ThirdwebProvider>
-      </ChakraProvider>
-    </>
+    </AppLayout>
   );
 };
 
