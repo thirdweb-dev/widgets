@@ -12,7 +12,6 @@ import { Header } from "../shared/header";
 import { useGasless } from "../shared/hooks/useGasless";
 import chakraTheme from "../shared/theme";
 import { fontsizeCss } from "../shared/theme/typography";
-import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
 
 interface Erc721EmbedProps {
   contractAddress: string;
@@ -65,15 +64,7 @@ const Erc721Embed: React.FC<Erc721EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chain =
-    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
-      ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain");
-  const tempChain = getChainBySlug(
-    typeof chain === "string" ? chain : chain.slug,
-  );
-  const activeChain: Chain | string =
-    typeof chain === "string" ? chain : { ...chain, icon: tempChain.icon };
+  const chain = JSON.parse(urlParams.get("chain") || "");
   const contractAddress = urlParams.get("contract") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
@@ -98,7 +89,7 @@ const App: React.FC = () => {
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          activeChain={activeChain}
+          activeChain={chain}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway
