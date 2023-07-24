@@ -64,7 +64,10 @@ const Erc721Embed: React.FC<Erc721EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
-  const chain = JSON.parse(urlParams.get("chain") || "");
+  const chain =
+    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
+      ? JSON.parse(String(urlParams.get("chain")))
+      : urlParams.get("chain") || "";
   const contractAddress = urlParams.get("contract") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
