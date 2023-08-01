@@ -7,7 +7,6 @@ import { FC, ReactNode } from "react";
 import { useGasless } from "./hooks/useGasless";
 import chakraTheme from "./theme";
 import { fontsizeCss } from "./theme/typography";
-import { Chain, getChainBySlug } from "@thirdweb-dev/chains";
 
 const AppLayout: FC<{ urlParams: URLSearchParams; children: ReactNode }> = ({
   urlParams,
@@ -16,12 +15,7 @@ const AppLayout: FC<{ urlParams: URLSearchParams; children: ReactNode }> = ({
   const chain =
     urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
       ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain");
-  const tempChain = getChainBySlug(
-    typeof chain === "string" ? chain : chain.slug,
-  );
-  const activeChain: Chain | string =
-    typeof chain === "string" ? chain : { ...chain, icon: tempChain.icon };
+      : urlParams.get("chain") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
   const biconomyApiId = urlParams.get("biconomyApiId") || "";
@@ -40,7 +34,7 @@ const AppLayout: FC<{ urlParams: URLSearchParams; children: ReactNode }> = ({
       />
       <ChakraProvider theme={chakraTheme}>
         <ThirdwebProvider
-          activeChain={activeChain}
+          activeChain={chain}
           sdkOptions={sdkOptions}
           storageInterface={
             ipfsGateway

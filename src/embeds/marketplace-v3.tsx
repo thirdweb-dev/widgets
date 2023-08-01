@@ -248,7 +248,7 @@ const EnglishAuctionComponent: React.FC<EnglishAuctionProps> = ({
               {BigNumber.from(listing.buyoutBidAmount).gt(0) && (
                 <Tooltip
                   label={`
-                      You can buyout this auction to instantly purchase 
+                      You can buyout this auction to instantly purchase
                       all the listed assets and end the bidding process.
                     `}
                 >
