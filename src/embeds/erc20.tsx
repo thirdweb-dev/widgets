@@ -1,4 +1,4 @@
-import { ChakraProvider, Flex, useColorMode } from "@chakra-ui/react";
+import { ChakraProvider, Flex, useColorMode, Text } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract } from "@thirdweb-dev/react";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
@@ -79,6 +79,13 @@ const App: React.FC = () => {
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
+  const clientId = urlParams.get("clientId") || "";
+  if (!clientId) {
+    return (
+      <Text>Client ID is required as a query param to use this page.</Text>
+    );
+  }
+
   return (
     <>
       <Global
@@ -102,6 +109,7 @@ const App: React.FC = () => {
                 })
               : undefined
           }
+          clientId={clientId}
         >
           <Erc20Embed
             contractAddress={contractAddress}
