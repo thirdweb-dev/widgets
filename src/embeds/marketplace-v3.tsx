@@ -697,6 +697,13 @@ const App: React.FC = () => {
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
+  const clientId = urlParams.get("clientId") || "";
+  if (!clientId) {
+    return (
+      <Text>Client ID is required as a query param to use this page.</Text>
+    );
+  }
+
   return (
     <>
       <Global
@@ -720,6 +727,7 @@ const App: React.FC = () => {
                 })
               : undefined
           }
+          clientId={clientId}
         >
           <MarketplaceV3Embed
             contractAddress={contractAddress}
