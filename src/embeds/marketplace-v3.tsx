@@ -36,7 +36,6 @@ import {
   DirectListingV3,
   EnglishAuction,
 } from "@thirdweb-dev/sdk/dist/declarations/src/evm/types/marketplacev3";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { BigNumber, utils } from "ethers";
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -693,8 +692,6 @@ const App: React.FC = () => {
 
   const listingType = directListingId ? "direct-listing" : "english-auction";
 
-  const ipfsGateway = urlParams.get("ipfsGateway");
-
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   const clientId = urlParams.get("clientId") || "";
@@ -718,15 +715,6 @@ const App: React.FC = () => {
         <ThirdwebProvider
           activeChain={chain}
           sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway
-              ? new ThirdwebStorage({
-                  gatewayUrls: {
-                    "ipfs://": [ipfsGateway],
-                  },
-                })
-              : undefined
-          }
           clientId={clientId}
         >
           <MarketplaceV3Embed

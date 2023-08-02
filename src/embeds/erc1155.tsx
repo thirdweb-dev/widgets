@@ -1,7 +1,6 @@
 import { ChakraProvider, Flex, useColorMode, Text } from "@chakra-ui/react";
 import { css, Global } from "@emotion/react";
 import { ThirdwebProvider, useContract, useNFT } from "@thirdweb-dev/react";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Body } from "src/shared/body";
@@ -81,8 +80,6 @@ const App: React.FC = () => {
   const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
-  const ipfsGateway = urlParams.get("ipfsGateway");
-
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
 
   const clientId = urlParams.get("clientId") || "";
@@ -106,15 +103,6 @@ const App: React.FC = () => {
         <ThirdwebProvider
           activeChain={chain}
           sdkOptions={sdkOptions}
-          storageInterface={
-            ipfsGateway
-              ? new ThirdwebStorage({
-                  gatewayUrls: {
-                    "ipfs://": [ipfsGateway],
-                  },
-                })
-              : undefined
-          }
           clientId={clientId}
         >
           <Erc1155Embed

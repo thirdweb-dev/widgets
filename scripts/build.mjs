@@ -18,8 +18,6 @@ esbuild
     platform: "browser",
     target: "es2020",
     outdir: "./esout",
-
-
     splitting: false,
     write: false,
     sourcemap: false,
@@ -29,6 +27,7 @@ esbuild
         env: "production"
       })
     },
+    external: ['crypto'],
   })
   .then((result) => {
     for (const file of result.outputFiles) {
