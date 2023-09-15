@@ -676,10 +676,13 @@ const MarketplaceV3Embed: React.FC<MarketplaceV3EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
+  const _chain = urlParams.get("chain");
   const chain =
-    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
-      ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain") || "";
+    _chain && _chain?.startsWith("{")
+      ? JSON.parse(String(_chain))
+      : _chain?.startsWith("%7B")
+      ? JSON.parse(decodeURIComponent(_chain))
+      : _chain || "";
   const contractAddress = urlParams.get("contract") || "";
   const directListingId = urlParams.get("directListingId") || "";
   const englishAuctionId = urlParams.get("englishAuctionId") || "";

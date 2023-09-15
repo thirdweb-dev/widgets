@@ -62,10 +62,13 @@ const Erc20Embed: React.FC<Erc20EmbedProps> = ({
 const urlParams = new URL(window.location.toString()).searchParams;
 
 const App: React.FC = () => {
+  const _chain = urlParams.get("chain");
   const chain =
-    urlParams.get("chain") && urlParams.get("chain")?.startsWith("{")
-      ? JSON.parse(String(urlParams.get("chain")))
-      : urlParams.get("chain") || "";
+    _chain && _chain?.startsWith("{")
+      ? JSON.parse(String(_chain))
+      : _chain?.startsWith("%7B")
+      ? JSON.parse(decodeURIComponent(_chain))
+      : _chain || "";
   const contractAddress = urlParams.get("contract") || "";
   const relayerUrl = urlParams.get("relayUrl") || "";
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
