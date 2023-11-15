@@ -77,7 +77,13 @@ const App: React.FC = () => {
   const biconomyApiKey = urlParams.get("biconomyApiKey") || "";
   const biconomyApiId = urlParams.get("biconomyApiId") || "";
 
-  const colorScheme = urlParams.get("theme") === "dark" ? "dark" : "light";
+  let _theme = urlParams.get("theme");
+  if (_theme === "system") {
+    _theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  const colorScheme = _theme === "dark" ? "dark" : "light";
   const primaryColor = urlParams.get("primaryColor") || "purple";
 
   const sdkOptions = useGasless(relayerUrl, biconomyApiKey, biconomyApiId);
